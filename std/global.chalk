@@ -1,0 +1,49 @@
+/**
+ * This module is imported by default into every module.
+**/
+
+import { Number } from "std/types.chalk";
+import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
+
+export trait Object {}
+
+export class Union<> {
+  pub Bool hasValue<X>() {}
+  pub ~*X getValue<X>() {}
+  pub ~*~X getValue<X>() ~ {}
+}
+
+export trait Optional<T : Nullable> {
+  T value(T.null);
+  
+  pub Bool hasValue() { return value == T.null }
+  pub ~*T getValue() {
+    value == T.null
+          ? error("Optional type does not have a value.") : return value;
+  }
+  pub ~*~T getValue() ~ { return *Optional.from(this).getValue(); }
+  
+}
+
+export trait Optional<T> {}
+
+export trait Array<T, Int<?> size> {
+  T elem;
+  Array<T, size > 0 ? size - 1 : 0> arr;
+  
+  ~*T at(Int<?> i) {
+    if (i >)
+    
+    *T e = elem;
+    
+    return unsafe e + i;
+  }
+}
+
+export trait Array<T, ~Int size> {}
+
+export class Int<Int i> : Number {}
+
+export class String<String.Encoding = String.Encoding.UTF8> {}
+
+export enum Bool = { true, false }
