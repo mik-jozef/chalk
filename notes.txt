@@ -9,6 +9,8 @@ Go      https://golang.org/
 ```
 
 TODO
+Optional.isNull();
+error on `?~Type`
 Object.shrink() - shrinks all members, eg. unused memory in dynamic arrays
 compiler - make it error to compare value with null, because it is always false
 import "x" using allocator?
@@ -44,6 +46,11 @@ online repl that can also handle directory uploads of whole projects
 feature: request fast persistent memory - useful on pcs that have just a few GB of SSD
 trailing comma allowed if closing parenthesis/bracket/whatever is on next line
 Error class, destructor throws if ignore() wasn't called
+warn on `x && Int32 x(0)` (ERRCODE: Variable declaration in implicit scope);
+trait Indexable {
+  fromTo
+  fromLen
+}
 
 chalk run main.cpp # runs interpreter
 chalk exec "noreturn main() { /* ... */ }"
@@ -52,6 +59,8 @@ chalk translate file.js out.elf --noStyleFormat
 chalk install regerex npm/react-router
 chalk publish . patch/minor/major
 chalk debug out.elf
+chalk repair file.chalk # first formats code? and interactively offers automatic fixes to errors
+chalk error ERRCODE # prints detailed help for error ERRCODE
 
 
 trait Object {
@@ -61,7 +70,7 @@ trait Object {
     return T.equals(a, b);
   }
   
-  static equals<Type>() { return false }
+  static equals<Self>() { return false }
 }
 
 class T {}        - definition

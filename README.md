@@ -23,9 +23,9 @@ A collection of ideas that I hope will turn into a working programming language.
 - garbage collection
 - significant whitespace
 - (probably) class inheritance, definitely not multiple inheritance
-- wrong methods being called because of polymorphism
+- wrong methods called because of polymorphism
 - statements; everything is an expression
-- synchronous IO
+- synchronous IO (but there is compile-time IO)
 - user defined glabal variables
 - namespaces
 - duck typing, including in templates
@@ -33,19 +33,32 @@ A collection of ideas that I hope will turn into a working programming language.
 
 ### Types
 
-Every type is either a class, trait, `void` or `noreturn`.
+Every type is either a class or a trait. Special types `void` and `noreturn` are
+returned by expressions that don't return anything or don't return at all.
 
 #### Basic types
-`Object` - trait that every type implicitly implements.
+You can find more at TODO link to standard library.
 
-Integers: `Int8`, `Int16`, `Int32`, `Int64`.
-Floating-point numbers: `Float32`, `Float64`.
+| Type      | Description
+| ----      | ----
+| `Object`  | Trait that every class implicitly implements.
+| `Int8`    | Signed 8-bit integer.
+| `Int16`   | Signed 16-bit integer.
+| `Int32`   | Signed 32-bit integer.
+| `Int64`   | Signed 64-bit integer.
+| `Float32` | 32-bit floating-point number.
+| `Float64` | 64-bit floating-point number.
+| `Bool`    | Boolean, `true` or `false`.
+| `String`  | Utf8 string.
 
-`Bool` - `true`, `false`.
+#### Variables and literals
 
-`String` - a utf8 string.
+Variables are defined like this: `Type varname(args, to, constructor);`.
 
-Variable declaration: `Type varname(args);`
+There are two special values, `null`, which is assignable to (any) optional type,
+and `undefined`, which is used to leave variables uninitialized (but must be used
+with the `unsafe` keyword). Unlike in many programming languages, `null == null`
+is false.
 
 #### Type modifiers
 `~T` - makes a type modifiable, types are constant by default.
@@ -55,11 +68,12 @@ Type modifiers affect all variables in a single declaration, not just one.
 #### Syntactic sugar
 `*T = Ptr<T>` - Pointer to T.
 `?T = Optional<T>` - Optional T, can be null.
-`[]T = Array<T>` - Resizable array of T, starts with zero length.
+`[]T = Array<T>` - Resizable array of T.
 `[3]T = Array<T, 3>` - Array of T with length 3.
 
 Pointers also need to be optional to be able to hold null.
-Floats cannot be NaN, but optional floats can be null. `null == null` is false.
+
+Floats cannot be NaN, but optional floats can be null.
 
 Some examples:
 
@@ -80,10 +94,41 @@ Some examples:
 Additionally, there is unsafe `?T -> T`, see `unsafe` keyword.
 
 ### Modules
-JavaScript syntax
+A single program is typically written in multiple files. Each file that contains
+code is a module.
+
+To use a piece of code from module "a.chalk" in module "b.chalk", module "a.chalk"
+must first export it.
 
 ```
-import {} from "std/default.chalk"; // disables values imported by default
+// a.chalk
+
+export class Car {};
+
+export Int32 var = 5;
+
+class X {};
+
+function foo() {}
+
+export { X, foo };
+```
+
+Code exported from other modules (including the standard library) can be imported
+in other modules. Unless the module `std/default-import.chalk` is imported
+explicitly, everything from it is imported by default.
+
+```
+// b.chalk
+
+import { Car, var, foo } from "./a.chalk";
+```
+
+Import expressions must be part of the module scope (conditional operator implicitly
+creates a new scope even without braces).
+
+```
+import { class Car, } from "std/default.chalk"; // disables values imported by default
 ```
 
 ### Control flow
@@ -120,7 +165,7 @@ TODO precedence
 
 Modulo uses euclidean division, ie `0 <= a % b < b`.
 
-Some operators are syntactic sugar for method calls, so it's possible to emulate
+Most operators are syntactic sugar for method calls, so it's possible to emulate
 operator overloading by implementing certain traits.
 
 | Operator    | Sugar for          | Trait
@@ -143,7 +188,7 @@ operator overloading by implementing certain traits.
 | `a & b`     | `Int.and(a, b)`    | (must be `Int`)
 | `a | b`     | `Int.or(a, b)`     | (must be `Int`)
 | `a ^ b`     | `Int.xor(a, b)`    | (must be `Int`)
-| `!a`        | `Int.not(a)` or `Bool.not(a)` | (must be `Int` or `Bool`)
+| `!a`        | `Bool.not(a)`      | (must be `Bool`)
 | `a == b`    | `Object.equals(a, b)`       | Object
 | `a != b`    | `!Object.equals(a, b)`      | Object
 | `a < b`     | `Comparable.cmp(a, b) < 0`  | Comparable
@@ -151,10 +196,10 @@ operator overloading by implementing certain traits.
 | `a <= b`    | `Comparable.cmp(a, b) <= 0` | Comparable
 | `a >= b`    | `Comparable.cmp(a, b) >= 0` | Comparable
 | `a <=> b`   | `Comparable.cmp(a, b)`      | Comparable
-| `a[b]`      | `a.get(b)`         | (`a` must be `Map`)
-| `a = b`     | `a.assign(b)`      | Object
+| `a = b`     | `a.assign(b)`      | (`a` must be `Object`)
 | `?a`        | `a.hasValue()`     | (`a` must be `Optional`)
 | `??a`       | `a.getValue()`     | (`a` must be `Optional`)
+| `a[b]`      | `a.get(b)`         | (`a` must be `Indexable`)
 
 Operators that are not syntactic sugar:
 
@@ -162,14 +207,24 @@ Operators that are not syntactic sugar:
 | -------     | -------       | -----------
 | `a.b`       | Member access | Type of `b`
 | `a && b`    | Logical and   | `Bool` if `a` and `b` are `Bool`, else `void`.
-| `a || b`    | Logical or    | `Bool`
+| `a || b`    | Logical or    | `Bool` if `a` and `b` are `Bool`, else `void`.
 | `a ? b : c` | Conditional   | See below
 
-The return type of conditional operator is any type that is type of both `b`
-and `c`, or `void`. The first operand of conditional, logical and and logical or
-must be `Bool`.
+The first operand of *conditional*, *logical and* and *logical or* operators must
+be `Bool`.
 
-TODO type conversion, arithmetic and logical shift
+TODO move this to spec, too long:
+If the type of either second or third operand of conditional operator is `noreturn`,
+then the type of the return value and both operands must be `noreturn`.
+If the type of either second or third operand of conditional operator is `void`,
+then the type of the return value is also `void`.
+If the types of the second and third operands are the same, then the type of return
+value is also of the same type.
+Else the return type of conditional operator is class X : All Traits Shared By Both
+
+The `Type.from` method is the canonical way to convert between types.
+
+TODO arithmetic and logical shift
 
 ### Functions
 Function definition: `ReturnType name(ParamList param1, /*...*/) {/*...*/}`
@@ -345,6 +400,7 @@ a type can implement Nullable, save space if optional
 trait can require methods and variables (Nullable<T> requires get static T null)
 custom object file format suited for modern programming concepts
 function overloading
+type generics should always be inferred
 ? coroutines can share the same thread or execute in parallel (data implicitly
   thread-local, message passing, some safe way of sharing `shared` variables)
 symbols
@@ -424,6 +480,9 @@ Allocators and a type for stack frames? Function.StackFrame or StackFrame<*Funct
 A single Function type for all types of functions, no special function pointer
 Allocator<X> trait, DefaultAllocator<X> class
 `auto` keyword
+If a package p imports package q, the completion of q's init functions happens
+  before the start of any of p's. The start of the function main happens after
+  all init functions have finished.
 
 
 
