@@ -1,0 +1,54 @@
+/**
+ * Main file.
+**/
+
+void printHelp() {
+  
+}
+
+void printUnknown() {
+  
+}
+
+void run(String file) {
+  
+}
+
+void exec(String code) {
+  
+}
+
+void translate(String sourcePath, String outPath) {
+  
+}
+
+noreturn main([]String args) {
+  args.length == 0 && printHelp();
+  
+  switch (args[0]) {
+    case "run": {
+      args.length > 2 && println("Too many arguments.");
+      args.length < 2 && println("Missing argument - file to run.");
+      
+      run(args[1]);
+    }
+    case "exec": {
+      args.length > 2 && println("Too many arguments.");
+      args.length < 2 && println("Missing argument - code to execute.");
+      
+      exec(args[1]);
+    }
+    case "debug": TODO
+    case "translate": {
+      args.length > 3 && println("Too many arguments.");
+      args.length < 3 && println("Missing arguments.");
+      
+      translate(args[1], args[2]);
+    }
+    case "install":
+    case "publish":
+    case "fix":
+    case "help": printHelp();
+    case _: printUnknown();
+  }
+}

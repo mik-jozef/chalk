@@ -32,6 +32,7 @@ generate warning if unsafe code is safe
 program is safe if every `unsafe` code is provably safe
 string implements Buffer
 main returns noreturn
+array.size, not array length
 class Defer - runs functions when destructed
 json support
 html library for gui, chalk to webasm
@@ -39,29 +40,57 @@ forEach - two overloads: one accepts a function that returns void, one that retu
   Bool, stops when true or false (which?) is returned.
 division accepts maybe numbers and returns maybe number, can return a number if
   denominator is provably not null
+warn on TODO comments
+continue is not allowed in type switch
+optimizations - range for should be compiled to iterator, foreach in tree should be converted from
+  recursive to loop and inlined
+warning or error if multiple declarations in the same expression?
+Add compiler warning "useless trait type". Plenty of Java devs will do `Set x = HashSet()`
 Ptr, UniquePtr, SharedPtr, (MarkSweepPtr?)
 functions must explicitly return, other blocks of code return the last expression
 class Class - used in reflection, const and not copyable
 online repl that can also handle directory uploads of whole projects
-feature: request fast persistent memory - useful on pcs that have just a few GB of SSD
+repl requires three newlines to eval
+`return { code block; }` is error?
+let library authors release codemods - eg. to rename an identifier, ...
+just one type for functions
+should all fields be modifiable in constructor and assign function?
+request fast persistent memory - useful on pcs that have just a few GB of SSD
 trailing comma allowed if closing parenthesis/bracket/whatever is on next line
 Error class, destructor throws if ignore() wasn't called
+prefer start - end to start - length, because some types are orderable even if the
+difference is not measurable
+warning: function can be static
+compile option: --all-generic
+optimize out object creation in argument instead of having emplace?
 warn on `x && Int32 x(0)` (ERRCODE: Variable declaration in implicit scope);
-trait Indexable {
-  fromTo
-  fromLen
-}
+small standard library, official packages in userland
+ability to inspect (and/or redirect) stdout?
+
+
+```
+Array.dimensionOf(nonArrayType) = 0
+Array.dimensionOf(ArrayType<ValueType>) = comptime 1 + Array.dimensionOf(ValueType);
+```
+
+out formats - elf, web, (appimage, exe, other programming languages?)
 
 chalk run main.cpp # runs interpreter
-chalk exec "noreturn main() { /* ... */ }"
-chalk exec "2 + 3"
+chalk run .
+chalk eval "noreturn main() { /* ... */ }"
+chalk eval "2 + 3"
+chalk repl
 chalk translate file.js out.elf --noStyleFormat
 chalk install regerex npm/react-router
 chalk publish . patch/minor/major
 chalk debug out.elf
-chalk repair file.chalk # first formats code? and interactively offers automatic fixes to errors
-chalk error ERRCODE # prints detailed help for error ERRCODE
+chalk fix file.chalk # first formats code? and interactively offers automatic fixes to errors
+chalk help
+chalk help ERRCODE # prints detailed help for error ERRCODE
 
+
+// For custom smart pointer implementations?
+trait Pointer {}
 
 trait Object {
   static equals<T>(*?T a, *?T b) {
@@ -95,3 +124,5 @@ trait Number {
     return ?a && ?b ? Number.add(a, b) : null;
   }
 }
+
+

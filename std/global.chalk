@@ -5,12 +5,11 @@
 import { Number } from "std/types.chalk";
 import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
 
-export trait Object {}
-
-export class Union<> {
-  pub Bool hasValue<X>() {}
-  pub ~*X getValue<X>() {}
-  pub ~*~X getValue<X>() ~ {}
+export trait Object {
+  get Class<Self> class;
+  
+  shrink();
+  assign();
 }
 
 export trait Optional<T : Nullable> {
@@ -26,23 +25,6 @@ export trait Optional<T : Nullable> {
 }
 
 export trait Optional<T> {}
-
-export trait Array<T, Int<?> size> {
-  T elem;
-  Array<T, size > 0 ? size - 1 : 0> arr;
-  
-  ~*T at(Int<?> i) {
-    if (i >)
-    
-    *T e = elem;
-    
-    return unsafe e + i;
-  }
-}
-
-export trait Array<T, ~Int size> {}
-
-export class Int<Int i> : Number {}
 
 export class String<String.Encoding = String.Encoding.UTF8> {}
 

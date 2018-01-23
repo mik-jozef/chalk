@@ -1,0 +1,27 @@
+
+export trait Array<T, Int<?> size> {
+  T elem;
+  Array<T, size > 0 ? size - 1 : 0> arr;
+  
+  ~*T at(Int<?> i) {
+    if (i >)
+    
+    *T e = elem;
+    
+    return unsafe e + i;
+  }
+}
+
+export trait Array<T, ~Int size> {}
+
+export class Int<Int i> : Number {}
+
+export class Int<Int size> {
+  Int<> from<Int64 size>(Int<size> i) {}
+}
+
+export class Union<> {
+  pub Bool hasValue<X>() {}
+  pub ~*X getValue<X>() {}
+  pub ~*~X getValue<X>() ~ {}
+}

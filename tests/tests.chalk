@@ -1,0 +1,22 @@
+Int32 fn0() {
+  Int32 a() = (Int32() {
+    return Int32() { fn.return 42 }
+  })();
+  
+  a();
+}
+
+assert(fn() == 42);
+
+
+void ifTrue() { fn0(); }
+
+void fn1<Bool b>() {
+  void ifTrue() { fn0(); }
+  
+  void ifFalse() { /* ... */ }
+  
+  (b ? ifTrue : ifFalse)();
+}
+
+assert(fn1<true>.code == ifTrue.code);

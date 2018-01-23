@@ -1,0 +1,216 @@
+export class Defer {
+  ~[]~*Function<void, []> functions();
+  
+  void add(*Function<void, []> fn) {
+    functions.push(fn);
+  }
+  
+  ~Defer() {
+    
+  }
+}
+
+trait Number {
+  Self add(*Self number);
+  Self sub(*Self number);
+  Self mul(*Self number);
+  Self div(*Self number);
+  Self mod(*Self number);
+  Self pow(*Self number);
+  
+  own Self add(Self a, *Self b) {
+    return a.add(b);
+  }
+  
+  own Self sub(Self a, *Self b) {
+    return a.sub(b);
+  }
+  
+  own Self mul(Self a, *Self b) {
+    return a.mul(b);
+  }
+  
+  own Self div(Self a, *Self b) {
+    return a.div(b);
+  }
+  
+  own Self mod(Self a, *Self b) {
+    return a.mod(b);
+  }
+  
+  own Self pow(Self a, *Self b) {
+    return a.pow(b);
+  }
+  
+  from(String);
+  toString();
+}
+
+class Float32 : Nullable, Number {
+  static Float32 null;
+  static Float32 Infinity;
+}
+
+class Float64 : Nullable, Number {
+  static Float32 null;
+  static Float32 Infinity;
+}
+
+class Eval {
+  run(File file) {}
+  run(String s) {}
+  translate(File file, Eval.format.cpp, Function<void, [ VirtualFile ]> fn) {}
+  translate(String source, Eval.format.elf) {}
+  translate(String source, Eval.format.function) {}
+}
+
+class Buffer {
+  
+}
+
+trait Enum {
+  String getName();
+  static values();
+}
+
+trait Collection<X> : Iterator {
+  get Int size;
+  
+  Self<X> from(*Collection<X> source);
+}
+
+class Math {}
+class Array : Map {}
+class Date {}
+class Regex {}
+
+trait Map {}
+class HashMap {}
+class TreeMap {}
+
+trait Set {}
+class HashSet {}
+class TreeSet {}
+
+class Tuple {}
+
+class Ptr {}
+class UniquePtr {}
+class RefCountPtr {}
+class MarkSweepPtr {}
+class WeakPtr {}
+class Json {}
+
+class Buffer {}
+
+class Function<class R, []class params> {
+  *Buffer code;
+  ?RefCountPtr<StackFrame<?>> closure; // ???
+  *StackFrame<code>; // ???
+}
+
+// What about InStream, OutStream, IOStream, AsyncStream, AsyncInStream, AsyncOutStream and AsyncIOStream?
+trait Stream<Out> { // TODO better name?
+  *Self forEach(void fn(~*Self elem));
+  *Self forEach(void fn(~*~Self elem));
+  []Out map<class Out>(Out fn(*Self elem), Self newObject);
+  *Self filter(Bool fn(~*~Self elem));
+}
+
+trait Iterable<I : Iterator> {
+  *I getIterator();
+}
+
+trait AsyncIterable<I: AsyncIterator> {
+  *I getIterator();
+}
+
+trait Iterator<V> : Iterable, Stream {
+  ~?*V find(*Self elem);
+  ~?*~V find(*Self elem) ~;
+  ~*V next();
+  ~*~V next() ~;
+  ~*V prev();
+  ~*~V prev() ~;
+  Bool hasValue();
+  ~*V getValue();
+  ~*~V getValue() ~;
+  []V take(Int n);
+  [n]V take<Int n>();
+  
+  *Iterator getIterator() { return this; }
+}
+
+Promise<Module> import(*String path);
+
+Iterator range(Int to, Int step = to > 0 ? 1 : -1) {
+  return range(0, to, step);
+}
+
+Iterator range(Int from, Int to, Int step = to - from > 0 ? 1 : -1) {}
+
+Iterator range(Float to, Float step = to > 0 ? 1 : -1) {
+  return range(0, to, step);
+}
+
+Iterator range(Float from, Float to, Float step = to - from > 0 ? 1 : -1) {}
+
+class EventEmitter {}
+
+trait Slicable {
+  Self slice(Int from, Int to);
+}
+
+trait Viewable : Slicable {
+  Self view(Int from, Int to);
+}
+
+class ComplexFloat : Number {
+  pub Float re;
+  pub Float im;
+  
+  
+}
+
+trait Random {}
+
+class SimpleRandom : Random {}
+
+trait SQLDriver {}
+
+// TODO zip, (a)png, json, something-like-markdown
+
+trait FileTrait {}
+class VirtualFile {}
+class File {}
+
+trait FolderTrait {}
+class Folder {}
+class VirtualFolder {}
+
+class Log {}
+
+trait Comparable {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

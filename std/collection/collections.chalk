@@ -1,0 +1,23 @@
+/**
+ * Containers.
+**/
+
+import { Stream } from "std/stream.chalk";
+
+export trait Container : Stream
+
+export trait Set {
+  
+}
+
+export class HashSet {
+  
+}
+
+export trait Map<class K, class V> {
+  
+}
+
+export class HashMap<class K, class V> {
+  
+}
