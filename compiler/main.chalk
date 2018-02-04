@@ -25,7 +25,7 @@ void translate(String sourcePath, String outPath) {
 noreturn main([]String args) {
   args.length == 0 && printHelp();
   
-  switch (args[0]) {
+  switch args[0] {
     case "run": {
       args.length > 2 && println("Too many arguments.");
       args.length < 2 && println("Missing argument - file to run.");

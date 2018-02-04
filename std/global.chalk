@@ -5,11 +5,36 @@
 import { Number } from "std/types.chalk";
 import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
 
+import { isNull } from "std/compiler-magic.chalk";
+
 export trait Object {
   get Class<Self> class;
   
-  shrink();
-  assign();
+  *Self assign(*Self value);
+  
+  String toString() {
+    Reflect.classOf(Self);
+    
+    return [ Self.name, " {\n" ].join;
+  }
+  
+  get String name;
+  
+  final []Field getFields(FieldType type = FieldType.all);
+  
+  own Bool equals<T>(?T a, ?T b) {
+    Pointer.equals(a, b) && return true;
+    
+    (isNull(a) || isNull(b)) && return false;
+    
+    return T.equals(a, b);
+  }
+  
+  own Bool equals<T>(T a, T b) {
+    return Pointer.equals(a, b) ? true : T.equals(a, b);
+  }
+  
+  own isNull() = isNull;
 }
 
 export trait Optional<T : Nullable> {

@@ -9,8 +9,6 @@ Int32 fn0() {
 assert(fn() == 42);
 
 
-void ifTrue() { fn0(); }
-
 void fn1<Bool b>() {
   void ifTrue() { fn0(); }
   
@@ -19,4 +17,4 @@ void fn1<Bool b>() {
   (b ? ifTrue : ifFalse)();
 }
 
-assert(fn1<true>.code == ifTrue.code);
+assert(fn1<true>.code == fn0.code);

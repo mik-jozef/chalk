@@ -1,5 +1,5 @@
 export class Defer {
-  ~[]~*Function<void, []> functions();
+  []*Function<void, []> functions();
   
   void add(*Function<void, []> fn) {
     functions.push(fn);
@@ -11,6 +11,8 @@ export class Defer {
 }
 
 trait Number {
+  Self from(Int64 i);
+  
   Self add(*Self number);
   Self sub(*Self number);
   Self mul(*Self number);
@@ -51,12 +53,30 @@ class Float32 : Nullable, Number {
   static Float32 Infinity;
 }
 
-class Float64 : Nullable, Number {
+class Float64 : Number {
   static Float32 null;
   static Float32 Infinity;
 }
 
-class Eval {
+export class Int64 : Number {
+  
+}
+
+export class Int32 : Number {
+  
+}
+
+export class Int16 : Number {
+  
+}
+
+export class Int8 : Number {
+  
+}
+
+export class Int = Int64;
+
+class Compiler {
   run(File file) {}
   run(String s) {}
   translate(File file, Eval.format.cpp, Function<void, [ VirtualFile ]> fn) {}
@@ -69,20 +89,72 @@ class Buffer {
 }
 
 trait Enum {
-  String getName();
+  String name;
+  
   static values();
 }
 
-trait Collection<X> : Iterator {
+trait Class {
+  []Field getFields();
+}
+
+trait Collection<T> : Iterable {
   get Int size;
   
-  Self<X> from(*Collection<X> source);
+  Self<T> from(*Collection<T> source);
 }
 
 class Math {}
-class Array : Map {}
+
+trait ArrayTrait<T> {
+  Bool unshift(Int index = 0);
+}
+
+class ArrayCell<T, Int i> {
+  T t;
+  
+  ArrayCell<T, i - 1> nextCell;
+  
+  ?*T getValue(Int i) { return i == 0 ? t : nextCell.getValue(i - 1); }
+}
+
+class ArrayCell<T, 0> {
+  ?*T getValue(Int i) { return null; }
+}
+
+class Array<T, Int i> : ArrayTrait<T> {
+  ArrayCell<i> cell;
+  
+  new(void initializer(*T elem, Int index)) {}
+  
+  
+}
+
+trait Pointer {
+  own Int addressOf(*Object o) {}
+  own *T pointerTo<T>(Int address) {}
+}
+
+*T move<T>(T t) { return t; }
+export class Union<> {
+  pub Bool hasValue<X>() {}
+  pub ~*X getValue<X>() {}
+  pub ~*~X getValue<X>() ~ {}
+}
+
+class Array<T> : Indexable<T>, Iterable<T> {
+  new(Int reserved = 0) {}
+  new(Int length, void initializer(*T elem, Int index)) {}
+  new(Stream<T> source) {}
+  
+  Bool shrink() {}
+  
+  Iterator<T> reverseIter() {}
+  Array<T> reverse() {}
+}
+
 class Date {}
-class Regex {}
+class RegeT {}
 
 trait Map {}
 class HashMap {}
@@ -95,56 +167,96 @@ class TreeSet {}
 class Tuple {}
 
 class Ptr {}
-class UniquePtr {}
-class RefCountPtr {}
-class MarkSweepPtr {}
+class UniquePtr {
+}
+class SharedPtr {}
 class WeakPtr {}
+
 class Json {}
 
 class Buffer {}
 
 class Function<class R, []class params> {
-  *Buffer code;
-  ?RefCountPtr<StackFrame<?>> closure; // ???
+  SharedPtr<Buffer> code;
+  ?SharedPtr<StackFrame<?>> closure; // ???
   *StackFrame<code>; // ???
 }
 
-// What about InStream, OutStream, IOStream, AsyncStream, AsyncInStream, AsyncOutStream and AsyncIOStream?
-trait Stream<Out> { // TODO better name?
-  *Self forEach(void fn(~*Self elem));
-  *Self forEach(void fn(~*~Self elem));
-  []Out map<class Out>(Out fn(*Self elem), Self newObject);
-  *Self filter(Bool fn(~*~Self elem));
+trait Module {}
+
+trait Stream<T> {
+  Bool and(Bool fn(*T elem));
+  Bool or(Bool fn(*T elem));
+  void forEach(void fn(*T elem));
+  Self map<Val>(T fn(*T elem), Self newObject);
+  Self filter(Bool fn(*Self elem));
+  T reduce<T>(T fn(*T elem, *T acc), *T start);
+  
+  static Self<Tuple<A, B>> zip(*Stream<A> a, *Stream<B> b); // TODO what if Self is an anonymous iterator class?
+  static Self<T> zipWith<T>(*Stream<A> a, *Stream<B> b, T(*A a, *B b));
 }
 
-trait Iterable<I : Iterator> {
-  *I getIterator();
+trait AsyncStream<T> {
+  *Self forEach(Promise fn(*T elem));
+  Bool and(Promise<Bool> fn(*T elem));
+  Bool or(Promise<Bool> fn(*T elem));
+  []Out map<Val>(Promise<T> fn(*T elem), Self newObject);
+  []T filter(Promise<Bool> fn(*Self elem));
+  Out reduce<Out>(Promise<Out> fn(*T elem, *Out acc), *Out start);
+}
+
+class InStream : Iterator<Buffer> {
+  Promise<Buffer> read(Int bytes) {}
+}
+
+class OutStream {
+  Promise write(*Buffer b) {}
+}
+
+class IOStream : Iterable {
+  InStream in() {}
+  OutStream out() {}
+}
+
+trait Hashable {
+  Int hash();
+}
+
+trait Iterable<T> : AsyncIterable<AsyncIterator<T>> {
+  Iterator<T> iter<T>();
+  AsyncIterator<T> asyncIter() {
+    for i : iter() { yield i };
+  }
 }
 
 trait AsyncIterable<I: AsyncIterator> {
-  *I getIterator();
+  I asyncIter();
 }
 
-trait Iterator<V> : Iterable, Stream {
-  ~?*V find(*Self elem);
-  ~?*~V find(*Self elem) ~;
-  ~*V next();
-  ~*~V next() ~;
-  ~*V prev();
-  ~*~V prev() ~;
+class BigInt : Number {}
+class StringBuilder {}
+class Clipboard {
+  get ?Clipboard systemClipboard;
+}
+
+class ChalkDoc {}
+
+trait Iterator<T> : Iterable<T>, Stream<T> {
+  ?*T find(*T elem);
+  *T next();
+  *T prev();
   Bool hasValue();
-  ~*V getValue();
-  ~*~V getValue() ~;
-  []V take(Int n);
-  [n]V take<Int n>();
+  *T getValue();
+  []T take(Int n);
+  []T takeAll();
   
-  *Iterator getIterator() { return this; }
+  *Iterator iter() { return this; }
 }
 
 Promise<Module> import(*String path);
 
-Iterator range(Int to, Int step = to > 0 ? 1 : -1) {
-  return range(0, to, step);
+Iterator range(Int to) {
+  return range(0, to, sgn(to));
 }
 
 Iterator range(Int from, Int to, Int step = to - from > 0 ? 1 : -1) {}
@@ -155,7 +267,27 @@ Iterator range(Float to, Float step = to > 0 ? 1 : -1) {
 
 Iterator range(Float from, Float to, Float step = to - from > 0 ? 1 : -1) {}
 
-class EventEmitter {}
+class EventEmitter<[]String events> {}
+
+class LinkedList<T> {
+  class Node<T> {
+    ~T value;
+    
+    ~?*~Node<T> prev;
+    ~?*~Node<T> neTt;
+    
+    new(*~T val) : value(val) {}
+  }
+  
+  ~?Node<T> first;
+  ~?*Node<T> last;
+  ~*Node<T> current;
+  
+  pushBack();
+  pushFront();
+  popBack();
+  popFront();
+}
 
 trait Slicable {
   Self slice(Int from, Int to);
@@ -165,7 +297,7 @@ trait Viewable : Slicable {
   Self view(Int from, Int to);
 }
 
-class ComplexFloat : Number {
+class CompleTFloat : Number {
   pub Float re;
   pub Float im;
   
@@ -179,6 +311,8 @@ class SimpleRandom : Random {}
 trait SQLDriver {}
 
 // TODO zip, (a)png, json, something-like-markdown
+
+class
 
 trait FileTrait {}
 class VirtualFile {}

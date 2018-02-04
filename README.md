@@ -13,7 +13,7 @@ A collection of ideas that I hope will turn into a working programming language.
 - compile time execution of code
 - async functions
 - generators
-- raii
+- RAII
 
 
 ## Language and standard library
@@ -27,7 +27,7 @@ A collection of ideas that I hope will turn into a working programming language.
 - wrong methods called because of polymorphism
 - statements; everything is an expression
 - synchronous IO (but there is compile-time IO)
-- user defined glabal variables
+- glabal variables
 - namespaces
 - duck typing, including in templates
 - (probably) exceptions
@@ -42,7 +42,7 @@ You can find more at TODO link to standard library.
 | Type      | Description
 | ----      | ----
 | `Object`  | Trait that every class implicitly implements.
-| `Int`     | Signed integer, size depends on platform.
+| `Int`     | Signed integer, size depends on platform, at least pointer size.
 | `Int8`    | Signed 8-bit integer.
 | `Int16`   | Signed 16-bit integer.
 | `Int32`   | Signed 32-bit integer.
@@ -52,41 +52,33 @@ You can find more at TODO link to standard library.
 | `Bool`    | Boolean, `true` or `false`.
 | `String`  | Utf8 string.
 
-#### Variables and literals
-Variables are defined like this: `Type varname = value;`.
-
-##### Numbers
-| Example      | Description
-| -------      | -----------
-| `42`         | Base-10 integer
-| `0b101010`   | Base-2 integer
-| `0o52`       | Base-8 integer
-| `0x2A`       | Base-16 integer
-| `42.5`       | Base-10 floating-point number
-| `0b101010.1` | Base-2 floating-point number
-| `0o52.4`     | Base-8 floating-point number
-| `0x2A.8`     | Base-16 floating-point number
-
-Underscores can be placed between digits.
-
-
-| Example      | Description
-| -------      | -----------
-| `"hello"`    | String
-| `[ 0, 10 ]`  | Array of integers
-
-
-
-There are two special values, `null`, which is assignable to (any) optional type,
-and `undefined`, which is used to leave variables uninitialized (unsafe, see
-`unsafe` keyword) or use default function argument (safe).
-
-Unlike in many programming languages, `null == null` is false.
-
 #### Type modifiers
-`~T` - makes a type modifiable, types are constant by default.
+`mut T` - makes a type modifiable.
+`const T` - makes a type constant.
 
 Type modifiers affect all variables in a single declaration, not just one.
+
+Constant type can accept any variable, but prevents any modifications of its
+value. Types that are marked neither `mut` nor `const` can act as either, unless
+it would allow assignment of constant variable to a mutable variable.
+
+```
+class Car {
+  [4]Wheel wheels;
+  
+  *Wheel getWheel(Int i) { return wheels[i]; };
+}
+
+mut Car mutCar;
+const Car constCar;
+
+// OK
+mut *Wheel mutWheel = mutCar.getWheel(0);
+const *Wheel constWheel = constCar.getWheel(0);
+
+// Error, cannot assign const value to mut variable
+mut *Wheel mutWheel = constCar.getWheel(0);
+```
 
 #### Syntactic sugar
 
@@ -107,8 +99,8 @@ Some examples:
  - `?[]~?Int8` is optional dynamic array to mutable optional integers.
  - `*~T` - pointer to mutable T.
  - `~*T` - mutable pointer to T.
- - `?*T` - optional pointer to T.
- - `*?T` - pointer to optional T.
+ - `?*T` - optional (nullable) pointer to T.
+ - `*?T` - pointer to optional (nullable) T.
 
 #### Implicit type conversions
 Conversions can be chained.
@@ -118,50 +110,84 @@ Conversions can be chained.
 | `Int8 -> Int16 -> Int32 -> Int64` | Integer widening
 | `*T -> T`  | deferefence
 | `T -> *T`  | reference
-| `~T -> T`  | loss of modifiability
 | `T -> ?T`  | type to optional type
 
 Additionally, there is unsafe `?T -> T`, see `unsafe` keyword.
+
+#### Literals
+##### Numbers
+| Example      | Description
+| -------      | -----------
+| `42`         | Base-10 integer
+| `0b101010`   | Base-2 integer
+| `0o52`       | Base-8 integer
+| `0x2A`       | Base-16 integer
+| `42.5`       | Base-10 floating-point number
+| `0b101010.1` | Base-2 floating-point number
+| `0o52.4`     | Base-8 floating-point number
+| `0x2A.8`     | Base-16 floating-point number
+
+Underscores can be placed between digits.
+
+##### Other
+| Example                  | Description
+| -------                  | -----------
+| `"hello"`                | String
+| `[ 0, 10 ]`              | Array of integers
+| `[ 0, "a" ]`             | Array of Object
+| `{ T t: val, Int i: 9 }` | Instance of implicilty defined anonymous class
+
+There are two special values, `null`, which is assignable to (any) optional type,
+and `undefined`, which is used to leave variables uninitialized (unsafe, see
+`unsafe` keyword) or use default function argument (safe).
+
+To understand how equality works with `null`, have a look at TODO link to `std/Object.equals()`
 
 ### Classes and enums
 Classes are collections of values and methods. Enum is a class that has finitely
 many constant instances. Enum implicily implements trait `Enum`.
 
-Class definitions are hoisted.
-
 Classes can be nested, both static and inner. Inner classes have the same type
 even if they belong to a different instance.
-
-Guaranteed memory layout of classes.
 
 Example class:
 ```
 class X : Trait1, Trait2 friend Y {
-  Int a = 0; // private
+  Int a = 0; // private, only accessible to class X and Y
   
   get Int b; // read only
   set Int c; // write only
   pub Int d; // public
   
-  X() : b(0), c(0), d(0) {} // order must be same as declaration
+  // Constructor
+  pub new() : b(0), c(0), d(0) {} // Order must be same as declaration.
   
-  // methods are either private or pub
+  pub new(Int a, Int b, Int c, Int d) : a(a), b(b), c(c), d(d) {}
+  
+  // Methods are either private or pub.
   pub Int getA() { return a }
   pub void setA(Int a) ~ { this.a = a }
   
   pub static X s() {}
+  
+  // Destructor, called at the end of variable's lifetime
+  pub wen
 }
+
+X x = new(1, 2, 3, 4);
 ```
 
 Example enum:
 ```
-enum Bool { true, false } // definition of Bool in standard library
+enum Bool { true, false } // Definition of Bool in standard library.
 
 enum E {
   multiline,
 }
 
-enum Direction {
+trait DirTrait { Int8 dirX, dirY; }
+
+enum Direction : DirTrait {
   up(1, 0),
   down(-1, 0),
   left(0, -1),
@@ -177,89 +203,106 @@ Direction.up.dirX // 1
 ```
 
 ### Traits
-Traits rep
-TODO
+Traits are collections of method definitions and declarations (with implicit `pub`
+access modifier) that a class must have. They can also contain member types and
+variables. Variables have implicit `get` access modifier and a method's default
+implementation cannot directly change their state.
 
-own keyword
-
-traits cannot themselves have data, but can specify static data for their classes
-
-#### Polymorphism, traits as variable types
-
+The `own` keyword specifies that the member function/variable belongs to the
+trait itself, not to a class.
 
 ```
-trait X : Trait1, Trait2 x;
-```
+trait Console {
+  static String defaultMessage = "(blank)";
+  
+  print(*String str = defaultMessage);
+  
+  println(*String str = defaultMessage) { print(str + "\n"); }
+  
+  own foo() {}
+  
+  static class Stats;
+}
 
-### Generics
-Generic types can be specialized, but only in the module it was defined in.
-Generic parameters can be trait types or values.
+class SimpleConsole : Console {
+  static class Stats {
+    get Int bytesWritten;
+  }
+  
+  Stats stats;
+  
+  print(*String str) {
+    stats.bytesWritten += out.write(str);
+  }
+}
 
-### Modules
-A single program is typically written in multiple files. Each file that contains
-code is a module.
+SimpleConsole.new().println(); // Prints "(blank)\n"
 
-A module can export code using the keywords `get`, `set` and `pub`.
-
-```
-// a.chalk
-
-Int64 priv = 2;
-
-get Int64 readOnly = 5;
-
-pub class Car {};
-
-class X {}; // Not exported (yet)
-
-function foo() {}
-
-pub { X, foo as bar };
-```
-
-Code exported from other modules (including the standard library) can be imported
-in other modules. Unless the module `std/default-import.chalk` is imported
-explicitly, everything from it is imported by default.
-
-Import expressions must be part of the module scope (conditional operator implicitly
-creates a new scope even without braces).
-
-```
-// b.chalk
-
-import { Car, var, foo } from "./a.chalk";
+Console.foo(); // SimpleConsole.foo() is an error
 ```
 
 ### Control flow and basic syntax
-Conditionals (if, if not, if-else):
+#### Variables
+```
+Int var0 = 5;
 
+ClassType var1 = new(args, to, constructor);
+
+TraitType var2 = ClassType.new();
+
+class NewType : Trait1, Trait2 value = bar();
+```
+
+Keyword `auto` can be used to infer type from right hand side of assignment.
+
+```
+auto var3 = 5; // var3 is Int.
+
+auto var4 = ClassType.new(); // var4 is ClassType.
+```
+
+#### Conditionals
 ```
 condition && foo();
 condition || bar();
-condition ? foo() : bar();
+
+condition ? {
+  foo()
+} : bar();
 ```
 
-Code block is an expression that returns its last expression:
+#### Code block
+Code block is an expression that contains multiple sub-expressions and returns
+the last one:
 
 ```
-FooBarType fb(condition ? {
-  foo();
-} : {
-  bar();
-});
+Int x = {
+  Int random = rand.random();
+  
+  random * random;
+};
 ```
 
-For loop (braces are mandatory):
+#### For loops
+Braces are mandatory. The expression `continue` skips the rest of one iteration
+of the for loop, `break` skips the rest of the whole loop.
 
 ```
 for {} // Infinite loop
 for cond {} // While x
 for ; cond; post {}
 for init; cond; post {}
-for T x : iterable {}
+for Type x : iterable {}
+
+outer: for []Int arr : arrArr {
+  for Int i : arr {
+    i > 0 && continue outer;
+  }
+}
 ```
 
-Switch (must be exhaustive):
+#### Switch
+Switch must be exhaustive.
 
 ```
 switch x {
@@ -267,18 +310,26 @@ switch x {
   case 1, 2: { bar(); continue; }
   case _: x -= 1;
 }
+
+// switch with array literals
+switch [ x, y ] {
+  case [ false, false ]: a();
+  case [ false,  true ]: b();
+  case [  true, false ]: c();
+  case [  true,  true ]: d();
+}
 ```
 
 ### Operators
 TODO precedence
 
-Modulo uses euclidean division, ie `0 <= a % b < b`.
+Modulo uses euclidean division, ie. `0 <= a % b < b`.
 
 Most operators are syntactic sugar for method calls, so it's possible to emulate
 operator overloading by implementing certain traits.
 
-| Operator    | Sugar for          | Trait
-| --------    | ---------          | -----
+| Example     | Sugar for          | Trait
+| -------     | ---------          | -----
 | `a += b`    | `a.add(b)`         | Number
 | `a -= b`    | `a.sub(b)`         | Number
 | `a *= b`    | `a.mul(b)`         | Number
@@ -288,6 +339,9 @@ operator overloading by implementing certain traits.
 | `a &= b`    | `a.and(b)`         | (must be `Int`)
 | `a \|= b`   | `a.or(b)`          | (must be `Int`)
 | `a ^= b`    | `a.xor(b)`         | (must be `Int`)
+| `a <<= b`   | `a.shl(b)`         | (must be `Int`)
+| `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
+| `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
 | `a + b`     | `Number.add(a, b)` | Number
 | `a - b`     | `Number.sub(a, b)` | Number
 | `a * b`     | `Number.mul(a, b)` | Number
@@ -297,85 +351,264 @@ operator overloading by implementing certain traits.
 | `a & b`     | `Int.and(a, b)`    | (must be `Int`)
 | `a \| b`    | `Int.or(a, b)`     | (must be `Int`)
 | `a ^ b`     | `Int.xor(a, b)`    | (must be `Int`)
-| `!a`        | `Bool.not(a)`      | (must be `Bool`)
-| `a == b`    | `Object.equals(a, b)`       | Object
-| `a != b`    | `!Object.equals(a, b)`      | Object
-| `a < b`     | `Comparable.cmp(a, b) < 0`  | Comparable
-| `a > b`     | `Comparable.cmp(a, b) > 0`  | Comparable
-| `a <= b`    | `Comparable.cmp(a, b) <= 0` | Comparable
-| `a >= b`    | `Comparable.cmp(a, b) >= 0` | Comparable
-| `a <=> b`   | `Comparable.cmp(a, b)`      | Comparable
-| `a = b`     | `a.assign(b)`      | (`a` must be `Object`)
-| `?a`        | `a.hasValue()`     | (`a` must be `Optional`)
-| `??a`       | `a.getValue()`     | (`a` must be `Optional`)
-| `a[b]`      | `a.get(b)`         | (`a` must be `Indexable`)
+| `a << b`    | `Int.shl(a, b)`    | (must be `Int`)
+| `a >> b`    | `Int.shr(a, b, true)`  | (must be `Int`)
+| `a >>> b`   | `Int.shr(a, b, false)` | (must be `Int`)
+| `a == b`    | `Object.equals(a, b)`  | Object
+| `a != b`    | `!Object.equals(a, b)` | Object
+| `a < b`     | `Int.sgn(Comparable.cmp(a, b)) == -1` | Comparable
+| `a > b`     | `Int.sgn(Comparable.cmp(a, b)) == 1`  | Comparable
+| `a <= b`    | `Int.sgn(Comparable.cmp(a, b)) != 1`  | Comparable
+| `a >= b`    | `Int.sgn(Comparable.cmp(a, b)) != -1` | Comparable
+| `a <=> b`   | `Comparable.cmp(a, b)`                | Comparable
+| `a = b`     | `a.assign(b)`             | Object
+| `a[b]`      | `a.get(b)`                | Indexable
+| `!a`        | `Bool.not(a)`             | (`a` must be `Bool`)
+| `?a`        | `Optional.hasValue(a)`    | (`a` must be `Optional`)
+| `??a`       | `Optional.getValue(a)`    | (`a` must be `Optional`)
+| `a ?: b`    | `Optional.getValue(a, b)` | (`a` must be `Optional`)
 
 Operators that are not syntactic sugar:
 
-| Operator    | Meaning       | Return type
-| -------     | -------       | -----------
+| Example     | Operator      | Return type
+| -------     | --------      | -----------
 | `a.b`       | Member access | Type of `b`
-| `a && b`    | Logical and   | `Bool` if `a` and `b` are `Bool`, else `void`.
-| `a \|\| b`  | Logical or    | `Bool` if `a` and `b` are `Bool`, else `void`.
-| `a ? b : c` | Conditional   | See below
+| `a?.b`      | Member access | Type of `b`
+| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `void`.
+| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `void`.
+| `a ? b : c` | Conditional   | Common type of `b` and `c`
 
 The first operand of *conditional*, *logical and* and *logical or* operators must
 be `Bool`.
 
-TODO move this to spec, too long:
-If the type of either second or third operand of conditional operator is `noreturn`,
-then the type of the return value and both operands must be `noreturn`.
-If the type of either second or third operand of conditional operator is `void`,
-then the type of the return value is also `void`.
-If the types of the second and third operands are the same, then the type of return
-value is also of the same type.
-Else the return type of conditional operator is class X : All Traits Shared By Both
+### Modules
+A single program is typically written in multiple files. Each file that contains
+code is a module.
 
-The `Type.from` method is the canonical way to convert between types.
-
-TODO arithmetic and logical shift
-
-### Functions
-Function definition: `ReturnType name(Param param1, /*...*/) {/*...*/}`
-
-If an argument's type is a trait, function is dispatched dynamically.
-Tail call optimization is guaranteed.
-
-Function can have default parameters initialized with arbitrary code that runs
-every time function is called (unless it is `comptime`).
-
-Function definitions are hoisted.
-
-Functions can be nested.
-
-TODO Raii, rest parameters, generators (with forEach, reduce, etc)
+A module can export code using the keyword `export`. Other modules cannot write
+to variables they import.
 
 ```
+// a.chalk
+
+Int64 modulePrivate = 2;
+
+export class Car {}
+
 class X {
-  Y y;
-  
-  pub Y getI() { return y; }
-  
-  pub ~Y getI() ~ = constcall; // ???
+  get Int a, b, c;
+}
+
+function foo() {}
+
+export { foo, X as Y };
+```
+
+Code exported from other modules (including the standard library) can be imported
+in other modules. Unless the module `std/default-import.chalk` is imported
+explicitly, everything from it is imported by default.
+
+Import expressions must be part of the module scope (note conditional operator
+implicitly creates a new scope even without braces).
+
+```
+// b.chalk
+
+import { Car, foo, Y } from "./a.chalk";
+
+// Or
+import * as A from "./a.chalk";
+
+foo == A.foo; // True.
+```
+
+### Functions
+A function represents a computation that takes zero or more parameters and returns
+a value.
+
+```
+Int add(Int a, Int b) {
+  return a + b;
 }
 ```
 
-Class `Function` can hold all callable objects, including lambdas with captured
-variables and methods (auto-bound).
+Functions are copyable and assignable. Syntactic sugar types can be used on functions.
 
-### Examples
+```
+Int addCopy(Int a, Int b) = add;
 
+Int *addPtr(Int a, Int b) = add;
+
+Bool []logOps(Bool a, Bool b) =
+    [ Bool(Bool a, Bool b) { return a && b; }
+    , Bool(Bool a, Bool b) { return a || b; }
+    , Bool(Bool a, Bool b) { return a != b; }
+    ];
+```
+
+All functions in the same scope must have a unique signature. Signature consists
+of name of the function and types of its parameters.
+
+A function can have default parameter(s). Such a function defines multiple
+overloads, one for each combination of default/nondefault arguments. If the last
+X parameters are default and of the same type, only the rightmost Y <= X can be
+omitted.
+
+Blank argument (underscore) acts as default argument when used in the place of
+default parameter.
+
+The default argument will be evaluated for each call.
+
+```
+Int x(Int i = 10) { return 10 * i; }
+
+Int a() = x;
+
+a() == x(); // True.
+```
+
+If an argument's type is a trait, function is dispatched dynamically.
+
+Tail call optimization is guaranteed for every function invocation that is the
+last executed expression in a function.
+
+Functions can be contain type definitions (and that includes other functions).
+
+TODO Nested function can return as the outer function
+
+All functions are instances of the `Function` class.
+
+Return type can be `auto`, a common type of all posibly returned values.
+
+| Example                 | Description
+| -------                 | -----------
+| `Int(P p0, P p1)`       | Type of a function with two `P` params and `Int` return type
+| `Int a() { return 0; }` | Function `a` that returns 0
+| `Int b() = a;`          | Function `b` that is a copy of `a`
+| `Int []c() = [ a, b ];` | Array `c` of functions `a` and `b`
+| `void d() { /*...*/ }`  | Ordinary function
+
+#### Methods
+Methods are functions defined inside a class. Non-static methods have an implicit
+first parameter `this` and can access and modify instance's private members.
+
+```
+class X {
+  void foo();
+}
+
+X x;
+
+void foo(*X this) = x.foo;
+
+foo(x);
+```
+
+#### Generator functions
+A function that returns a `Stream` is a generator. It can use the `yield` keyword.
+
+```
+Stream<Int> fibonacci() {
+  Int [ a, b ] = [ 0, 1 ];
+  
+  for {
+    yield a;
+    
+    [ a, b ] = [ b, a + b ];
+  }
+}
+```
+
+#### Async functions
+A function that returns a promise is an async function. It can use the `await`
+keyword to suspend its execution and wait for a promise to resolve.
+
+```
+Promise foo(i) { await sleep(200); bar(i); }
+
+Promise<String> fn() {
+  for await Int i : asyncInterator { print(i); }
+  
+  for i : range(10) { await foo(i); } // runs serially;
+  
+  return "abc";
+}
+```
+
+#### Lambdas
+Syntactic sugar for normal functions. Types can be omitted if they can be inferred.
+
+| Example                   | Equivalent to
+| -------                   | -------------
+| `a => b`                  | `BType(AType a) { return b; }`
+| `(Int a, Int b) => a + b` | `Int(Int a, Int b) { return a + b; }`
+
+### Generics
+Generic types are types that have other generic parameters. A generic parameter
+can be a type or a constant value. Generic parameters are implicitly `comptime`.
+
+Unlike in C++, duck typing doesn't work in Chalk. All members of type parameters
+must be specified in a trait the type implements.
+
+```
+class Box<Val> {
+  pub Val value;
+}
+
+class PrintableCollection<Val : Printable, Col : Collection> : Printable {
+  pub Col values;
+  
+  String toString() {
+    return Reflect(Col).name + ":\n" + values.map(v => v.toString() + "\n").join();
+  }
+}
+
+void fn<Bool b>() {
+  b ? a() : b();
+}
+
+fn<true>.code == a.code; // True.
+```
+
+Generic types can be specialized, but only in the module it was defined in.
+Generic parameters can be trait types or values.
+
+```
+Int factorial<Int i>() { return i * factorial<i - 1>(); }
+
+Int factorial<0>() { return 1; }
+```
 
 ### Reflection
-TODO object.class
+See the standard library TODO add a link to not yet existing resource.
 
-### Comptime
+TODO some basics
+
+### Compile-time code execution
 Arbitrary compile time execution of code with the `comptime` keyword, comptime
-file reads
+file reads.
+
+```
+[64][64]Float values;
+
+comptime values.forEach((*Float value, Int i0, Int i1) {
+  value = heavyMath(i0, i1);
+})
+```
+
+Compile-time execution fails if it attempts to access a mutable variable that is
+not defined in the currently executing `comptime` expression.
+
+```
+void(Int i) {
+  return comptime i; // Error
+}
+```
 
 ### Safe code
 Safe code is code without undefined behavior, it either does what it should or
 terminates the program. Safe code does not produce memory leaks and race conditions.
+Note I'm just very optimistic and currently have no idea how to guarantee that.
 
 Keyword `unsafe` marks unsafe code. Using it may result in unpredictable behavior.
 
@@ -386,104 +619,25 @@ to the compiler.
 - explicit constructor and destructor calls (`var.Type()`)
 - assignment of `undefined` - does not initialize a variable
 - pass reference to an object with longer lifetime than the reference
-- pointer arithmetic? (Should this even be part of the language?)
+- pointer arithmetic (should this even be part of the language?)
+
+### Concurency
+HUGE TODO
+
+Ways to run multiple continuations at once:
+
+#### Async functions
+Cooperative, in the same thread as caller.
+
+#### Threads
+Preemptive, threaded.
 
 ## Tools, language compatibility
 
 
 In no particular order, features of my programming language:
-mathematical proofs about invariants in the program? eg. assert param 'x' is a square number
-const correctness, ideally with a way to write perfect-const-forwarding functions
-use value types instead of rvalue refs
-generics - how to accept only const types or only mut types or both?
-guaranteed copy elision in as many cases as possible
-type-safe unions
-Unify range for, forEach, Iterable and iterator?
-every object on heap must be valid, ie owned by some object on stack or another valid object
-reflection of call stack
-decide: if a generic class is also generic parameter, must its type be fully specified?
-array: no remove(), because its unclear whether all the elements after it should
-  be moved or just the last one. Solutions
-  - shift(Int index = 0, Int length); // also unshift
-  - arr[index] = arr.pop();
-no new keyword - calling constructor on a pointer type will allocate on heap
-hot deployment of code
-no semicolon after function / class declaration?
-correct order of evaluation of module-wide and member variables that depend on each other
-names cannot contain underscore; use `camelCase`, not `braindead_c_style__`
-utf8 by default (or only)
-todo how to prevent self deleting objects or make it predictable or make it reliably crash?
-functions must be mut (~) to be able to mutate global / module-wide variables?
-default code style
 references: it would be nice if there were references to portions of String and Buffer,
   but I do not want a situation like in Rust that reference is its own type different from `*String`
-compile time execution, eg. `comptime foo();`
-  - imagine a regex library that constructs optimized parsers with const conditionals
-    reducing needed code
-  - reading nonlocal variables at compile time is only possible if the variable
-    1. is from a scope that is being executed
-    2. is const and assigned a const expresion
-  - declarations cannot be comptime, only invocations
-enforce order of keywords - pub static
-async functions (any function that returns Promise, no `async` keyword); think more about corountines
-A function that returns iterator is generator?
-package manager
-TODO concurrency, what about tens of threads, hundreds?
-what about lazy evaluation, functional programming?
-instanceof?
-function parameters with default argument can be called with `undefined` to use
-  the default argument; parameters cannot be uninitialized.
-closures - shared between functions from the same scope
-think about deffered loading of code so the whole application doesn't have to be in memory
-  when it starts
-a way to do low-level gory stuff so that an os can be written in it
-no packages/crates
-unary ^ as bitwise negation
-what could go wrong if value was just memmoved and pointers fixed?
-reflection is comptime
-ability to detect if trait method is overriden
-If you'll support inspecting private members, only allow it in tests
-generic types can be only class types or the declared trait type
-Implicit type conversions: trait loss and trait reordering
-go's channels? can they be a class?
-mostly the same way of handling async functions and threads?
-no empty statement (`;`), use empty block `{}` instead
-no empty class
-object literals, ie anonymous class singletons:
-  ```
-  void fn({ Int a = 5, Int b = 7 }) {}
-  
-  fn({ Int b: 3 });
-  ```
-no named parameter calls
-anonymous classes (eg. for returning values), object literals for anonymous classes
-a type can implement Nullable, save space if optional
-trait can require methods and variables (`Nullable<T>` requires get static T null)
-custom object file format suited for modern programming concepts
-function overloading
-async for loop, asyncStream
-generic type parameters should always be inferable
-? coroutines can share the same thread or execute in parallel (data implicitly
-  thread-local, message passing, some safe way of sharing `shared` variables)
-two types of generics: templates and trait-based
-  - template example: `void print<T>(T t)`
-  - trait based:      `void print(Printable p) // Printable is a trait`
-  - value generics:   `void print<Bool b>(String s) {}; print<false>();`
-  - value generics have compile-time expressions
-
-unify forEach method and range for loop
-lambda functions
-replace generic value params with optionaly comptime param?
-think about hot deployment, lazy loading
-`shared` or `volatile` keyword for variables that can be accessed by
-  multiple threads at the same time?
-function can specify assumptions about its inputs, if those assumptions are not
-  met, any resulting potential undefined behaviour must be proven safe at the
-  calling site
-varargs? both runtime and generic
-make void a class with just one instance so it can be used generically, eg `Promise<Void>`?
-  but all types must be convertible to void...
-if all recursive calls are the last statement, guarantee tail call elimination / conversinon to loop
 underscore for unused function parameters
 function can prove invariants about itself, eg. that an optional type is not
   null if certain conditions are met
@@ -519,12 +673,13 @@ Place local variable on heap if it has chance of being returned, like go?
 If `X` is binary operator that returns `Bool`, then `A !X B == !(A X B)`
 allocators, way to manage allocators of libraries that were written without them
 c++ style constructor initialization list
-`Int<Int i>` variable size bigint starting as Int32
 trait type values should work like rusts Box
+type aliases, `class F = A<Int,Int>`?
 what about `void`, `noreturn` and generics?
 custom smart pointers?
 smart casts (kotlin)
 break; continue; `break 2;` breaks out of two loops
+unary minus
 types can specify a value that is null? If thay do that, optional types will
   consume as much memory as non-optional, but this creates the risk that a type
   will suddenly become null on its own (even if it's not optional).
@@ -567,28 +722,37 @@ treat mutable, async and threaded similarly
   1. iterator must track changes if it iterates either mutable or shared (or async) object.
   2. a function that returns promise can be either run as coroutine or a thread (await vs go)
 move an object and change pointers (even constant) with one operation?
+keyword `final` forbids overriding a method
+every member is a getter? no setters
 is returning a reference ok if and only if it refers to nonlocal object? this should be easy to check statically
 everything is thread-local by default
 no inline keyword, or anything that is supposed to do compiler's job
 Function trait, Closure class able to hold closures? Reflection powerful enough
   to enable code only implementation lambdas and nested functions cannot be
   returned if they capture ref to local variable, by default they do what?
+Should enums be copyable?
+how should destructor be named?
 Every trait is implicitly generic, can access their own class type
 Is it possible to assign `A fn(?B)` to `A fn(B)`?
 Allocators and a type for stack frames? `Function.StackFrame` or `StackFrame<*Function fn>`
 A single Function type for all types of functions, no special function pointer
 `Allocator<X>` trait, `DefaultAllocator<X>` class
 `auto` keyword?
+null coalescing operator, `a ?? b == (a == null ? b : a)`
 If a package p imports package q, the completion of q's init functions happens
   before the start of any of p's. The start of the function main happens after
   all init functions have finished.
+implicit 'type converions' for functions (there is runtime overhead):
+`A f(args...) -> void f(args...)`
+`A f(T x) -> A f(B : T x)`
 
 
 
 
 
 
-Standard library should have:
+
+Standard library + userland libraries:
 well thought out containers (arrays, sets, maps) each with methods from Stream (forEach,
   map, filter, fold)
 
@@ -596,18 +760,39 @@ net
   http, https
   fetch
 
-fs
-  async only
+fs (async only)
 
 init
-  initTask(async fn) - executes fn before main()
+  `initTask(Promise fn)` - executes fn before main()
 
-`Generator<fn> : Stream`
-`Promise<T>`
+ast (chalks abstract syntax tree)?
 
-lang.chalk
-  ast
+time
+  getMiliSec
+  getNanoSec
+  sleep (maybe in a more concurency-related place?)
 
+console
+  getPassword
+
+json
+
+object serialization
+
+dom (document object model)
+  audio
+
+compression + (deflate, gzip, zlib, lzma, zip, tar, webp, wav, midi, mp3, ...)
+crypto
+universal sql driver
+ddcp
+math
+  complex numbers
+  random
+  BigInt
+regex
+email
+rpc - remote procedure calls
 
 
 Commpiler+interpreter+package manager abilities:
@@ -628,102 +813,16 @@ scripts?
 -- Experimental code examples --
 
 ```
-class X<T : Printable> : Trait1<T>, Trait2 // must be explicit, no duck typing
-      friend Y, Trait {         // TODO if a trait is friend, should the entire class have access or just the methods of the interface
-  Int a;     // private
-  get Int b; // readonly
-  set Int c; // writeonly
-  pub Int d; // public
-  pub Void add(String x) mut {} // callable publicly, not assignable, can modify instance of X
-}
 
 { OptType b: mut f, d: g } = x;
 
 for [ elem, index ] : array {}
 
-
-createNode = true;
-
-createNode && {
-  return Node();
-}
-
-createNode ? return Node() : panic("Cannot create node.");
-
-Int8 i = 3;
-auto b : i; // b is iterator of Bool (or maybe Int1)
-
-b.forEach(fn);
-
-for b : i {}
-
-forEach, map and filter could be merged to []B.map(void(B) -> ?A) -> []A
-
-
-// should this be allowed?
-Car c("Kia"); // creates car
-c~(); // destroys car; alternatives: ~c(); c.~Car();
-c("Opel"); // recreates car
-
-// initializing variable later might be desirable for performance
-Car c = unsafe undefined;
-
-// later
-carNeeded && unsafe c.Car("BMW");
-// but this is what optional is for
-
-enum Bool { true, false }
-
-enum State {
-  running,
-  paused,
-  stopped, // If enum is simple and multiline, the last comma is required
-}
-
-[]State values = State.values();
-State.running.name;
-State.running.index;
-
-enum BetterState : Trait {
-  started(true),
-  running(true),
-  paused,
-  stopped;
-}
-
-// Explicit generics with values
-void print<Bool ln>(String s) {
-  // ...
-  
-  ln && print<false>("\n"); // ln is comptime, so this is optimized out if false
-}
-
-print<includeNewline()>() // this does not compile if includeNewline is not comptime
-
-void print<Bool b>(String s) {...}
-
-for x : object {} // generator call no args
-for x : object(generator, call, with, args) {}
-
-import { List } from "lang.haskell";
-import { Array, Optional } from "lang.this"
-
-
-import { File, open } from "fs";
-import { Error } from "??"
-
 // Union<File, Error> open(String s)
 
 // Both of these work, see destructuring
 { ?File file, ?Error err} = open("./photo.png", Mode.RNO);
-File f(open("./photo.png", Mode.RNO)); // or: File f = open("./photo.png", Mode.RNO);
-
-// Be consistent about "start, length" vs "start, end" in the whole standard library
-String.view - returns a modifiable view
-String.substring
-
-
-import * from "fs";
+File f = open("./photo.png", Mode.RNO);
 
 Folder dir(root, dirPath, Mode.RWO);
 await dir.open();
@@ -736,9 +835,9 @@ await file.open();
 class Car {
   Int speed;
   
-  null() : speed(-1) {}
+  Car null() : speed(-1) {}
   
-  isNull() { return speed < 0 } // enable/force no semicolons before closing brace?
+  Bool isNull() = speed < 0
 }
 
 Bool fn([]Int32 ints) {
@@ -757,8 +856,8 @@ var.class x();
 
 class X : Reflect.traitsOf(var) x();
 
-*X a = new(1, 2); // allocates on heap
-X bb = new(1, 2); // allocates on stack
+X a = new(1, 2); // allocates on stack
+UniquePtr<X> b = new(1, 2); // allocates on heap
 
 await atomicVar.lock();
 
@@ -817,8 +916,8 @@ class X {
 
 Car c;
 
-Car.getField("i")??.set(c, 42);
-Car.class.getField("i")??.set(c, 42);
+Car.getField("i")?.set(c, 42);
+Car.class.getField("i")?.set(c, 42);
 
 
 
