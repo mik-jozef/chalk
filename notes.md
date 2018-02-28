@@ -105,15 +105,33 @@ varargs? both runtime and generic
 correct order of evaluation of module-wide and member variables that depend on each other
   cycles are error
 names cannot contain underscore; use `camelCase`
+this produces warning: `trait A {} trait B : A {} class C : A, B {}` - A is reduntant
 utf8 by default (or only)
+Constructor params prefixed with underscore are assigned to members
+option to translate mathematical proofs about source code to mathematical proofs
+  about the executable file (verifiable with the executable alone)
 replace constructor call with constructed object if there are no side effects and
   its binary representation is known
 do not allow copy elision where it's not guaranteed if constructor has side effects
+do not have a `Function` class, make functions their own types
+curious consequence of type syntax - currying:
+```
+Int(Int)(Int b) {
+  return a => a + b;
+}
+```
+reconsider closures - are they really needed? shouldn't classes suffice?
+a function must end with a return statement unless it provably never reaches its end
+TODO can false sharing be prevented?
 only identifiers exported from `index.chalk` (or `main.chalk`) are guaranteed to
   be preserved by compilation
+remove range for loop? there is forEach, anyway
+function can prove invariants about itself, eg. that an optional type is not
+  null if certain conditions are met
 If every function self-invocation is the last executed expression, that function
   will be converted to a loop
-a way to unresolve a promise if it is still just waiting in event loop?
+what about funcitonal programming? lazy evaluation?
+a way to unresolve a promise if it is still just waiting in event loop? (later: why?)
 cancellable promises, can stop async functions, threads
 enforce order of keywords - pub static
 first-classish types?
@@ -122,16 +140,24 @@ generate hidden classes that are return type of generator functions that use `yi
 variables - replace trait type with class type if known at compile time
 function bind operator?
 for-else?
-ufcs?
+ufcs? member functions are accessible as `ClassType.memberFn`, not as `instance.memberFn`,
+  `x.a(b, c)` is equivalent to either `a(x, b, c)` or `xType.a(x, b, c)`, the first
+  form must not be used if ambiguous
+compiler can edit code, eg. rename variable
+what if a function returns a trait type that is backed by anonymous class? should
+  that trait type be also treated as a class type? motivation - Stream:zipWith
+  returns Self, should Self be Stream if it's produced by a generator? other examples?
 documentation: allow notes that popup on underlined pieces of text, only use this
   when someone who would not gain any info from reading it knows he doesn't have
   to read it (this pretty much restricts its use for definitions)
 inline assembly?
-array of number should be a number
+array of number should be a number?
 append operator `~`?
 `Object...` for variadic parameters, `T...` for variadic templates, `T[n]` and
   `T.length` supported
 code coverage analyzer as part of compiler
+optimization - if all classes implementing a trait are known and of similar size,
+  local trait vars should be on stack
 collection.add returns true if added, false if already existed
 async function calls without heap allocations, possible?
 ++ as string concat operator? `a ++ b ++ c` sugar for `String.join([ a, b, c ])`
@@ -145,6 +171,10 @@ think about deffered loading of code so the whole application doesn't have to be
   when it starts
 chalk should be low-level enough so that an os can be written in it
 unary ^ as bitwise negation?
+remember `X.Y a;` is variable declaration even though `X.Y` is a member access
+  operator, not a type
+math assumption: all comptime functions terminate
+should taking a pointer to a temporary object produce a warning, an error or nothing?
 reflection:
   is comptime
   ability to detect if trait method is overriden
@@ -163,7 +193,6 @@ always infer generic params if possible
 dangling references and self deleting objects - how to make them compile-time
   errors, or at least predictably crash?
 support calling an expression that is not a simple identifier, eg. `(a ? b : c)()`
-explicit type parameter cannot be called Self
 optional - use same length as non-optional type if possible
 functions types can have default parameters?
 spec: known types - enforces restriction on some types in std
@@ -174,9 +203,52 @@ if `Int(Int)` is `Function<Int, Int>`, what is `Int<Int i>()`?
 getters/setters? or unification of properties and functions without arguments?
 function overloading creates duplicate variables, what to do with it?
 can recursive foreach be transformed to stackless generator?
+const variable cannot be undefined
 unify properties, getters+setters and functions? optional (or prohobited?)
   parentheses in function call without arguments?
-
+traits, true?: They can also contain member types and variables. Variables have
+  implicit `get` access modifier and a method's default implementation cannot
+  directly change their state.
+detect out of bounds array acess at compile time if posisible
+equality operator for types?
+compiler
+  1. warn if generic param could be replaced by trait
+  2. warn on TODO comments
+  3. warn if TODO is identifier
+  4. specific error if TODO in code
+comments must not be allowed everywhere, eg. this must be illegal:
+  ```
+  Int /*comment*/ i;
+  i/*wtf why is this legal js*/+=1;
+  ```
+`trust` keyword to stop unsafe from spreading, compiler can ignore with `--notrust`
+implicit Self generic parameter requires higher order types:
+  ```
+  Comparable x = 5; // Comparable<Int> with Int being implicit
+  ```
+semicolon must be omitted if preceded with closing brace
+Error.ignore() - makes error not end the program when destructed
+if a temporary immutable object creates another object of the same type (eg.
+Regex.Expression), optimize and use only one object?
+const function cannot return non-const reference to its member
+shuffle order of destructor calls each compilation, warn if different orderings
+  produce different results (with the exception of reordering debug messages)
+interactive compiler, can autofix, suggests fixes, can apply them
+comparing with null literal is error
+prefer `--x=false` to `--noX`, `--fnoX` or similar
+? `class StartSpace = Expr.classFrom(TODO);`
+formatter should tolerate multiple spaces eg. here:
+  ```
+  switch [ x, y ] {
+    case [ false, false ]: a();
+    case [ false,  true ]: b();
+    case [  true, false ]: c();
+    case [  true,  true ]: d();
+  }
+  ```
+if `try { x } catch E { y }` will ever be part of chalk, make scope of y subscope
+  of scope of x? warn if an object that was manipulated in x, but not in y is used
+  after try block?
 
 
 What should `null == null` be?
@@ -227,7 +299,7 @@ chalk run .
 chalk eval "noreturn main() { /* ... */ }"
 chalk eval "2 + 3"
 chalk repl
-chalk translate file.js out.elf --noStyleFormat
+chalk translate file.js out.elf --readOnly // readonly means no formatting of source code
 chalk install regerex npm/react-router
 chalk publish . patch/minor/major
 chalk debug out.elf
@@ -250,11 +322,11 @@ trait Object {
   static equals<Self>() { return false }
 }
 
-class T {}  - definition
-T           - generic declaration
-T : T1 T2   - generic declaration
-T         a - polymorphic type
-T : T1 T2 a - polymorphic type
+class T {}   - definition
+T            - generic declaration
+T : T1, T2   - generic declaration
+T          a - polymorphic type
+T : T1, T2 a - polymorphic type
 
 function(class T x : Trait) {}
 
@@ -278,6 +350,18 @@ Reflect.newClass // ?
 // want optionally comptime params? do this: (maybe custom syntax for classes? or both)
 void optionallyComptime(Int a, Bool b) { /* ... */ }
 void optionallyComptime<Bool b>(Int a) { optionallyComptime(a, b); }
+
+
+import { setSeed } from "std/random.chalk"
+
+setSeed(i);
+
+
+Trait1, Trait2 var;
+
+trait X = Trait1, Trait2;
+X var;
+
 
 class X {
   const Bool b;

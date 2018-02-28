@@ -53,8 +53,8 @@ You can find more at TODO link to standard library.
 | `String`  | Utf8 string.
 
 #### Type modifiers
-`mut T` - makes a type modifiable.
-`const T` - makes a type constant.
+- `mut T` - makes a type modifiable.
+- `const T` - makes a type constant.
 
 Type modifiers affect all variables in a single declaration, not just one.
 
@@ -96,11 +96,11 @@ Floats cannot be NaN, but optional floats can be null.
 
 Some examples:
 
- - `?[]~?Int8` is optional dynamic array to mutable optional integers.
- - `*~T` - pointer to mutable T.
- - `~*T` - mutable pointer to T.
- - `?*T` - optional (nullable) pointer to T.
- - `*?T` - pointer to optional (nullable) T.
+- `?[]mut ?Int8` is optional dynamic array to mutable optional integers.
+- `const *mut T` - constant pointer to mutable T.
+- `mut *const T` - mutable pointer to constant T.
+- `?*T` - optional (nullable) pointer to T.
+- `*?T` - pointer to optional (nullable) T.
 
 #### Implicit type conversions
 Conversions can be chained.
@@ -149,6 +149,9 @@ many constant instances. Enum implicily implements trait `Enum`.
 
 Classes can be nested, both static and inner. Inner classes have the same type
 even if they belong to a different instance.
+
+Class fields marked `mut` are mutable even if the instance is const. Such fields
+must be private.
 
 Example class:
 ```
@@ -204,9 +207,7 @@ Direction.up.dirX // 1
 
 ### Traits
 Traits are collections of method definitions and declarations (with implicit `pub`
-access modifier) that a class must have. They can also contain member types and
-variables. Variables have implicit `get` access modifier and a method's default
-implementation cannot directly change their state.
+access modifier) that a class must have. They can also contain member types.
 
 The `own` keyword specifies that the member function/variable belongs to the
 trait itself, not to a class.
@@ -225,7 +226,7 @@ trait Console {
 }
 
 class SimpleConsole : Console {
-  static class Stats {
+  static class Stats friend SimpleConsole {
     get Int bytesWritten;
   }
   
@@ -267,19 +268,19 @@ condition && foo();
 condition || bar();
 
 condition ? {
-  foo()
+  foo();
 } : bar();
 ```
 
 #### Code block
 Code block is an expression that contains multiple sub-expressions and returns
-the last one:
+the last one. It creates a new scope.
 
 ```
 Int x = {
-  Int random = rand.random();
+  Int x = rand.random();
   
-  random * random;
+  x * x;
 };
 ```
 
@@ -311,12 +312,18 @@ switch x {
   case _: x -= 1;
 }
 
-// switch with array literals
+// Switch with array literals
 switch [ x, y ] {
   case [ false, false ]: a();
   case [ false,  true ]: b();
   case [  true, false ]: c();
   case [  true,  true ]: d();
+}
+
+switch { // Equivalent to `switch true {`
+  case x <  5: a();
+  case x == 5: b();
+  case x >  5: c();
 }
 ```
 
@@ -336,24 +343,24 @@ operator overloading by implementing certain traits.
 | `a /= b`    | `a.div(b)`         | Number
 | `a %= b`    | `a.mod(b)`         | Number
 | `a **= b`   | `a.pow(b)`         | Number
-| `a &= b`    | `a.and(b)`         | (must be `Int`)
-| `a \|= b`   | `a.or(b)`          | (must be `Int`)
-| `a ^= b`    | `a.xor(b)`         | (must be `Int`)
 | `a <<= b`   | `a.shl(b)`         | (must be `Int`)
 | `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
 | `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
+| `a &= b`    | `a.bitwiseAnd(b)`  | (must be `Int`)
+| `a \|= b`   | `a.bitwiseOr(b)`   | (must be `Int`)
+| `a ^= b`    | `a.bitwiseXor(b)`  | (must be `Int`)
 | `a + b`     | `Number.add(a, b)` | Number
 | `a - b`     | `Number.sub(a, b)` | Number
 | `a * b`     | `Number.mul(a, b)` | Number
 | `a / b`     | `Number.div(a, b)` | Number
 | `a % b`     | `Number.mod(a, b)` | Number
 | `a ** b`    | `Number.pow(a, b)` | Number
-| `a & b`     | `Int.and(a, b)`    | (must be `Int`)
-| `a \| b`    | `Int.or(a, b)`     | (must be `Int`)
-| `a ^ b`     | `Int.xor(a, b)`    | (must be `Int`)
-| `a << b`    | `Int.shl(a, b)`    | (must be `Int`)
+| `a << b`    | `Int.shl(a, b)`        | (must be `Int`)
 | `a >> b`    | `Int.shr(a, b, true)`  | (must be `Int`)
 | `a >>> b`   | `Int.shr(a, b, false)` | (must be `Int`)
+| `a & b`     | `Int.bitwiseAnd(a, b)` | (must be `Int`)
+| `a \| b`    | `Int.bitwiseOr(a, b)`  | (must be `Int`)
+| `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
 | `a == b`    | `Object.equals(a, b)`  | Object
 | `a != b`    | `!Object.equals(a, b)` | Object
 | `a < b`     | `Int.sgn(Comparable.cmp(a, b)) == -1` | Comparable
@@ -439,7 +446,7 @@ Int addCopy(Int a, Int b) = add;
 
 Int *addPtr(Int a, Int b) = add;
 
-Bool []logOps(Bool a, Bool b) =
+Bool []logicalOps(Bool a, Bool b) =
     [ Bool(Bool a, Bool b) { return a && b; }
     , Bool(Bool a, Bool b) { return a || b; }
     , Bool(Bool a, Bool b) { return a != b; }
@@ -517,6 +524,10 @@ Stream<Int> fibonacci() {
     [ a, b ] = [ b, a + b ];
   }
 }
+
+for Int i : fibonacci().take(10) {
+  print(i);
+}
 ```
 
 #### Async functions
@@ -544,8 +555,8 @@ Syntactic sugar for normal functions. Types can be omitted if they can be inferr
 | `(Int a, Int b) => a + b` | `Int(Int a, Int b) { return a + b; }`
 
 ### Generics
-Generic types are types that have other generic parameters. A generic parameter
-can be a type or a constant value. Generic parameters are implicitly `comptime`.
+Generic types are types that have generic parameters. A generic parameter can be
+a type or a constant value. Generic parameters are implicitly `comptime`.
 
 Unlike in C++, duck typing doesn't work in Chalk. All members of type parameters
 must be specified in a trait the type implements.
@@ -559,24 +570,24 @@ class PrintableCollection<Val : Printable, Col : Collection> : Printable {
   pub Col values;
   
   String toString() {
-    return Reflect(Col).name + ":\n" + values.map(v => v.toString() + "\n").join();
+    return Col.name + ":\n" + values.map(v => v.toString() + "\n").join();
   }
 }
-
-void fn<Bool b>() {
-  b ? a() : b();
-}
-
-fn<true>.code == a.code; // True.
 ```
 
 Generic types can be specialized, but only in the module it was defined in.
-Generic parameters can be trait types or values.
+
+Trait types of local variables whose class is known at compile time are compiled
+as if they were class types.
+
+Parameters can be declared `comptime`, calling a function with such parameters
+will call an optimized version of the function if some of the parameters' values
+are known at compile time.
 
 ```
-Int factorial<Int i>() { return i * factorial<i - 1>(); }
-
-Int factorial<0>() { return 1; }
+void fn(comptime Bool b) {
+  b ? a() : b(); // Branch is eliminated if `b` is know at compile time
+}
 ```
 
 ### Reflection
@@ -589,9 +600,7 @@ Arbitrary compile time execution of code with the `comptime` keyword, comptime
 file reads.
 
 ```
-[64][64]Float values;
-
-comptime values.forEach((*Float value, Int i0, Int i1) {
+[64][64]Float values = comptime new((*Float value, Int i0, Int i1) {
   value = heavyMath(i0, i1);
 })
 ```
@@ -608,7 +617,7 @@ void(Int i) {
 ### Safe code
 Safe code is code without undefined behavior, it either does what it should or
 terminates the program. Safe code does not produce memory leaks and race conditions.
-Note I'm just very optimistic and currently have no idea how to guarantee that.
+Note this was written very early and is probably too optimistic.
 
 Keyword `unsafe` marks unsafe code. Using it may result in unpredictable behavior.
 
@@ -616,15 +625,13 @@ Unsafe parts of language can be used without `unsafe` if they are provably safe
 to the compiler.
 
 #### Unsafe code
-- explicit constructor and destructor calls (`var.Type()`)
+- explicit constructor and destructor calls (`var.new()`)
 - assignment of `undefined` - does not initialize a variable
 - pass reference to an object with longer lifetime than the reference
-- pointer arithmetic (should this even be part of the language?)
+- pointer arithmetic
 
 ### Concurency
 HUGE TODO
-
-Ways to run multiple continuations at once:
 
 #### Async functions
 Cooperative, in the same thread as caller.
@@ -639,10 +646,7 @@ In no particular order, features of my programming language:
 references: it would be nice if there were references to portions of String and Buffer,
   but I do not want a situation like in Rust that reference is its own type different from `*String`
 underscore for unused function parameters
-function can prove invariants about itself, eg. that an optional type is not
-  null if certain conditions are met
 trait can declare variables?
-const function cannot return non-const reference to its member
 overflow and division by zero on non-nullable types throws exception, there's a wrap-around Int type
 golang's defer? destructors do the same, so why?
 struct, union and array destructuring, destructuring of a single variable from
@@ -670,15 +674,35 @@ void fn(Complex { re: realPart, im }) {}
 ```
 In `expr && { A }`, expr is part of scope A. Also `||`, `?`, `switch`, etc
 Place local variable on heap if it has chance of being returned, like go?
-If `X` is binary operator that returns `Bool`, then `A !X B == !(A X B)`
+If `X` is binary operator that returns `Bool`, then `A !X B == !(A X B)`, eg.
+  `!instanceof`
 allocators, way to manage allocators of libraries that were written without them
 c++ style constructor initialization list
+`is` operator:
+  1. `a is A` - true if a is an instance of type A; checked at runtime if necessary
+  2. `a is null` - true if a is null
 trait type values should work like rusts Box
+classes themselves are instances of class `Class`?; `Class` is enum?
+type variables, eg. `class Y() { return class A {} } class X = Y();`
 type aliases, `class F = A<Int,Int>`?
 what about `void`, `noreturn` and generics?
 custom smart pointers?
 smart casts (kotlin)
-break; continue; `break 2;` breaks out of two loops
+break; continue;
+trait unions? eg.
+```
+trait Y {}
+trait X {
+  void a() {}
+  
+  Y {
+    void b() {}
+  }
+}
+
+class A : X {} // methods: a
+class B : X, Y {} // methods: a, b
+```
 unary minus
 types can specify a value that is null? If thay do that, optional types will
   consume as much memory as non-optional, but this creates the risk that a type
@@ -686,7 +710,25 @@ types can specify a value that is null? If thay do that, optional types will
   - this would require a proof that null and non-null will always stay null, resp. non-null
   - class X : Nullable {}
 support immediately invoked function expressions
+enum instances should be copyable and able to change themselves to other instances
+  ```
+  enum Bool {
+    true, false;
+    
+    not() { this = Bool.false }
+  }
+  
+  true.not() == false;
+  ```
 promise errors if it is destructed with error
+semicolon must be omitted if closing brace is on the same line
+statement cannot contain empty line
+  ```
+  // Error, statement cannot contain empty line
+  i =
+  
+  2;
+  ```
 just like there are methods that are const, there should be methods that are shared
 ability to control every dynamically created object so that a long-running program
   can defragment its ram by moving/deleting and recreating everything on heap
@@ -730,10 +772,11 @@ no inline keyword, or anything that is supposed to do compiler's job
 Function trait, Closure class able to hold closures? Reflection powerful enough
   to enable code only implementation lambdas and nested functions cannot be
   returned if they capture ref to local variable, by default they do what?
-Should enums be copyable?
-how should destructor be named?
-Every trait is implicitly generic, can access their own class type
-Is it possible to assign `A fn(?B)` to `A fn(B)`?
+types can be variables, parameter types that are inferable from arguments must be implicit
+Should enums be copyable? yes, they are constant, anyway. should their copy
+  constructors be allowed to have side effects? (or any copy constructors?)
+how should destructor be named? `~new`
+Is it possible to assign `A fn(?B)` to `A fn(B)`? should be
 Allocators and a type for stack frames? `Function.StackFrame` or `StackFrame<*Function fn>`
 A single Function type for all types of functions, no special function pointer
 `Allocator<X>` trait, `DefaultAllocator<X>` class

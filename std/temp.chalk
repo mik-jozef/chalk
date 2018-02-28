@@ -88,26 +88,37 @@ class Buffer {
   
 }
 
+class Class {}
+
 trait Enum {
   String name;
   
   static values();
 }
 
-trait Class {
-  []Field getFields();
-}
-
-trait Collection<T> : Iterable {
+trait Collection<T> : Iterable<T> {
   get Int size;
   
   Self<T> from(*Collection<T> source);
+  Self<T> from(*Iterable<Collection<T>> source);
+  
+  Bool hasValue(*const T t);
+  
+  Stream<*T> find(*const T t);
+  *T first(*const T t) { return find(t).getValue(); }
 }
+
+class Functions {
+  get<Ret, Object...>()
+}
+
+trait Comparator {}
 
 class Math {}
 
 trait ArrayTrait<T> {
   Bool unshift(Int index = 0);
+  indexOf
 }
 
 class ArrayCell<T, Int i> {
@@ -127,12 +138,7 @@ class Array<T, Int i> : ArrayTrait<T> {
   
   new(void initializer(*T elem, Int index)) {}
   
-  
-}
-
-trait Pointer {
-  own Int addressOf(*Object o) {}
-  own *T pointerTo<T>(Int address) {}
+  void sort(todo);
 }
 
 *T move<T>(T t) { return t; }
@@ -160,17 +166,59 @@ trait Map {}
 class HashMap {}
 class TreeMap {}
 
-trait Set {}
+trait Set<T> : Iterable<T> {
+  Bool has(*Set<T> a);
+  
+  *Set add(*T a);
+  *Set remove(*T a);
+  
+  *Set<T> add(*Set<T> a) {
+    a.forEach(e => add(e));
+  }
+  
+  *Set<T> remove(*Set<T> a) {
+    a.forEach(e => remove(e));
+  }
+  
+  own Set union(Set a, *Set b) {
+    return a.remove(e=>!b.has(e));
+  }
+  
+  own Set intersection(Set a, *Set b) {
+    return a.add(b);
+  }
+  
+  own Set symmetricDifference(Set a, Set b) {
+    return Set.difference(Set.union(a, b), Set.intersection(a, b));
+  }
+  
+  own Set difference(Set a, *Set b) {
+    return a.remove(b);
+  }
+}
 class HashSet {}
 class TreeSet {}
 
 class Tuple {}
 
-class Ptr {}
-class UniquePtr {
+trait Pointer {
+  own Int addressOf(*Object o) {}
+  own *T pointerTo<T>(Int address) {}
 }
-class SharedPtr {}
-class WeakPtr {}
+
+class Reflect {
+  class CreateType([]trait implementedTraits, []Field fields) comptime {} // Array of traits, oh fuck
+  
+  // Should Field rather be Field<T>? should nonstatic inner classes be just type variables instead of Java-like inner classes?
+  Field createField(Field.Modifiers modifiers, const String name, class Type, Type value) {}
+}
+
+class Field friend Reflect {}
+
+class Ptr : Pointer {}
+class UniquePtr : Pointer {}
+class SharedPtr : Pointer {}
+class WeakPtr : Pointer {}
 
 class Json {}
 
@@ -182,24 +230,39 @@ class Function<class R, []class params> {
   *StackFrame<code>; // ???
 }
 
-trait Module {}
+trait ModuleT {}
+class Module {}
 
 trait Stream<T> {
-  Bool and(Bool fn(*T elem));
-  Bool or(Bool fn(*T elem));
+  T next();
+  
+  Bool all(Bool fn(*T elem));
+  Bool any(Bool fn(*T elem));
   void forEach(void fn(*T elem));
   Self map<Val>(T fn(*T elem), Self newObject);
   Self filter(Bool fn(*Self elem));
   T reduce<T>(T fn(*T elem, *T acc), *T start);
   
-  static Self<Tuple<A, B>> zip(*Stream<A> a, *Stream<B> b); // TODO what if Self is an anonymous iterator class?
-  static Self<T> zipWith<T>(*Stream<A> a, *Stream<B> b, T(*A a, *B b));
+  own Stream<Tuple<A, B>> zip(*Stream<A> a, *Stream<B> b);
+  own Stream<T> zipWith<T>(*Stream<A> a, *Stream<B> b, T(*A a, *B b));
+  static Self<Tuple<A, B>> zip(*Self<A> a, *Self<B> b);
+  static Self<T> zipWith<T>(*Self<A> a, *Self<B> b, T(*A a, *B b));
+  
+  own Stream<T> flatten(Iterable<Stream<T>);
+  
+  Stream<T> find(Bool predicate(*const T)) {
+    for T n = next() { predicate(n) && yield n; }
+  }
+  
+  T first(Bool predicate(*const T)) {
+    return find(predicate).next();
+  }
 }
 
 trait AsyncStream<T> {
   *Self forEach(Promise fn(*T elem));
-  Bool and(Promise<Bool> fn(*T elem));
-  Bool or(Promise<Bool> fn(*T elem));
+  Bool all(Promise<Bool> fn(*T elem));
+  Bool any(Promise<Bool> fn(*T elem));
   []Out map<Val>(Promise<T> fn(*T elem), Self newObject);
   []T filter(Promise<Bool> fn(*Self elem));
   Out reduce<Out>(Promise<Out> fn(*T elem, *Out acc), *Out start);
@@ -222,8 +285,10 @@ trait Hashable {
   Int hash();
 }
 
-trait Iterable<T> : AsyncIterable<AsyncIterator<T>> {
-  Iterator<T> iter<T>();
+trait Iterable<T> : AsyncIterable<AsyncIterator<T>>, Stream<T> {
+  class Iter;
+  
+  Iter iter();
   AsyncIterator<T> asyncIter() {
     for i : iter() { yield i };
   }
@@ -324,7 +389,24 @@ class VirtualFolder {}
 
 class Log {}
 
-trait Comparable {}
+trait Comparable {
+  static class Comparator;
+  
+  static *Self clamp(*Self min, *Self value, *Self max) {
+    min > max && throw(Error.new( // Or just `Error(`?
+        "Minimum value must be less than the maximum value."));
+    
+    return switch {
+      case value < min: min;
+      case value > max: max;
+      case _: value;
+    }
+  }
+  
+  static min(Iterable<Self> a);
+  static max(Iterable<Self> a);
+}
+
 
 
 

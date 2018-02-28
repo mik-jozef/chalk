@@ -1,0 +1,97 @@
+/**
+ * Defines abstract syntax tree of the Chalk programming language.
+**/
+
+import { Regex } from "std/regex.chalk";
+
+class Expr = Regex.Expression;
+
+/// Whitespace at start of line with correct indentation.
+Expr startSpace = TODO;
+
+Expr space(comptime const String str, comptime const Space flags) {
+  str == "" && flags.nonempty throw Error();
+}
+
+Expr space(const String s, Bool multiline, Bool nonempty = false) { // TODO
+  return Expr().oneOf(
+    Expr().string(s),
+    multiline ? Expr().newline.expr(startSpace) : Expr().oneOf(),
+    Expr().except(
+      Expr().warning(Expr().whitespaceNewline),
+    ),
+  );
+}
+
+Expr spaceIfMultiline(const String s, Bool nonempty = false) {
+  return Expr().equals("multiline", true,
+    space(s, true, nonempty),
+    space(s, false, nonempty),
+  );
+}
+
+class Module : Regex {
+  static const Expr =
+  Expr().oneOf([
+    Expr(ModuleDoc).expr(space("\n\n", false)),
+    Expr().warning(),
+  ])
+  .repeat(
+    Expr().oneOf(
+      startSpace.newline,
+      Expr(Comment),
+      Expr(Import),
+      Expr(Declaration),
+    )
+  );
+}
+
+class Import : Regex {
+  Bool multiline;
+  
+  static const Expr = 
+  startSpace
+  .string("import")
+  .expr(space(" ", false))
+  .oneOf(
+    Expr().string("{")
+      Expr(spaceIfMultiline(" "))
+        .repeat(Identifier, space("").string(",").spaceIfMultiline(" ")),
+    Expr.warning(Expr().string("{").repeat(Expr().whitespaceNewline).string("}")),
+    Expr().string("*").space(" ").string("as").oneOf(
+      Expr().string(" "),
+      Expr().except(Expr().warning(Expr().repeat(Expr().whiteSpaceNewline, 1))),
+    ),
+  )
+  .;
+}
+
+class ModuleDoc : Regex {
+  static const Expr = 
+  Expr().warning(badSpaceM);
+}
+
+class Declaration : Regex {
+  static const Expr = 
+  Expr;
+}
+
+class Comment : Regex {
+  static const Expr = 
+  Expr;
+}
+
+class Identifier : Regex {
+  static const Expr = 
+  Expr;
+}
+
+class TypedIdentifier : Regex {
+  static const Expr = 
+  Expr;
+}
+
+class C : Regex {
+  static const Expr = 
+  Expr;
+}

@@ -21,3 +21,7 @@ export trait Map<class K, class V> {
 export class HashMap<class K, class V> {
   
 }
+
+export class TreeMap<class K, class V> {
+  
+}

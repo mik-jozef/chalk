@@ -20,6 +20,8 @@ export trait Object {
   
   get String name;
   
+  final ?*Object getField(*String name);
+  
   final []Field getFields(FieldType type = FieldType.all);
   
   own Bool equals<T>(?T a, ?T b) {
@@ -34,7 +36,12 @@ export trait Object {
     return Pointer.equals(a, b) ? true : T.equals(a, b);
   }
   
-  own isNull() = isNull;
+  own Bool isNull() = isNull;
+  
+  own type commonType<T1, T2>() // ???
+  own class commonType(class T1, class T2) // ???
+  
+  own isTemporary(*Object o);
 }
 
 export trait Optional<T : Nullable> {
@@ -51,6 +58,8 @@ export trait Optional<T : Nullable> {
 
 export trait Optional<T> {}
 
-export class String<String.Encoding = String.Encoding.UTF8> {}
+export class String<String.Encoding = String.Encoding.UTF8> {
+  find, todo
+}
 
 export enum Bool = { true, false }

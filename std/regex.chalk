@@ -1,0 +1,129 @@
+/**
+ * TODO
+**/
+
+/**
+ * Common type of parts of regex expression.
+ */
+trait Expression {
+  own class Chars : Expression {
+    String str;
+    
+    new(const String _str) {}
+  }
+  
+  own class Repeat : Expression {
+    pub const []const Expression expr, delimiter;
+    
+    pub const Int min;
+    pub const ?Int max;
+    
+    new([]const Expression _expr, []const Expression _delimiter = Expression.empty,
+        Int _min = 0, ?Int _max = null) {}
+  }
+  
+  own class Maybe : Expression {
+    pub const []const Expression expr;
+    
+    new([]const Expression _expr) {}
+  }
+  
+  own class OneOf : Expression {
+    pub const []const Expression alternatives;
+    
+    pub const []const Expression except;
+    
+    new([]const Expression _alternatives,
+        []const Expression _except = Expression.noMatch) {}
+    
+    new(const String str) : new(str.map(char => Chars(char))) {}
+  }
+  
+  own class Ahead : Expression {
+    pub const []const Expression cond;
+    pub const []const Expression ifTrue;
+    pub const []const Expression ifFalse;
+    
+    new(const Expression _cond,
+        const Expression _ifTrue, const Expression _ifFalse) {}
+  }
+  
+  own class Behind : Expression {
+    pub const Expression cond;
+    pub const Expression ifTrue;
+    pub const Expression ifFalse;
+    
+    pub new(const Expression _cond,
+        const Expression _ifTrue, const Expression _ifFalse) {}
+  }
+  
+  own class Property : Expression {
+    pub const String name;
+    
+    pub const []Int dimensions;
+    
+    pub const Expression expr;
+    
+    pub new(const String _name, const []Int _dimensions, const Expression _expr) {}
+  }
+  
+  own class BackRef : Expression {}
+  
+  own class Equals : Expression {}
+}
+
+class
+
+export trait Regex<Self : Regex> : Iterable<String> {
+  static const Expression regex;
+  
+  static const String name;
+  
+  Self match(*const String str) {
+    
+  }
+  
+  Stream<Self> find(*const String str) {
+    
+  }
+  
+  own class Expression {
+    pub static const Expression newline = Expression.string("\n");
+    pub static const Expression letter; // TODO include diacritics, possibly other alphabets, too
+    pub static const Expression asciiLetter = Expression.oneOf("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    pub static const Expression digit = Expression.oneOf("0123456789");
+    pub static const Expression alphanumeric = Expression.oneOf([ letter, digit ]);
+    
+    pub static Expression whitespace(Bool newline = true, Int min = 1, ?Int max = null) const {}
+    
+    pub static const Expression lineStart;
+    pub static const Expression lineEnd;
+    pub static const Expression stringStart;
+    pub static const Expression stringEnd;
+    
+    pub static const Expression noMatch;
+    
+    []Matchable expr;
+    
+    new() {}
+    new(Regex r) {}
+    new([]Expression expressions) {}
+    
+    
+    pub static Expression string(const String s) const {}
+    pub static Expression maybe(const Expression e) const {}
+    pub static Expression oneOf([]const String chars) const {}
+    pub static Expression oneOf([]const Expression alternatives, const Expression except) const {}
+    pub static Expression repeat(const Expression e, const Expression delimiter = Expression(),
+        Int min = 0, ?Int max = null) const {}
+    pub static Expression lookAhead(const Expression e, const Expression ifTrue, const Expression ifFalse) const {}
+    pub static Expression lookBehind(const Expression e, const Expression ifTrue, const Expression ifFalse) const {}
+    pub static Expression capture(const String name, const Expression e, Bool shallow = false) const {}
+    pub static Expression backRef(const String name, []Int dimensions) {}
+    pub static Expression equals(const String s, []Int dimensions = [], const Expression e) {}
+  }
+}
+
+class Example : Regex {
+  static const RegexExpression regex = new();
+}
