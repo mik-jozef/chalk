@@ -1,19 +1,22 @@
 /**
- * Defines abstract syntax tree of the Chalk programming language.
+ * Defines the grammar and abstract syntax tree of the Chalk programming language.
 **/
 
 import { Regex } from "std/regex.chalk";
 
-class Expr = Regex.Expression;
+class Expr = Regex.ExpressionBuilder;
 
 /// Whitespace at start of line with correct indentation.
 Expr startSpace = TODO;
 
+Expr space(...) {}
+
+/*
 Expr space(comptime const String str, comptime const Space flags) {
   str == "" && flags.nonempty throw Error();
 }
 
-Expr space(const String s, Bool multiline, Bool nonempty = false) { // TODO
+Expr space(const String s, Bool multiline, Bool canBeEmpty) { // TODO
   return Expr().oneOf(
     Expr().string(s),
     multiline ? Expr().newline.expr(startSpace) : Expr().oneOf(),
@@ -23,75 +26,180 @@ Expr space(const String s, Bool multiline, Bool nonempty = false) { // TODO
   );
 }
 
-Expr spaceIfMultiline(const String s, Bool nonempty = false) {
+Expr spaceIfMultiline(const String s, Bool canBeEmpty) {
   return Expr().equals("multiline", true,
-    space(s, true, nonempty),
-    space(s, false, nonempty),
+    space(s, true, canBeEmpty),
+    space(s, false, canBeEmpty),
   );
 }
+*/
 
 class Module : Regex {
+  ?ModuleDoc doc;
+  
+  [](Comment|Import|Declaration) contents;
+  
   static const Expr =
-  Expr().oneOf([
-    Expr(ModuleDoc).expr(space("\n\n", false)),
-    Expr().warning(),
-  ])
-  .repeat(
-    Expr().oneOf(
-      startSpace.newline,
-      Expr(Comment),
-      Expr(Import),
-      Expr(Declaration),
-    )
-  );
+      Expr.oneOf(
+        Expr().field("doc"),
+        Expr().equals("doc", null).warning("Missing module documentation."),
+      .repeat(
+        space("\n", true).oneOf(
+          Expr().field("contents", Comment),
+          Expr().field("contents", Import),
+          Expr().field("contents", Declaration),
+        ).space("", true).string(";").space("\n", true),
+      );
 }
 
 class Import : Regex {
-  Bool multiline;
+  Identifier|ObjectDestructuring imports;
   
-  static const Expr = 
-  startSpace
-  .string("import")
-  .expr(space(" ", false))
-  .oneOf(
-    Expr().string("{")
-      Expr(spaceIfMultiline(" "))
-        .repeat(Identifier, space("").string(",").spaceIfMultiline(" ")),
-    Expr.warning(Expr().string("{").repeat(Expr().whitespaceNewline).string("}")),
-    Expr().string("*").space(" ").string("as").oneOf(
-      Expr().string(" "),
-      Expr().except(Expr().warning(Expr().repeat(Expr().whiteSpaceNewline, 1))),
-    ),
-  )
-  .;
+  Expression modulePath;
+  
+  static const Expr =
+      Expr().string("import")
+      .oneOf(
+        Expr(space(" ", true))
+          .field(imports, ObjectDestructuring)
+          .expr(space(" ", true)),
+
+        Expr(space(" ", false))
+          .field("imports", Identifier)
+          .expr(space(" ", false)),
+      )
+      .string("from")
+      .expr(space(" ", false))
+      .field("modulePath")
+      .equals("modulePath.type", String);
 }
 
 class ModuleDoc : Regex {
-  static const Expr = 
-  Expr().warning(badSpaceM);
+  []String text;
+  
+  static const Expr =
+      Expr().oneOf(
+        Expr().warning("Style", Expr().string("/").repeat(Expr().string("*"), 2, 4).string("/")),
+        Expr().warning(
+          "Style",
+          Expr().string("/*").ahead(Expr().noneOf("*")),
+          Expr().string("/**"),
+        )
+          .warning(
+            "Style",
+            Expr().repeat(Expr().noneOf(
+              Expr().string("\n"),
+              Expr().string("*").ahead(Expr().string("/"))
+            ), 1),
+          )
+          .maybe(Expr().string("\n"))
+          .repeat(
+            Expr().warning("Style", Expr().string(" * "), Expr())
+            .repeat(Expr.field("text", Expr().noneOf("\n"))).string(\n),
+          )
+          .warning("Style", Expr().space().string("*/"), space("", true).string("**/"))
+          .string("\n");
+      );
 }
 
 class Declaration : Regex {
-  static const Expr = 
+  VariableDeclaration|ClassDeclaration|TraitDeclaration|EnumDeclaration decl;
+  
+  static const Expr =
+  Expr().oneOf(
+    Expr().field("decl", VariableDeclaration),
+    Expr().field("decl", ClassDeclaration),
+    Expr().field("decl", TraitDeclaration),
+    Expr().field("decl", EnumDeclaration),
+  );
+}
+
+class VariableDeclaration : Regex {
+  Identifier type;
+  Identifier name;
+  
+  ?Expression init;
+  
+  static const Expr =
+  startSpace
+  .field("type", Identifier)
+  .space(" ", false)
+  .field("name", Identifier)
+  .oneOf(
+    space(" ", true).string("=").space(" ", true).field("init"),
+    Expr.equals("init", null),
+  );
+}
+
+class ClassDeclaration : Regex {
+  Identifier name;
+  
+  [](VariableDeclaration|ClassDeclaration|TraitDeclaration|EnumDeclaration) members;
+  
+  static const Expr =
+  Expr().string("class")
+  .space(" ", false)
+  .field("name")
+  .space(" ", true)
+  .string("{"
+  .oneOf(
+    Expr().warning("Empty class.", Expr.space()),
+    Expr().repeat();
+  )
+  .string("}"
+  );
+}
+
+class ClassBody : Regex {
+  static const Expr =
+  Expr;
+}
+
+class TraitDeclaration : Regex {
+  static const Expr =
+  Expr;
+}
+
+class EnumDeclaration : Regex {
+  static const Expr =
   Expr;
 }
 
 class Comment : Regex {
-  static const Expr = 
+  static const Expr =
   Expr;
 }
 
 class Identifier : Regex {
-  static const Expr = 
+  static const Expr =
   Expr;
 }
 
 class TypedIdentifier : Regex {
-  static const Expr = 
+  static const Expr =
   Expr;
 }
 
 class C : Regex {
-  static const Expr = 
+  static const Expr =
   Expr;
 }
+
+
+// end
+
+    Expr(space(" ", true))
+    .oneOf(
+      Expr().string("{")
+      .expr(spaceIfMultiline(" "))
+      .repeat(Identifier, space("").string(",").spaceIfMultiline(" ")),
+    
+      Expr().string("{").space().string("}")
+      .equals("modulePath", StringLiteral("std/default.chalk")),
+      
+      Expr().warning("Empty import.", Expr().string("{").space().string("}")),
+    ).expr(space(" ", true)),
+    
+    Expr(space(" ", false)).field("imports", Identifier).expr(space(" ", false)),
+  )
+  .;

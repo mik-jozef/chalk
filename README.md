@@ -363,11 +363,11 @@ operator overloading by implementing certain traits.
 | `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
 | `a == b`    | `Object.equals(a, b)`  | Object
 | `a != b`    | `!Object.equals(a, b)` | Object
-| `a < b`     | `Int.sgn(Comparable.cmp(a, b)) == -1` | Comparable
-| `a > b`     | `Int.sgn(Comparable.cmp(a, b)) == 1`  | Comparable
-| `a <= b`    | `Int.sgn(Comparable.cmp(a, b)) != 1`  | Comparable
-| `a >= b`    | `Int.sgn(Comparable.cmp(a, b)) != -1` | Comparable
-| `a <=> b`   | `Comparable.cmp(a, b)`                | Comparable
+| `a < b`     | `Int.sign(Comparable.cmp(a, b)) == -1` | Comparable
+| `a > b`     | `Int.sign(Comparable.cmp(a, b)) == 1`  | Comparable
+| `a <= b`    | `Int.sign(Comparable.cmp(a, b)) != 1`  | Comparable
+| `a >= b`    | `Int.sign(Comparable.cmp(a, b)) != -1` | Comparable
+| `a <=> b`   | `Comparable.cmp(a, b)`                 | Comparable
 | `a = b`     | `a.assign(b)`             | Object
 | `a[b]`      | `a.get(b)`                | Indexable
 | `!a`        | `Bool.not(a)`             | (`a` must be `Bool`)
@@ -379,6 +379,7 @@ Operators that are not syntactic sugar:
 
 | Example     | Operator      | Return type
 | -------     | --------      | -----------
+| `a; b`      | Semicolon     | Type of `b`
 | `a.b`       | Member access | Type of `b`
 | `a?.b`      | Member access | Type of `b`
 | `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `void`.
@@ -643,6 +644,7 @@ Preemptive, threaded.
 
 
 In no particular order, features of my programming language:
+should temporary objects be allocated on the heap unless they are provably local?
 references: it would be nice if there were references to portions of String and Buffer,
   but I do not want a situation like in Rust that reference is its own type different from `*String`
 underscore for unused function parameters
@@ -652,6 +654,14 @@ golang's defer? destructors do the same, so why?
 struct, union and array destructuring, destructuring of a single variable from
   anonymous class/union doesn't require braces, optional declaration adds one optional,
   that can result in ??Type
+two types of array destructuring:
+  ```
+  without global type - RHS must be array literal
+  [ a, b, auto d ] = [ a, b, foo() ];
+  
+  with global type - RHS can be anything
+  Type [ a, b ] = bar()
+  ```
 ```
 // Declaration
 { MType x: newName, Int y } = f(); // Only works on anonymous classes
@@ -766,6 +776,28 @@ treat mutable, async and threaded similarly
 move an object and change pointers (even constant) with one operation?
 keyword `final` forbids overriding a method
 every member is a getter? no setters
+inner classes:
+  ```
+  class A {
+    Int a;
+    
+    // Member class, every instance can have a different one
+    class B;
+    
+    // Member inner class, one for all instances of A
+    class C {
+      getA() { return a }
+    }
+  }
+  ```
+classes can be variables, but instantiation needs comptime class
+  ```
+  class X : Object = getClassX(); // Warning, explicit implementation of Object
+  
+  X a; // Error if getClass is not comptime
+  
+  X.getFields(); // Never an error
+  ```
 is returning a reference ok if and only if it refers to nonlocal object? this should be easy to check statically
 everything is thread-local by default
 no inline keyword, or anything that is supposed to do compiler's job
@@ -836,6 +868,7 @@ math
 regex
 email
 rpc - remote procedure calls
+asm - inline assembler (implementation obviously provided by the compiler)
 
 
 Commpiler+interpreter+package manager abilities:
@@ -962,6 +995,7 @@ Car c;
 Car.getField("i")?.set(c, 42);
 Car.class.getField("i")?.set(c, 42);
 
+Bool binaryOperation(Bool _, Bool _) = foo(); // foo() must return a function with a conforming signature
 
 
 

@@ -58,8 +58,8 @@ class Float64 : Number {
   static Float32 Infinity;
 }
 
-export class Int64 : Number {
-  
+export class Int64 : Number, Stream {
+  forEach(void()) {}
 }
 
 export class Int32 : Number {
@@ -112,8 +112,6 @@ class Functions {
   get<Ret, Object...>()
 }
 
-trait Comparator {}
-
 class Math {}
 
 trait ArrayTrait<T> {
@@ -142,7 +140,7 @@ class Array<T, Int i> : ArrayTrait<T> {
 }
 
 *T move<T>(T t) { return t; }
-export class Union<> {
+export class Union<[]class> {
   pub Bool hasValue<X>() {}
   pub ~*X getValue<X>() {}
   pub ~*~X getValue<X>() ~ {}
@@ -207,13 +205,18 @@ trait Pointer {
 }
 
 class Reflect {
-  class CreateType([]trait implementedTraits, []Field fields) comptime {} // Array of traits, oh fuck
+  class createType([]trait implementedTraits, []Field fields) comptime {} // Array of traits, oh fuck
   
   // Should Field rather be Field<T>? should nonstatic inner classes be just type variables instead of Java-like inner classes?
   Field createField(Field.Modifiers modifiers, const String name, class Type, Type value) {}
 }
 
 class Field friend Reflect {}
+
+class ThreadPool {
+  Thread add(Thread t) {}
+  ThreadPool add(ThreadPool t) {}
+}
 
 class Ptr : Pointer {}
 class UniquePtr : Pointer {}
@@ -228,6 +231,10 @@ class Function<class R, []class params> {
   SharedPtr<Buffer> code;
   ?SharedPtr<StackFrame<?>> closure; // ???
   *StackFrame<code>; // ???
+  
+  static Function<R, params.subArray(args.length)> bind(Function<R, []class params> fn, params... args) {
+    [[ compiler magic ]];
+  }
 }
 
 trait ModuleT {}
@@ -236,12 +243,13 @@ class Module {}
 trait Stream<T> {
   T next();
   
-  Bool all(Bool fn(*T elem));
-  Bool any(Bool fn(*T elem));
-  void forEach(void fn(*T elem));
+  void forEach(Bool fn(*T elem));
   Self map<Val>(T fn(*T elem), Self newObject);
   Self filter(Bool fn(*Self elem));
   T reduce<T>(T fn(*T elem, *T acc), *T start);
+  
+  []T take(Int n);
+  []T takeAll();
   
   own Stream<Tuple<A, B>> zip(*Stream<A> a, *Stream<B> b);
   own Stream<T> zipWith<T>(*Stream<A> a, *Stream<B> b, T(*A a, *B b));
@@ -260,7 +268,7 @@ trait Stream<T> {
 }
 
 trait AsyncStream<T> {
-  *Self forEach(Promise fn(*T elem));
+  *Self forEach(Promise<Bool> fn(*T elem));
   Bool all(Promise<Bool> fn(*T elem));
   Bool any(Promise<Bool> fn(*T elem));
   []Out map<Val>(Promise<T> fn(*T elem), Self newObject);
@@ -276,9 +284,12 @@ class OutStream {
   Promise write(*Buffer b) {}
 }
 
-class IOStream : Iterable {
-  InStream in() {}
-  OutStream out() {}
+/**
+ * Streams in and out must have the same target process. Should this class even exist?
+ */
+class IOStream {
+  pub InStream in;
+  pub OutStream out;
 }
 
 trait Hashable {
@@ -286,9 +297,9 @@ trait Hashable {
 }
 
 trait Iterable<T> : AsyncIterable<AsyncIterator<T>>, Stream<T> {
-  class Iter;
+  class Iterator;
   
-  Iter iter();
+  Iterator iter();
   AsyncIterator<T> asyncIter() {
     for i : iter() { yield i };
   }
@@ -297,6 +308,8 @@ trait Iterable<T> : AsyncIterable<AsyncIterator<T>>, Stream<T> {
 trait AsyncIterable<I: AsyncIterator> {
   I asyncIter();
 }
+
+class String : CML<{}> {}
 
 class BigInt : Number {}
 class StringBuilder {}
@@ -312,8 +325,6 @@ trait Iterator<T> : Iterable<T>, Stream<T> {
   *T prev();
   Bool hasValue();
   *T getValue();
-  []T take(Int n);
-  []T takeAll();
   
   *Iterator iter() { return this; }
 }
@@ -387,12 +398,27 @@ trait FolderTrait {}
 class Folder {}
 class VirtualFolder {}
 
-class Log {}
-
-trait Comparable {
-  static class Comparator;
+class System {
+  IOStream io; // This or Console.io
   
-  static *Self clamp(*Self min, *Self value, *Self max) {
+  String arch; // "unknown" | "x64" | "web" | ...;
+}
+
+// TODO separate logging to console (meant for user interaction only)
+// and logging, ie. storing some data. The second should be safe against
+// log injection.
+class Logger {
+  IOStream io; // This or System.io
+  
+  Void log(comptime const String s) {
+    if (!Reflect.isComptime(s)) throw Error("Logging a runtime message");
+  }
+  
+  Void logln(comptime const String s) { log(s + "\n") }
+}
+
+trait Comparator {
+  static *Self clamp(const Self min, const Self value, const Self max) {
     min > max && throw(Error.new( // Or just `Error(`?
         "Minimum value must be less than the maximum value."));
     
@@ -403,8 +429,24 @@ trait Comparable {
     }
   }
   
-  static min(Iterable<Self> a);
-  static max(Iterable<Self> a);
+  static min(Iterable<const Self> a);
+  static max(Stream<const Self> a);
+  
+  static compare(const Self a, const Self b) {}
+}
+
+trait Comparable {
+  static class Comparator;
+  
+  
+}
+
+enum Noreturn {}
+
+enum Null {
+  null;
+  
+  Bool equals() { return false }
 }
 
 

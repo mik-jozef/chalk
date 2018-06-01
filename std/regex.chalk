@@ -18,8 +18,10 @@ trait Expression {
     pub const Int min;
     pub const ?Int max;
     
-    new([]const Expression _expr, []const Expression _delimiter = Expression.empty,
-        Int _min = 0, ?Int _max = null) {}
+    new(const []const Expression _expr,
+        const []const Expression _delimiter = Expression.empty,
+        Int _min = 0,
+        ?Int _max = null) {}
   }
   
   own class Maybe : Expression {

@@ -4,7 +4,11 @@
 
 import { Stream } from "std/stream.chalk";
 
-export trait Container : Stream
+export trait Collection<T> : Stream {
+  Self<T> merge(Self<T>, Bool overwrite = false);
+  
+  static Self<T> merge(Self<T>, Self<T>);
+}
 
 export trait Set {
   
