@@ -745,7 +745,22 @@ type Formula {
   
   
 }
+
+trait T { foo(); }
+class A : X { foo(){} }
+class B : X { foo(){} }
+
+A|B is X // True
+A|B x = bar();
+x.foo();
 ```
+
+
+
+
+
+
+
 
 
 

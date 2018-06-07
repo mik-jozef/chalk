@@ -1,0 +1,21 @@
+/**
+ * Schema for 'err.chalkml'.
+**/
+
+class Errors : Markup {
+  static Bool root = true;
+  
+  static
+}
+
+class Error : Markup {
+  
+}
+
+class Short : Markup {
+  
+}
+
+class Long : Markup {
+  
+}

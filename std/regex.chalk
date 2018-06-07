@@ -2,6 +2,10 @@
  * TODO
 **/
 
+class Space : Expression {
+  /// TODO space must have lookahead if equal to "" and to error on eg. importNamefroma
+}
+
 /**
  * Common type of parts of regex expression.
  */

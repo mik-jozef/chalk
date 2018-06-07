@@ -205,7 +205,15 @@ trait Pointer {
 }
 
 class Reflect {
-  class createType([]trait implementedTraits, []Field fields) comptime {} // Array of traits, oh fuck
+  class createClass([]trait traits, []Field fields) comptime {
+    [[magic]];
+  }
+  
+  trait createTrait() comptime {
+  
+  }
+  
+  R(...Args) createFunction() {}
   
   // Should Field rather be Field<T>? should nonstatic inner classes be just type variables instead of Java-like inner classes?
   Field createField(Field.Modifiers modifiers, const String name, class Type, Type value) {}

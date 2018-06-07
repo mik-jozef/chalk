@@ -4,35 +4,7 @@
 
 import { Regex } from "std/regex.chalk";
 
-class Expr = Regex.ExpressionBuilder;
-
-/// Whitespace at start of line with correct indentation.
-Expr startSpace = TODO;
-
-Expr space(...) {}
-
-/*
-Expr space(comptime const String str, comptime const Space flags) {
-  str == "" && flags.nonempty throw Error();
-}
-
-Expr space(const String s, Bool multiline, Bool canBeEmpty) { // TODO
-  return Expr().oneOf(
-    Expr().string(s),
-    multiline ? Expr().newline.expr(startSpace) : Expr().oneOf(),
-    Expr().except(
-      Expr().warning(Expr().whitespaceNewline),
-    ),
-  );
-}
-
-Expr spaceIfMultiline(const String s, Bool canBeEmpty) {
-  return Expr().equals("multiline", true,
-    space(s, true, canBeEmpty),
-    space(s, false, canBeEmpty),
-  );
-}
-*/
+class { Expr, OneOf, Space } = Regex;
 
 class Module : Regex {
   ?ModuleDoc doc;
@@ -40,16 +12,29 @@ class Module : Regex {
   [](Comment|Import|Declaration) contents;
   
   static const Expr =
-      Expr.oneOf(
-        Expr().field("doc"),
-        Expr().equals("doc", null).warning("Missing module documentation."),
-      .repeat(
-        space("\n", true).oneOf(
-          Expr().field("contents", Comment),
-          Expr().field("contents", Import),
-          Expr().field("contents", Declaration),
-        ).space("", true).string(";").space("\n", true),
-      );
+      <Seq>
+        <Field name="doc" />
+        <Equals field="doc" value=null>
+          <Seq>
+            <Warning category="documentation" text="Missing module documentation." />
+            <Space />
+          </Seq>
+        </Equals>
+        <Repeat>
+          <Seq>
+            <OneOf>
+              <Field name="contents">
+              /* Note: support this:
+               * <Field name="contents" node=(Import|Declaration)> // Does not match comments
+               */
+            </OneOf>
+            <Space s="" />
+            <Text str=";" />
+            <Space s="\n" />
+          </Seq>
+          <Space s="\n" />
+        </Repeat>
+      </Seq>;
 }
 
 class Import : Regex {

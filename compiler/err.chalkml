@@ -1,0 +1,77 @@
+<!doctype "err.chalk">
+
+<Errors>
+  <Error category="documentation" id="EC">
+    <Short>
+	  "empty comment"
+    </Short>
+	<Long>
+	  "Comments should contain some texts, or should be removed."
+	</Long>
+  </Error>
+  
+  <Error category="documentation" id="EMD">
+    <Short>
+	  "empty module documentation"
+    </Short>
+	<Long>
+	  """
+	  Module documentation is empty. Please add a description of the module.
+	  
+	  Example:
+	  
+	  /**
+	   * Exports a function that returns "Hello, world!".
+	  **/
+	  
+	  export String hello() { return "Hello, world!" }
+	  """
+	</Long>
+  </Error>
+  
+  <Error category="style" id="MASC" >
+	<Short>
+	  "missing asterisk at the start of a comment (/**)"
+	</Short>
+	<Long>
+	  """
+	  Documentation comment should start with \"/**\".
+	  """
+	</Long>
+  </Error>
+  
+  <Error category="style" id="MASL">
+	<Short>
+	  "missing \" * \" at the start of line"
+	</Short>
+	<Long>
+	  """
+	  Multiline comments should start with \" * \".
+	  
+	  Examples of a well-formatted multiline comments:
+	  
+	  /* This is
+	   * a looooong comment.
+	   */
+	  
+	  /**
+	   * This is a documentation comment.
+	   */
+	  
+	  /**
+	   * This is a module documentation comment.
+	  **/
+	  """
+	</Long>
+  </Error>
+  
+  <Error category="" id="" >
+	<Short>
+	  ""
+	</Short>
+	<Long>
+	  """
+	  """
+	</Long>
+  </Error>
+</Errors>
