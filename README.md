@@ -27,7 +27,7 @@ A collection of ideas that I hope will turn into a working programming language.
 - wrong methods called because of polymorphism
 - statements; everything is an expression
 - synchronous IO (but there is compile-time IO)
-- glabal variables
+- global variables
 - namespaces
 - duck typing, including in templates
 - (probably) exceptions
@@ -66,7 +66,7 @@ it would allow assignment of constant variable to a mutable variable.
 class Car {
   [4]Wheel wheels;
   
-  *Wheel getWheel(Int i) { return wheels[i]; };
+  *Wheel getWheel(Int i) { return wheels[i] };
 }
 
 mut Car mutCar;
@@ -111,6 +111,8 @@ Conversions can be chained.
 | `*T -> T`  | deferefence
 | `T -> *T`  | reference
 | `T -> ?T`  | type to optional type
+| `A&B -> A` | 
+| `A -> A|B` | 
 
 Additionally, there is unsafe `?T -> T`, see `unsafe` keyword.
 
@@ -242,6 +244,11 @@ SimpleConsole.new().println(); // Prints "(blank)\n"
 Console.foo(); // SimpleConsole.foo() is an error
 ```
 
+#### Composite types
+If `A` and `B` are classes, `A|B` is a union class.
+
+If `A` and `B` are traits, `A&B` is an intersection triat and `A|B` is a union trait.
+
 ### Control flow and basic syntax
 #### Variables
 ```
@@ -251,7 +258,11 @@ ClassType var1 = new(args, to, constructor);
 
 TraitType var2 = ClassType.new();
 
-class NewType : Trait1, Trait2 value = bar();
+
+// TODO decide
+class : Trait1, Trait2 Value = bar();
+
+class Value : Trait1, Trait2 = bar();
 ```
 
 Keyword `auto` can be used to infer type from right hand side of assignment.
@@ -563,11 +574,11 @@ Unlike in C++, duck typing doesn't work in Chalk. All members of type parameters
 must be specified in a trait the type implements.
 
 ```
-class Box<Val> {
+class Box<class Val> {
   pub Val value;
 }
 
-class PrintableCollection<Val : Printable, Col : Collection> : Printable {
+class PrintableCollection<class Val : Printable, class Col : Collection> : Printable {
   pub Col values;
   
   String toString() {

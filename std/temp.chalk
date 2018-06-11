@@ -1,3 +1,9 @@
+trait Object {
+  pub class Class;
+  
+  Field getField(String name);
+}
+
 export class Defer {
   []*Function<void, []> functions();
   
@@ -388,9 +394,13 @@ class CompleTFloat : Number {
   
 }
 
-trait Random {}
+trait Random {
+  Bool randBool(Double chanceOfTrue);
+}
 
 class SimpleRandom : Random {}
+
+SimpleRandom rand;
 
 trait SQLDriver {}
 

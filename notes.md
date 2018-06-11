@@ -17,7 +17,7 @@ what is `const ?mut Type`? shouldn't `?` be a type modifier instead of a type?
 Object.shrink() - shrinks all members, eg. unused memory in dynamic arrays
 compiler - make it error to compare value with null, because it is always false
 import "x" using allocator?
-syntactic sugar for union type? `A | B == Union<A, B>`
+composite types - type unions and type intersections, supported natively by the type system
 `[]String x(reservedSpace);`
 String,Buffer,Array:Viewable|Viewer; Viewer.view();
 assert array length >= 0
@@ -45,6 +45,14 @@ warning on empty class, class with just one member (and no functions)
 should `this = null`; be supported? Could be used in streams (copying IOStream to OStream)?
 if a generic function has parameter instantiated to `Void`, should the parameter
   be removed?
+documentation comments
+  ```
+  /// Single line
+  
+  ///
+  Multiple lines
+  ///
+  ```
 enforce class contents order: enum values, variables, methods, nested classes
 block returns last statement, function must return explicitly
 import() function that dynamically loads code, not part of global namespace
@@ -54,10 +62,62 @@ no out-of-class function definitions
 it is an error if class members and class member initialization order is different
 functions are hoisted
 promises
+```
+class A {
+  new(B _, C _) {}
+}
+
+Null foo(b, c) {
+  A a = A(b, c); // Equevalent to A a = unsafe undefined; A.new(a, b, c)
+  A(b, c); // still valid
+}
+```
 generate warning if unsafe code is safe?
 program is safe if every `unsafe` code is provably safe
 string implements Buffer
 main returns noreturn
+warning - unnecessary union (eg. `T|T`, `A|B` if `A is B`)
+```
+class C {} class D {}
+
+trait T {
+  Null foo();
+}
+
+class A : T {
+  C foo() {}
+}
+
+class B : T {
+  D foo() {}
+}
+
+Null main() {
+  A|B var = Math.randBool() ? A() : B();
+  
+  C|D ret = var.foo(); // This must compile
+}
+```
+```
+trait A {
+  C foo();
+}
+
+trait B {
+  D foo();
+}
+
+// ?
+class E {
+  C A.foo() {}
+  D B.foo() {}
+}
+
+// this must work
+class F {
+  C&D foo() {}
+}
+```
 array.size, not array length
 class Defer - runs functions when destructed
 json support, import json as object
@@ -331,7 +391,27 @@ global type reflection (eg. enumeration) is obviously bad (breaks encapsulation,
   violates open-world principle (new types may be loaded at any time), prohibits
   not including unused types in binaries), but what about module-wide type
   reflection? - I guess it's bad anyways
-warning - unnecessary `this`
+warning - unnecessary `this` - or even better - this shouldn't even be part of Chalk
+compiler should print errors backwards?
+only indent 6 spaces if code follows
+vocab like "member", "static member", etc must be defined
+  ? member - anything declared in a class
+    field - member variable
+    method - member function
+    nested class/trait - class/trait defined inside another,
+                         note member class variable is not (necessarily) a nested class
+    type - trait or class
+first-class properties?
+`is` relation vs `is` operator
+  ```
+  Car.prop = foo() ? wheels : doors;
+  ```
+should enum be a keyword? what about `class Dirs : Enum { W, A, S, D }`
+```
+enum X<A> { a, b, c }
+
+X.a is A // true
+```
 if function X contains just a call to function Y, function X must be inlined
   this "inlining" must also be true about `_start` function (or whatever name
   it will have), ie. if `_start` contains just one funciton call, the first

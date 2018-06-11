@@ -1,0 +1,74 @@
+///
+Defines all warnings and errors that can happen during compilation of Chalk.
+
+All errors should contain an example of correct code, or code that causes the
+error, preferrably both, and an explanation of why it happens and what it means.
+///
+
+import { Error } from "std/regex.chalk";
+
+export class Errors : Enum<Error> {
+  MEMD(
+    "documentation",
+    "missing or empty module documentation",
+    """
+    Module documentation is missing or empty. Please add a description
+    of the module.
+    
+    Example of a documented module:
+    
+    ```
+    ///
+    This is module documentation. MEMD means this comment is missing.
+    This module exports a function that returns "Hello, world!".
+    ///
+    
+    // Returns "Hello, world!"
+    export String hello() { return "Hello, world!" }
+    ```
+    """,
+  ),
+  EC(
+    "suspicious",
+    "empty class",
+    """
+    Empty class cannot do anything, it is probably unfinished or redundant.
+    
+    Example of an empty class:
+    
+    ```
+    class X {}
+    ```
+    
+    Try adding some members to the class:
+    
+    ```
+    class X {
+      Int i;
+      
+      new(Int _i);
+      
+      pub getI() { return i }
+    }
+    ```
+    """
+  ),
+  TODO(
+    "suspicious",
+    "TODO found in a comment",
+    """
+    "TODO" is often found in code to signal that the code is unfinished.
+    
+    Example:
+    
+    ```
+    Null foo() {
+      // TODO empty
+    }
+    ```
+    
+    You can leave the TODO in place while working on something else and finish
+    the code later.
+    """
+  );
+};
