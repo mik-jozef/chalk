@@ -8,15 +8,6 @@
 /// Common type of parts of regex.
 export trait Expr {}
 
-export class Error : Expr {
-  pub String id;
-  pub String category;
-  pub String short;
-  pub String long;
-  
-  new({ String _category, String _short, String _long }) {}
-}
-
 export class Space : Expr {
   /// TODO space must have lookahead if equal to "" and to error on eg. importNamefroma
 }

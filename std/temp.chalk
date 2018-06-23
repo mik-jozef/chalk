@@ -1,7 +1,20 @@
+String format(String format, Object ...args)
+
 trait Object {
   pub class Class;
   
   Field getField(String name);
+}
+
+trait ErrCode {}
+
+// Or trait?
+export class Err {
+  TODOType stackTrace;
+  
+  new(ErrCode code, String message) {
+    stackTrace = System.getStackTrace() // Or something
+  }
 }
 
 export class Defer {
@@ -98,8 +111,9 @@ class Class {}
 
 trait Enum {
   String name;
+  Int index;
   
-  static values();
+  static Self values;
 }
 
 trait Collection<T> : Iterable<T> {
@@ -205,7 +219,7 @@ class TreeSet {}
 
 class Tuple {}
 
-trait Pointer {
+trait Pointer<T> {
   own Int addressOf(*Object o) {}
   own *T pointerTo<T>(Int address) {}
 }
@@ -232,14 +246,20 @@ class ThreadPool {
   ThreadPool add(ThreadPool t) {}
 }
 
-class Ptr : Pointer {}
-class UniquePtr : Pointer {}
-class SharedPtr : Pointer {}
-class WeakPtr : Pointer {}
+class Ptr<T> : Pointer<T> {}
+class WeakPtr<T> : Pointer<T> {}
+class Box<T> : Pointer<T> {} // unique_ptr
+class RefBox<T> : Pointer<T> {} // shared_ptr (maybe RcBox, or other?)
 
 class Json {}
 
 class Buffer {}
+
+trait Function {
+  class ReturnType;
+  
+  []Param Params;
+}
 
 class Function<class R, []class params> {
   SharedPtr<Buffer> code;

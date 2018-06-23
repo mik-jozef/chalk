@@ -2,8 +2,11 @@
 This module defines the grammar and abstract syntax tree of the Chalk
 programming language.
 
-Convention: startSpace is handled by the Regexes after it, all other space
-is handled by Regexes before it.
+Hint for Notepadqq:
+  Indent is two spaces.
+
+(Loose) convention?: startSpace is handled by the Regexes after it, all other
+space is handled by Regexes before it.
 
 Wrong:
 ```
@@ -23,11 +26,18 @@ import { class Regex } from "std/regex.chalk";
 
 { class Expr, class OneOf, class Space } = Regex;
 
-export []String keywords =;
-    [ "auto", "assume", "await", "break", "case", "catch", "class", "comptime"
-    , "const", "continue", "default", "export", "for", "friend", "get", "import"
-    , "is", "mut", "pub", "return", "set", "shared", "static", "switch", "throw"
-    , "trait", "try", "yield" ];
+///
+Keyword is a string that cannot be an identifier.
+
+Notably, `class` and `trait` are not keywords, but (the only) language-defined
+types.
+///
+export []String keywords =
+    [ "auto", "assume", "await", "break", "case", "catch", "comptime", "const"
+    , "continue", "default", "enum", "export", "final", "for", "friend", "get"
+    , "import", "is", "mut", "pub", "return", "set", "shared", "static", "switch"
+    , "throw", "try", "type", "yield"
+    ];
 
 export class Comment : Regex {
   static const Expr =
@@ -40,14 +50,16 @@ export class Comment : Regex {
             , Repeat(
                 [ StartSpace()
                 , Repeat(
-                  [ OneOf(
-                      [ [ Not([ Text("///"), Text("\n"), Text("TODO") ]) ]
-                      , [ Error.TODO, Text("TODO") ]
-                      ],
-                    )
-                  ]
+                    [ OneOf(
+                        [ [ Not([ Text("///"), Text("\n"), Text("TODO") ]) ]
+                        , [ Error.TODO, Text("TODO") ]
+                        ],
+                      )
+                    ]
+                  )
                 , Text("\n")
-                ])
+                ]
+              )
             , StartSpace()
             , Text("///")
             ]
@@ -73,14 +85,14 @@ export class Module : Expr {
 }
 
 export class Import : Regex {
-  Bool emptyLineBefore
+  Bool leadingEmptyLine;
   
   Identifier|ObjectDestructuring imports;
   
   Expression path;
   
   static const Expr =
-      [ Equals("emptyLineBefore", true, [ Text("\n"), Space("") ])
+      [ Equals("leadingEmptyLine", true, [ Space("\n") ])
       , Text("import")
       , Space(" ")
       , Field("imports")
@@ -96,10 +108,16 @@ export class Import : Regex {
 }
 
 export class Declaration : Regex {
-  VariableDeclaration|ClassDeclaration|TraitDeclaration|FunctionDeclaration decl;
+  VariableDeclaration|TypeDeclaration decl;
   
   static const Expr = Field("decl");
 }
+
+export class TypeDeclaration =
+    ClassDeclaration|TraitDeclaration|CompositeTypeDeclaration; // WROOONG: Composite types cannot be declared
+
+export class CompositeTypeDeclaration =
+    FunctionDeclaration|TypeUnion|TypeIntersection;
 
 export class VariableDeclaration : Regex {
   Type type;
@@ -124,8 +142,8 @@ export class ClassDeclaration : Regex {
   []Parameter params;
   []Trait traits;
   
-  []Field fields;
-  []NestedTypes nested;
+  []VariableDeclaration fields;
+  []TypeDeclaration types;
   
   static const Expr =
       [ Text("class")
@@ -143,23 +161,35 @@ export class ClassDeclaration : Regex {
           ]
         )
       , Space(" ")
-      , Text(":")
-      , Type-------------------------------------------------------------------------------------------------------------------
-      , Space(" ")
+      , Maybe([ Text(":"), Space(" "), TypeIntersection(), Space(" ") ])
+      , Maybe([ Text("friend"), Space(" "), TypeUnion(), Space(" ") ])
       , Text("{")
       , OneOf(
           [ [ Errors.EC, Space() ]
-          , [ Repeat([ Field("members") ], [ StartSpace(), Space("\n") ], 1) ]
+          , [ MSpace("\n", 2,
+                [ Repeat([ StartSpace(), Field("fields") ],
+                    [ Space("\n"), StartSpace(), Space("\n") ],
+                    1,
+                  )
+                , Repeat(
+                    [ StartSpace()
+                    , OneOf(
+                        [ [ Field("types") ]
+                        , [ Error.FATD, Field("fields") ]
+                        ]
+                      )
+                    ],
+                    [ Space("\n"), StartSpace(), Space("\n") ],
+                    1,
+                  )
+                ]
+              )
+            , Space("\n")
+            , StartSpace()
+            ]
           ]
       , Text("}"
-      , Space("")
       );
-}
-
-export class ClassMember : Regex {
-  static const Expr =
-      [
-      ];
 }
 
 export class TraitDeclaration : Regex {
@@ -169,7 +199,18 @@ export class TraitDeclaration : Regex {
 }
 
 export class FunctionDeclaration : Regex {
-export class FunctionDeclaration : Regex {
+  static const Expr =
+      [
+      ];
+}
+
+export class TypeUnionDeclaration : Regex {
+  static const Expr =
+      [
+      ];
+}
+
+export class TypeIntersectionDeclaration : Regex {
   static const Expr =
       [
       ];

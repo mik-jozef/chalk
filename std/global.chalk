@@ -8,21 +8,27 @@ import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
 import { isNull } from "std/compiler-magic.chalk";
 
 export trait Object {
-  get Class<Self> class;
+  get class Class;
+  
+  get static String name;
   
   *Self assign(*Self value);
   
   String toString() {
     Reflect.classOf(Self);
     
-    return [ Self.name, " {\n" ].join;
+    return [ Class.name, " {\n" ].join;
   }
   
   get String name;
   
-  final ?*Object getField(*String name);
+  final ?*Object getField(*String name) {
+    [[magic]];
+  }
   
-  final []Field getFields(FieldType type = FieldType.all);
+  final static []Field getFields(FieldType type = FieldType.all) {
+    [[magic]];
+  }
   
   own Bool equals<T>(?T a, ?T b) {
     Pointer.equals(a, b) && return true;
@@ -58,8 +64,12 @@ export trait Optional<T : Nullable> {
 
 export trait Optional<T> {}
 
-export class String<String.Encoding = String.Encoding.UTF8> {
+export class String {
   find, todo
+  
+  getBytes();
+  
+  
 }
 
 export enum Bool = { true, false }

@@ -17,15 +17,43 @@ what is `const ?mut Type`? shouldn't `?` be a type modifier instead of a type?
 Object.shrink() - shrinks all members, eg. unused memory in dynamic arrays
 compiler - make it error to compare value with null, because it is always false
 import "x" using allocator?
-composite types - type unions and type intersections, supported natively by the type system
+`class` and `trait` are types, (the only provided by the language itself?),
+  `class X is class`
+composite types
+  - type unions and type intersections, supported natively by the type system
+  - functions
 `[]String x(reservedSpace);`
 String,Buffer,Array:Viewable|Viewer; Viewer.view();
 assert array length >= 0
+what about limited support to recursively defined variables, eg.
+  ```
+  X a = X(b);
+  X b = X(a);
+  ```
 arrays with arbitrary length
-enum with just one or just two variable generates a warning - The canonical
-  one/two-element enum is `Void`/`Bool`
+```
+Null foo(A a, B b) {
+  assume {
+    isNice(a);
+  }
+  
+  a.bar(b);
+  
+  Proof() {
+    ...
+  }
+}
+```
+should error handling be part of RegeRex?
+```
+class X : Enum<Int> { a: 1, b: 3, c: 7, d: 15 }
+```
+`{} is Enum<Object>`
+merge `class` and `Object`?
+enum with zero, one or just two variable generates a warning - The canonical
+  zero/one/two-element enum is `Noreturn`/`Null`/`Bool`
 rename `noreturn` to `Empty`?
-first class fields?
+first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
    ```
    class C {
      Int a, b;
@@ -53,6 +81,22 @@ documentation comments
   Multiple lines
   ///
   ```
+wrapping operators `+%, -%, *%`
+string (or array? or collection) concatenation `++`
+if a condition is always true or always false, it should be a warning, or maybe
+  even an error, that includes conditions in for loops
+autoconversion optional to bool?
+function values vs function pointers?
+`Null(){}.ReturnType == Null`
+`Null(){}.Params`
+`move(dest, source)` - moves source to dest (and assigns null to source?)
+`Null is foo && (foo = null)` - or something similar
+```
+type T = foo();
+T a;
+typeof(a) == T // true;
+```
+what about strict vs optimized float? Floating Point Operations (Zig)
 enforce class contents order: enum values, variables, methods, nested classes
 block returns last statement, function must return explicitly
 import() function that dynamically loads code, not part of global namespace
@@ -179,7 +223,52 @@ ability to run source code deterministically (optional control over thread sched
 capabilities? eg. load a module that has only a partial access to standard library?
   capabilities of eval?
 an allocator that uses pages reserved for inter-process communication
+define well-formatted chalk program first, then define any chalk program as a string
+  that differs from well-formatted
 remote procedure calls? inter-process/over network
+partial haskell-like self-referencing of variables?
+`class Lazy<T>; Lazy<Int>(() => 42)`
+html could be part of chalk, a different syntax for sth like object literals (but I don't like the idea)
+`X(...)` sugar for `X.new(ptr, ...)`
+```
+// Which one
+[]String fn(Trait ...args) {
+  class A = args[0].class;
+  
+  A a = args[0];
+  
+  Trait o : args { ... }
+}
+[]String fn([](type : Trait) argT, ...argT args) {
+  assume {
+    argT.length > 1;
+  }
+  
+  []String ret = [];
+  
+  class A = argT[0];
+  
+  A a = args[0];
+  
+  Trait o : args {
+    ret.push(o.class.name);
+  }
+  
+  return ret;
+}
+```
+libexports must be explicitly mut/const?, maybe that would be a good idea for trait methods, too
+warning: potentially nonterminating loop?
+`for-name { break-name } ?`
+`import f, { a } from "x"; ?`
+`[ ...a ] ?`
+warning exported function returns nonexported class?
+`Trait1&T2` instead of `Trait1, T2`
+trait T { Null foo(); String { foo(){} } }
+should the * pointer be ref-counting?
+when exactly is a variable unused? When it's never read, unless it's exported (possibly indirectly), is a sufficient condition. Is it also necessary?
+should const be transitive? should it be default for libexport?
+compiler should inform about what it's doing (parsing files, comtime execution, transpiling, etc)
 ```
 class A {}
 class B<T> {
@@ -200,6 +289,7 @@ optimizations - range for should be compiled to iterator, foreach in tree should
 warning or error if multiple declarations in the same expression?
 Add compiler warning "useless trait type". Plenty of Java devs will do `Set x = HashSet()`
 Ptr, UniquePtr, SharedPtr, (MarkSweepPtr?)
+assert as keyword?
 functions must explicitly return, other blocks of code return the last expression
 class Class - used in reflection, const and not copyable
 this code `(a() => a())()` should execute in O(0), but should produce warning
@@ -222,6 +312,9 @@ repl requires three newlines to eval
    ```
 let library authors release codemods - eg. to rename an identifier, ...
 just one type for functions
+types must start with uppercase and non-type variables with lowercase letter,
+  so `Foo<a> b` is unambiguously declaration
+  and `foo<a> b` is an error (cannot convert Bool to Number)?
 compile flag --provable-contracts: tries to prove things like reflexivity and
   transitivity of equals, etc
 stats about compiling performance
@@ -394,13 +487,22 @@ global type reflection (eg. enumeration) is obviously bad (breaks encapsulation,
 warning - unnecessary `this` - or even better - this shouldn't even be part of Chalk
 compiler should print errors backwards?
 only indent 6 spaces if code follows
+TODO what about type modyfiers for function variables? (are they necessary?)
+  ```
+  Null const shared foo() {
+    bar();
+  }
+
+  Null const shared foo() = baz;
+  ```
 vocab like "member", "static member", etc must be defined
   ? member - anything declared in a class
     field - member variable
     method - member function
     nested class/trait - class/trait defined inside another,
                          note member class variable is not (necessarily) a nested class
-    type - trait or class
+    type - trait, class, function or a composite type
+    composite type - type union or type intersection
 first-class properties?
 `is` relation vs `is` operator
   ```
@@ -448,9 +550,15 @@ rules for unused X (type, variable, function, ...):
      function, it is used.
   4. TODO (the point is, if two objects use each other but are not used from
      `main` or a libexport, they aren't used)
-keywords: `continue;` sugar for `return true;`, `break;` sugar for `return false;`
-for cycle sugar for the `loop` function:
+keywords:
+  `continue;` sugar for `return true;`
+  `break;` sugar for `return false;`
+  `break x;` sugar for `return x;` ?
+  for cycle sugar for the `loop` function:
   ```
+  for { break 7; } == 7; // ?
+  
+  
   Bool loop(comptime Bool cond(), comptime Bool body(), comptime void increment()) {
     return cond() ? body() && (increment(); loop(cond, body, increment)) : true;
   }
@@ -531,14 +639,90 @@ no empty statement (`;`), use empty block `{}` instead
 no named parameter calls
 a type can implement Nullable, save space if optional
 function binding operator?
+algebraic data types? (`data D = A Int | B Int Int`)
+debugger should be able to output stack trace with library methods hidden
 always infer generic params if possible
+```
+// Indentation
+
+class A {
+  Foo f;
+  
+  new(Int param)
+    : f(param) {} // Two spaces, because next line is not indented more than current line
+}
+
+class B {
+  Foo f;
+  
+  new(Int param)
+        : f(param) {
+    f.bar();
+  }
+}
+```
 `shared` qualifier for concurrency?
+`Box.toRefBox()`, `RefBox.toBox()`, or constructors (the latter only if there's
+  just one reference)
+`RefBox` vs `RcBox`?
+`del()` destructor
+how could a pointer assign null to itself? `this is Null` will likely be always false, or not?
 dangling references and self deleting objects - how to make them compile-time
   errors, or at least predictably crash?
 support calling an expression that is not a simple identifier, eg. `(a ? b : c)()`
 optional - use same length as non-optional type if possible
 functions types can have default parameters?
+compiler should emit an error by default if it cannot prove program will terminate
+  (not exactly terminate, consuming infinite input is fine)
+  (code can suppress this error?)
+`class is class` (because of generics, eg. `Set<class>()`)
+maybe rename the `is` relation to `extends`?
+non-exported types should not be acquirable to outside code? possible paths:
+  through reflection (Type.getSupertype)
+  returned from function
+`final trait` only extendible in its own (module/library)
+```
+?A foo() { randBool() ? A() : null }
+
+A a = foo() ?? A();
+
+Null bar() {
+  A a = foo() ?? return;
+  
+  a.baz();
+}
+```
+```
+// ???
+type Empty == |;
+type Object == &;
+```
 spec: known types - enforces restriction on some types in std
+const variable can be assigned only once, not necessarily when declared?
+```
+class X {
+  Null foo(Int i) shared const {}
+}
+
+Null fn(shared const X this, Int i) = X.foo;
+```
+`!is` operator sugar
+`Box` (Chalk's `UniquePtr`) should be copyable, should copy the object, too
+`Ptr` (aka `*`) should either be set to null if its referred object is destroyed,
+  or it should keep the object alive TODO
+`UnsafePtr` is like a pointer in c++ - no controls
+should all variables be secretly pointers, as in Java?
+switch - `default:` vs `case _:`?
+returning local type returns `null`
+  ```
+  class A {}
+  
+  class X() {
+    class B {}
+    
+    return randBool() ? A : B; // Error: cannot convert type class|Null to class.
+  }
+  ```
 class can have `mut` members that are modifyable even if instance is `const`, must be private
 disallow module-wide (mutable) state in libraries? or totally?
 make void a class with just one instance so it can be used generically, eg `Promise<Void>`?
@@ -612,6 +796,7 @@ file extension `.cdoc` where contents of \`\`\` \`\`\` are inverted, ie. text
   is code and code is text
 equality operator for types?
 warn on conditionals that are always true/false
+warn on `((x))` double parentheses, maybe all unnecessary parentheses?
 what about transactional memory?
 compiler
   1. warn if generic param could be replaced by trait
@@ -642,7 +827,12 @@ Proof fixSpace(R f(T _), Set<T> s) {
 ```
 Error.ignore() - makes error not end the program when destructed
 if a temporary immutable object creates another object of the same type (eg.
-Regex.Expression), optimize and use only one object?
+  Regex.Expression), optimize and use only one object?
+immutable class? (with value semantics for comparision?)
+`comptime!` for params that have to be comptime evaluated?
+class of compiler optimizations that just work when optimizing already partially
+  optimized code, but create warning if applicable to code,
+  eg. `cond ? return true : return false`
 const function cannot return non-const reference to its member
 shuffle order of destructor calls each compilation, warn if different orderings
   produce different results (with the exception of reordering debug messages)
@@ -652,6 +842,26 @@ initialization procedures for modules, run when a module is loaded, ?loading
   `import async X from ""`, to enable greater parallelism?
 warning: condition is always true/false
   comparing with null literal is one instance (maybe make it an error, even)
+something like markdown for comments
+warning: expression has no effect
+```
+class SmartPtrExample {
+  dealloc() {
+    this is Null ? this = null : panic();
+  }
+}
+```
+```
+Bool b;
+T a, b, c, d;
+T a, b, c, ;
+
+b ? a : b = c;
+```
+should variables be autoinitialized or should they be uninitialized before they
+  are assigned a value? in every case, uninitialized variables must not be read
+package manager - put emphasis on finding packages
+optimization: replace arr[i] in i-lops by arr and i++ by arr++
 comptime declaration - variable can be accessed by comptime code? think twice
   before adding this, it would allow non-pure comptime code
 member reference? eg `Expr.equals(stringField, "a")`
@@ -715,6 +925,7 @@ value is also of the same type.
 Else the return type of conditional operator is class X : All Traits Shared By Both
 warn if this is used needlessly
 automatically parallelize for loops with await if it doesn't depend on previous iteration?
+  or a different syntax for parallel/promise-parallel loops?
 
 
 
@@ -741,6 +952,8 @@ chalk debug out.elf
 chalk fix file.chalk # first formats code? and interactively offers automatic fixes to errors
 chalk help
 chalk help ERRCODE # prints detailed help for error ERRCODE
+
+chalk hotdeploy pid ./code # ?
 ```
 
 ```
