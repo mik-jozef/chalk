@@ -4,128 +4,122 @@ programming language.
 
 Hint for Notepadqq:
   Indent is two spaces.
-
-(Loose) convention?: startSpace is handled by the Regexes after it, all other
-space is handled by Regexes before it.
-
-Wrong:
-```
-[ OneOf([ [ RegexPart ], [ Text(":") ] ]), Space() ];
-
-// RegexPart ~ [ Text("a") ]
-```
-Correct:
-```
-[ OneOf([ [ RegexPart ], [ Text(":"), Space() ] ]) ];
-
-// RegexPart ~ [ Text("a"), Space() ]
-```
 ///
 
-import { class Regex } from "std/regex.chalk";
+import { Regex } from "std/regex.chalk";
 
 { class Expr, class OneOf, class Space } = Regex;
 
-///
-Keyword is a string that cannot be an identifier.
-
-Notably, `class` and `trait` are not keywords, but (the only) language-defined
-types.
-///
+// Keyword is a string that cannot be an identifier.
 export []String keywords =
-    [ "auto", "assume", "await", "break", "case", "catch", "comptime", "const"
-    , "continue", "default", "enum", "export", "final", "for", "friend", "get"
-    , "import", "is", "mut", "pub", "return", "set", "shared", "static", "switch"
-    , "throw", "try", "type", "yield"
+    [ "auto", "assume", "await", "break", "case", "catch", "class", "comptime"
+    , "const", "continue", "default", "enum", "export", "final", "for", "friend"
+    , "function", "get", "import", "is", "mut", "own", "pub", "return", "set"
+    , "shared", "static", "switch", "throw", "trait", "try", "type", "yield"
     ];
 
 export class Comment : Regex {
-  static const Expr =
+  pub ChalkDoc comment;
+  
+  static const []Expr =
       [ StartSpace()
       , Text("//")
       , OneOf(
-          [ [ Repeat(Not(Text("\n"))) ],
-            [ Text("/")
+          [ [ Match(Comment::comment, { multiline: false }), Space("\n") ]
+          , [ Text("/")
             , Space("\n")
-            , Repeat(
-                [ StartSpace()
-                , Repeat(
-                    [ OneOf(
-                        [ [ Not([ Text("///"), Text("\n"), Text("TODO") ]) ]
-                        , [ Error.TODO, Text("TODO") ]
-                        ],
-                      )
-                    ]
-                  )
-                , Text("\n")
-                ]
-              )
+            , And([ Match(Comment::comment) ], [ Not("///") ])
             , StartSpace()
             , Text("///")
             ]
-          ]
+          ],
         )
       , Space("\n")
       ];
 }
 
 export class Module : Expr {
-  ?Comment moduleDoc;
+  pub ?Comment moduleDoc;
   
-  []Import imports;
-  []Declaration declarations;
+  pub []Import imports;
+  pub []Declaration declarations;
   
   pub static []Expr =
       [ OneOf([ [ Field("moduleDoc") ], [ Errors.MEMD ] ])
-      , Repeat([ Space(""), Field("imports") ]),
+      , Repeat([ Space(""), Match(Module::imports, Import) ]),
       , Repeat(
-          [ Field("declarations"), Space(""), Text(";"), Space("\n") ],
-          Space("\n"))
+          [ OneOf(
+              [ [ Match(Module::declarations, ObjectDestructuring,
+                    { typed: Destructuring.Typed.never }
+                  )
+                , Space("")
+                , Text(";")
+                ]
+              , [ Match(Module::declarations, VariableDeclaration)
+                , Space("")
+                , Text(";")
+                ]
+              , [ Match(Module::declarations, TypeDeclaration) ]
+              , [ Match(Module::declarations, FunctionDeclaration) ]
+              ]
+            )
+          , Space("\n")
+          ],
+          Space("\n"),
+        )
       ];
 }
 
 export class Import : Regex {
-  Bool leadingEmptyLine;
+  pub Bool leadingEmptyLine;
   
-  Identifier|ObjectDestructuring imports;
+  pub Identifier|ObjectDestructuring imports;
   
-  Expression path;
+  pub Expression path;
   
-  static const Expr =
-      [ Equals("leadingEmptyLine", true, [ Space("\n") ])
+  static const []Expr =
+      [ Equals("leadingEmptyLine", true, [ Space("\n") ], [])
       , Text("import")
       , Space(" ")
-      , Field("imports")
+      , OneOf(
+          [ [ Match(Import::imports, Identifier, { type: upperCase }) ]
+          [ [ Errors. Match(Import::imports, Identifier, { type: upperCase }) ]
+          , [ Match(Import::imports, ObjectDestructuring,
+                { type: Destructuring.Typed.never }
+              )
+            ]
+          ]
+        )
       , Space(" ")
       , Text("from")
       , Space(" ")
-      , Field("path")
-      , Equals("path.type", String)
+      , Match(Import::path, Expression, { type: "std/string.chalk/String" }) // TODO or something else?
       , Space("")
       , Text(";")
       , Space("\n")
       ];
 }
 
-export class Declaration : Regex {
-  VariableDeclaration|TypeDeclaration decl;
-  
-  static const Expr = Field("decl");
+export trait Scope : Regex {
+  []Declaration vars;
+}
+
+export final trait Declaration : Regex {
+  own []Expr expr =
+      [ Field()
+      ];
 }
 
 export class TypeDeclaration =
-    ClassDeclaration|TraitDeclaration|CompositeTypeDeclaration; // WROOONG: Composite types cannot be declared
+    ClassDeclaration|TraitDeclaration;
 
-export class CompositeTypeDeclaration =
-    FunctionDeclaration|TypeUnion|TypeIntersection;
-
-export class VariableDeclaration : Regex {
-  Type type;
-  Identifier name;
+export class VariableDeclaration : Declaration {
+  pub Type type;
+  pub Identifier name;
   
-  ?Expression init;
+  pub ?Expression init;
   
-  static const Expr =
+  static const []Expr =
       [ Field("type")
       , Space(" ")
       , Field("name")
@@ -136,7 +130,7 @@ export class VariableDeclaration : Regex {
       );
 }
 
-export class ClassDeclaration : Regex {
+export class ClassDeclaration : Declaration {
   Identifier name;
   
   []Parameter params;
@@ -145,7 +139,7 @@ export class ClassDeclaration : Regex {
   []VariableDeclaration fields;
   []TypeDeclaration types;
   
-  static const Expr =
+  static const []Expr =
       [ Text("class")
       , Space(" ")
       , Field("name")
@@ -192,57 +186,103 @@ export class ClassDeclaration : Regex {
       );
 }
 
-export class TraitDeclaration : Regex {
-  static const Expr =
+export class TraitDeclaration : Declaration {
+  static const []Expr =
       [
       ];
 }
 
-export class FunctionDeclaration : Regex {
-  static const Expr =
+export class FunctionDeclaration : Declaration {
+  static const []Expr =
       [
       ];
 }
 
-export class TypeUnionDeclaration : Regex {
-  static const Expr =
+export class TypeUnion : Regex {
+  static const []Expr =
       [
       ];
 }
 
-export class TypeIntersectionDeclaration : Regex {
-  static const Expr =
+export class TypeIntersection : Regex {
+  static const []Expr =
       [
       ];
 }
 
 export class Identifier : Regex {
-  static const Expr =
-      [
-      ];
+  Bool hasName;
+  Type type;
+  
+  enum Type { object, type, ctt };
+  
+  static const []Expr =
+      OneOf(
+        [ [ Equals(Identifier::iType, Type.ctt,
+              [ OneOf(
+                  [ [ Text("class") ], [ Text("trait") ], [ Text("type") ] ]
+                )
+              ],
+            )
+        , [ Equals( Identifier::iType, Type.type, [ OneOf("A-Z") ], [ OneOf("a-z") ] )
+          , Repeat( OneOf("a-zA-Z0-9") ) // That's right, NO UNDERSCORE. (Death to snake_case!)
+          ]
+        ]
+      );
 }
 
 export class TypedIdentifier : Regex {
-  static const Expr =
-      [
+  Type type;
+  Identifier name;
+  
+  static const []Expr =
+      [ Field(TypedIdentifier::type, [ (Identifier::isType, true) ])
+      , Space(" ")
+      , Field(TypedIdentifier::type, [ (Identifier::isType, TODO) ])
       ];
 }
 
 export class Type : Regex {
-  static const Expr =
+  static const []Expr =
       [
       ];
 }
 
 // Both generic and function parameter
 export class Parameter : Regex {
-  static const Expr =
+  static const []Expr =
+      [
+      ];
+}
+
+export final trait Destructuring : Regex {
+  own enum Typed { always, never, both }
+}
+
+export class ObjectDestructuring : Destructuring {
+  Destructuring.Typed typed;
+  
+  static const []Expr =
+      [
+      ];
+}
+
+export class ArrayDestructuring : Destructuring {
+  Destructuring.Typed typed;
+  
+  static const []Expr =
       [
       ];
 }
 
 export class C : Regex {
-  static const Expr =
+  static const []Expr =
+      [
+      ];
+}
+
+export class C : Regex {
+  static const []Expr =
       [
       ];
 }

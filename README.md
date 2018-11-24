@@ -5,7 +5,7 @@ A collection of ideas that I hope will turn into a working programming language.
 
 ## Highlights TODO
 - modules
-- nullable types (Optional)
+- nullable types
 - reflection
 - generics
 - sensible alternative to operator overloading
@@ -18,7 +18,7 @@ A collection of ideas that I hope will turn into a working programming language.
 
 ## Language and standard library
 
-### What chalk doesn't and will not have
+### What chalk does *NOT* and will not have
 - header files
 - macros
 - garbage collection
@@ -33,8 +33,7 @@ A collection of ideas that I hope will turn into a working programming language.
 - (probably) exceptions
 
 ### Types
-Every type is either a class or a trait. Special types `void` and `noreturn` are
-returned by expressions that don't return anything or don't return at all.
+Every type is either a class, a trait, or a composite type.
 
 #### Basic types
 You can find more at TODO link to standard library.
@@ -390,11 +389,11 @@ Operators that are not syntactic sugar:
 
 | Example     | Operator      | Return type
 | -------     | --------      | -----------
-| `a; b`      | Semicolon     | Type of `b`
+| `a; b`      | Sequential    | Type of `b`
 | `a.b`       | Member access | Type of `b`
-| `a?.b`      | Member access | Type of `b`
-| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `void`.
-| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `void`.
+| `a?.b`      | Member access | Type of `b` or `Null`
+| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`.
+| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`.
 | `a ? b : c` | Conditional   | Common type of `b` and `c`
 
 The first operand of *conditional*, *logical and* and *logical or* operators must
@@ -543,8 +542,9 @@ for Int i : fibonacci().take(10) {
 ```
 
 #### Async functions
-A function that returns a promise is an async function. It can use the `await`
-keyword to suspend its execution and wait for a promise to resolve.
+A function that returns (TODO or can return?) a promise is an async function.
+It can use the `await` keyword to suspend its execution and wait for promises
+to resolve.
 
 ```
 Promise foo(i) { await sleep(200); bar(i); }
@@ -555,6 +555,11 @@ Promise<String> fn() {
   for i : range(10) { await foo(i); } // runs serially;
   
   return "abc";
+}
+
+// Can this function use async keyword?
+Bool|Promise<Bool> randBool() {
+  // If enough entropy, return Bool, else return Promise<Bool>
 }
 ```
 
@@ -654,393 +659,3 @@ Preemptive, threaded.
 ## Tools, language compatibility
 
 
-In no particular order, features of my programming language:
-should temporary objects be allocated on the heap unless they are provably local?
-references: it would be nice if there were references to portions of String and Buffer,
-  but I do not want a situation like in Rust that reference is its own type different from `*String`
-underscore for unused function parameters
-trait can declare variables?
-overflow and division by zero on non-nullable types throws exception, there's a wrap-around Int type
-golang's defer? destructors do the same, so why?
-struct, union and array destructuring, destructuring of a single variable from
-  anonymous class/union doesn't require braces, optional declaration adds one optional,
-  that can result in ??Type
-two types of array destructuring:
-  ```
-  without global type - RHS must be array literal
-  [ a, b, auto d ] = [ a, b, foo() ];
-  
-  with global type - RHS can be anything
-  Type [ a, b ] = bar()
-  ```
-```
-// Declaration
-{ MType x: newName, Int y } = f(); // Only works on anonymous classes
-PType { x: newName, y } = f(); // Only works on type PType
-?Type [ a: { ?Int32 i: aInt }, b ] = g();
-
-// Assignment
-{ x: newName } = f();
-[ a: { i: aInt }, _, b ] = g();
-
-// should work because of smart casts - 123 and "a" are first converted to Object,
-// then back to int and String
-[ x, y ] = [ 123, "a" ];
-
-// Union
-{ ?File? file, ?Error err } = Union<File, Error>(Error("Not a real IO operation"));
-
-// Function parameters
-void fn(Complex { re: realPart, im }) {}
-```
-In `expr && { A }`, expr is part of scope A. Also `||`, `?`, `switch`, etc
-Place local variable on heap if it has chance of being returned, like go?
-If `X` is binary operator that returns `Bool`, then `A !X B == !(A X B)`, eg.
-  `!instanceof`
-allocators, way to manage allocators of libraries that were written without them
-c++ style constructor initialization list
-`is` operator:
-  1. `a is A` - true if a is an instance of type A; checked at runtime if necessary
-  2. `a is null` - true if a is null
-trait type values should work like rusts Box
-classes themselves are instances of class `Class`?; `Class` is enum?
-type variables, eg. `class Y() { return class A {} } class X = Y();`
-type aliases, `class F = A<Int,Int>`?
-what about `void`, `noreturn` and generics?
-custom smart pointers?
-smart casts (kotlin)
-break; continue;
-trait unions? eg.
-```
-trait Y {}
-trait X {
-  void a() {}
-  
-  Y {
-    void b() {}
-  }
-}
-
-class A : X {} // methods: a
-class B : X, Y {} // methods: a, b
-```
-unary minus
-types can specify a value that is null? If thay do that, optional types will
-  consume as much memory as non-optional, but this creates the risk that a type
-  will suddenly become null on its own (even if it's not optional).
-  - this would require a proof that null and non-null will always stay null, resp. non-null
-  - class X : Nullable {}
-support immediately invoked function expressions
-enum instances should be copyable and able to change themselves to other instances
-  ```
-  enum Bool {
-    true, false;
-    
-    not() { this = Bool.false }
-  }
-  
-  true.not() == false;
-  ```
-promise errors if it is destructed with error
-semicolon must be omitted if closing brace is on the same line
-statement cannot contain empty line
-  ```
-  // Error, statement cannot contain empty line
-  i =
-  
-  2;
-  ```
-just like there are methods that are const, there should be methods that are shared
-ability to control every dynamically created object so that a long-running program
-  can defragment its ram by moving/deleting and recreating everything on heap
-  - this icludes language provided objects on heap, eg. closures
-types are first class citizens?
-iterators
-function values are never mutable, but pointers can be
-streams (with forEach, reduce, etc)
-multiline comments?
-`class X<class Y : Printable>`, `List<?>` for list of Printables
-nullable types can be used in the following ways:
-  1. compiler can infer variable is not null, can be dereferenced without dynamic
-     check
-  2. some function/method/operator to dereference pointer with dynamic check
-     that pointer is not null
-  3. `unsafe` dereferencing without check
-array elements of type X can be accessed in the following ways:
-  1. like X if compiler can infer index is not out of bounds
-  2. like nullable X (like c++ std::optional), with bounds checking, null if out of bounds
-  3. `unsafe`
-every type has class, including pointer, array; Ptr.isNull(val)
-type modifiers (pointers, arrays, references, const, ...) work on every variable,
-  not just one
-a function with a default argument is a supertype of a function without the argument
-multiple return values?
-array literals use square brackets
-trait can have own static variables not usable from class
-something like my init.js
-?. operator? a?.b returns null if a is null, else returns a.b
-?: operator? a ?: b returns a if nonnull, else returns b
-placement function call?
-treat mutable, async and threaded similarly
-  1. iterator must track changes if it iterates either mutable or shared (or async) object.
-  2. a function that returns promise can be either run as coroutine or a thread (await vs go)
-move an object and change pointers (even constant) with one operation?
-keyword `final` forbids overriding a method
-every member is a getter? no setters
-inner classes:
-  ```
-  class A {
-    Int a;
-    
-    // Member class, every instance can have a different one
-    class B;
-    
-    // Member inner class, one for all instances of A
-    class C {
-      getA() { return a }
-    }
-  }
-  ```
-classes can be variables, but instantiation needs comptime class
-  ```
-  class X : Object = getClassX(); // Warning, explicit implementation of Object
-  
-  X a; // Error if getClass is not comptime
-  
-  X.getFields(); // Never an error
-  ```
-is returning a reference ok if and only if it refers to nonlocal object? this should be easy to check statically
-everything is thread-local by default
-no inline keyword, or anything that is supposed to do compiler's job
-Function trait, Closure class able to hold closures? Reflection powerful enough
-  to enable code only implementation lambdas and nested functions cannot be
-  returned if they capture ref to local variable, by default they do what?
-types can be variables, parameter types that are inferable from arguments must be implicit
-Should enums be copyable? yes, they are constant, anyway. should their copy
-  constructors be allowed to have side effects? (or any copy constructors?)
-how should destructor be named? `~new`
-Is it possible to assign `A fn(?B)` to `A fn(B)`? should be
-Allocators and a type for stack frames? `Function.StackFrame` or `StackFrame<*Function fn>`
-A single Function type for all types of functions, no special function pointer
-`Allocator<X>` trait, `DefaultAllocator<X>` class
-`auto` keyword?
-null coalescing operator, `a ?? b == (a == null ? b : a)`
-If a package p imports package q, the completion of q's init functions happens
-  before the start of any of p's. The start of the function main happens after
-  all init functions have finished.
-implicit 'type converions' for functions (there is runtime overhead):
-`A f(args...) -> void f(args...)`
-`A f(T x) -> A f(B : T x)`
-
-
-
-
-
-
-
-Standard library + userland libraries:
-well thought out containers (arrays, sets, maps) each with methods from Stream (forEach,
-  map, filter, fold)
-
-net
-  http, https
-  fetch
-
-fs (async only)
-
-init
-  `initTask(Promise fn)` - executes fn before main()
-
-ast (chalks abstract syntax tree)?
-
-time
-  getMiliSec
-  getNanoSec
-  sleep (maybe in a more concurency-related place?)
-
-console
-  getPassword
-
-json
-
-object serialization
-
-dom (document object model)
-  audio
-
-compression + (deflate, gzip, zlib, lzma, zip, tar, webp, wav, midi, mp3, ...)
-crypto
-universal sql driver
-ddcp
-math
-  complex numbers
-  random
-  BigInt
-regex
-email
-rpc - remote procedure calls
-asm - inline assembler (implementation obviously provided by the compiler)
-
-
-Commpiler+interpreter+package manager abilities:
-translate between languages
-option for no optimizations
-template expansion only
-comptime evaluation only
-produces a warning if code has no side effects
-modular, usable from CLI and through API
-run tests after compiling/before publishing
-scripts?
-
-
-
-
-
-
--- Experimental code examples --
-
-```
-
-{ OptType b: mut f, d: g } = x;
-
-for [ elem, index ] : array {}
-
-// Union<File, Error> open(String s)
-
-// Both of these work, see destructuring
-{ ?File file, ?Error err} = open("./photo.png", Mode.RNO);
-File f = open("./photo.png", Mode.RNO);
-
-Folder dir(root, dirPath, Mode.RWO);
-await dir.open();
-
-File file(folder, path, Mode.RWO);
-assert(file.path == path);
-assert(gile.getFullPath() == String.concat(folder.getFullPath(), path));
-await file.open();
-
-class Car {
-  Int speed;
-  
-  Car null() : speed(-1) {}
-  
-  Bool isNull() = speed < 0
-}
-
-Bool fn([]Int32 ints) {
-  void helper(Int32 x) {
-    foo(x) && fn.return true; // makes the function fs return
-  }
-  
-  for i : ints { helper(i) }
-}
-
-
-class Reflect.classOf(var) x();
-class var.class x();
-Reftlect.classOf(var) x();
-var.class x();
-
-class X : Reflect.traitsOf(var) x();
-
-X a = new(1, 2); // allocates on stack
-UniquePtr<X> b = new(1, 2); // allocates on heap
-
-await atomicVar.lock();
-
-
-//named function
-void fn() {}
-
-//anonymous function
-void() {}
-
-void a() = fn;
-void *a() = fn;
-
-void []fnArr(Param x) = [];
-
-
-Iterator fn() {
-  a.forEach(Promise<>(AType elem) { fn.yield(a); });
-  
-  // or
-  a.forEach(fn.yield);
-}
-
-auto fn() {
-  return(
-    { Int x: 6
-    , Float y: 7.8
-    }
-  );
-}
-
-auto fn() {
-  return {
-    Int x: 6
-    Float y: 7.8
-  };
-}
-
-enum { a, b, c }
-
-enum {
-  anana,
-  cnonarrrna,
-  bnenana,
-}
-
-enum {
-  anana
-  cnonarrrna
-  bnenana
-}
-
-class X {
-  ~Int i;
-}
-
-Car c;
-
-Car.getField("i")?.set(c, 42);
-Car.class.getField("i")?.set(c, 42);
-
-Bool binaryOperation(Bool _, Bool _) = foo(); // foo() must return a function with a conforming signature
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```

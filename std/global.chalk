@@ -23,14 +23,14 @@ export trait Object {
   get String name;
   
   final ?*Object getField(*String name) {
-    [[magic]];
+    // Magic.
   }
   
   final static []Field getFields(FieldType type = FieldType.all) {
-    [[magic]];
+    // Magic.
   }
   
-  own Bool equals<T>(?T a, ?T b) {
+  own Bool equals<T>(?T a, ?T b, Int derefs) { // Note third parameter, TODO
     Pointer.equals(a, b) && return true;
     
     (isNull(a) || isNull(b)) && return false;
@@ -73,3 +73,7 @@ export class String {
 }
 
 export enum Bool = { true, false }
+
+export *R cast(type R, *R val) {
+  return *val;
+}

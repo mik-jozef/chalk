@@ -10,15 +10,15 @@ Ada?
 ```
 
 TODO
-`Optional.isNull()` or `a is null` - latter
 what is `const ?mut Type`? shouldn't `?` be a type modifier instead of a type?
   it should be a type, because `??T` is a valid type, eg type of.
   `[ T(), null ][foo()]`. TODO how to distingush first- and second-level `null`?
-Object.shrink() - shrinks all members, eg. unused memory in dynamic arrays
-compiler - make it error to compare value with null, because it is always false
-import "x" using allocator?
 `class` and `trait` are types, (the only provided by the language itself?),
   `class X is class`
+how could `T fn(...)` in `10.map(i=>fn(i, ...))` get access to previously computed values
+  in array? the alternative requires `?T` instead of `T`:
+  `a = Array<?T>(10); ( *?T t, Int i ) : a {...}`
+conversion between tuples and arrays?
 composite types
   - type unions and type intersections, supported natively by the type system
   - functions
@@ -51,8 +51,7 @@ class X : Enum<Int> { a: 1, b: 3, c: 7, d: 15 }
 `{} is Enum<Object>`
 merge `class` and `Object`?
 enum with zero, one or just two variable generates a warning - The canonical
-  zero/one/two-element enum is `Noreturn`/`Null`/`Bool`
-rename `noreturn` to `Empty`?
+  zero/one/two-element enum is `None`/`Null`/`Bool`
 first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
    ```
    class C {
@@ -82,9 +81,16 @@ documentation comments
   ///
   ```
 wrapping operators `+%, -%, *%`
+backtick instead of `<`, `>` for generics? would conflict with markdown, looks slighly weird
+	```
+	Set`Int` a;
+	class Map`type K, type V` {}
+	Set<Int> a;
+	class Map<type K, type V> {}
+	```f
 string (or array? or collection) concatenation `++`
-if a condition is always true or always false, it should be a warning, or maybe
-  even an error, that includes conditions in for loops
+if a condition is always true or always false (ie. comptime known), it should
+  be a warning, or maybe even an error, that includes conditions in for loops
 autoconversion optional to bool?
 function values vs function pointers?
 `Null(){}.ReturnType == Null`
@@ -119,7 +125,6 @@ Null foo(b, c) {
 generate warning if unsafe code is safe?
 program is safe if every `unsafe` code is provably safe
 string implements Buffer
-main returns noreturn
 warning - unnecessary union (eg. `T|T`, `A|B` if `A is B`)
 ```
 class C {} class D {}
@@ -212,7 +217,7 @@ division accepts maybe numbers and returns maybe number, can return a number if
   denominator is provably not null
 warn on TODO comments
 optimizations should provably not change the program
-safe program should never enter an infinite loop
+safe program should never enter an infinite loop (without consuming input)
 `[[ std-call ]] Int() { return 42 }` or `@std-call Int() { return 42 }`
 reflection of modules
 focus on good debugger
@@ -220,6 +225,8 @@ focus on good debugger
    if there is more than one thread
 ability to run source code deterministically (optional control over thread scheduler,
   faking filesystem and time)
+levels of concurrency: (process pool, process, thread pool, thread - on potentially
+  different cores), (coroutines - on the same cpu)
 capabilities? eg. load a module that has only a partial access to standard library?
   capabilities of eval?
 an allocator that uses pages reserved for inter-process communication
@@ -227,6 +234,7 @@ define well-formatted chalk program first, then define any chalk program as a st
   that differs from well-formatted
 remote procedure calls? inter-process/over network
 partial haskell-like self-referencing of variables?
+haskel-like enums? `data X = A | B Int` -> `final trait X { class A : X {}; class B { Int i } }`
 `class Lazy<T>; Lazy<Int>(() => 42)`
 html could be part of chalk, a different syntax for sth like object literals (but I don't like the idea)
 `X(...)` sugar for `X.new(ptr, ...)`
@@ -258,7 +266,66 @@ html could be part of chalk, a different syntax for sth like object literals (bu
 }
 ```
 libexports must be explicitly mut/const?, maybe that would be a good idea for trait methods, too
-warning: potentially nonterminating loop?
+warning: potentially nonterminating loop/function?
+```
+Proof distinct(Object... rest) { // Or `*Object...` ??
+  assume rest.length > 1;
+  
+  // Or `rest.Len a, b;` ??
+  Nat a, b {
+    a < rest.length;
+    b < rest.length;
+    
+    a != b;
+  }
+  
+  assume {
+    rest[a] != rest[b];
+  }
+}
+
+Nat a, b {
+  distinct(a, b, 1);
+}
+```
+terms that need to be defined: value, member, ...
+should const be transitive?
+Set syntax: `Set<Int|String> s = { 1, 2, "abc" }`
+What is `*mut Int i = 1;`? Options:
+  - error: cannot have a pointer to literal. Seems unnecessarily restrictive
+    because 1. `*Int i = Int(1);` works, and `1 == Int(1)` is true
+  - error: assignment of const value to pointer to mutable type. Same issue as above
+  - normal, 'i' now contains a unique value equal to 1; This means literals
+    are evaluated each time they are encountered, like composite literals,
+    but unline type definitions
+Compiler optimizations:
+  Assuming `Set<T>.subsets(Set<T>)` constructs the set of all subsets, this code
+  ```
+  Set<Int> s : { 1, 3, 9 }.subsets() {
+    println(s);
+  }
+  ```
+  should ideally not construct the powerset. If that's impossible (without the
+  compiler special-casing the Set class/trait), maybe there should be
+  `Set<T>.subsetsStream(Set<T>)`?
+replace trait Number with traits Additive|MultiplicativeGroup, Field, etc?
+  Would there also be a way to force classes implementing A|MGroup to also
+  implement Field? - not a good idea, since Int is not a field (overflow results in null)
+`permutationStream()`
+if `stream is Stream<T>`, `[ a, ...stream, b ]` should create array of `T&a.type&b.type`
+  if `stream.length` is known at compile time, `( a, ...stream, b )` should create
+  a `stream.length + 2`-tuple of `T&a.type&b.type`
+Rational numbers in stl? thay would have to have a big warning in documentation
+  they are just for storing user input like `0.1`, not for computation
+  maybe they shouldn't even implement Number
+A function/module/codeblock?-wide setting that would disable optimisations messing
+  with time of execution of the function? This would have applications for when
+  different execution times could reveal information that should remain secret.
+  Or maybe a setting directly for that usecase? Would error if the function
+  didn't have guaranteed constant complexity wrt some parameter?
+Some way to guarantee time of execution overall, so that eg. program can be proven
+  to respond in time X in all situations (assuming I'd have good mathematical model
+  of the target architecture)?
 `for-name { break-name } ?`
 `import f, { a } from "x"; ?`
 `[ ...a ] ?`
@@ -287,13 +354,30 @@ continue is not allowed in type switch
 optimizations - range for should be compiled to iterator, foreach in tree should be converted from
   recursive to loop and inlined
 warning or error if multiple declarations in the same expression?
+declaration inside *and* and *or* operators must be possible, scope for just
+  the operators
+literals are declarations iff their parent expressions created its own scope
+  ```
+  Null() {
+    class A {}; // This is a declaration
+    
+    class B = class C {} // 'class B = ...' is a declaration, 'class C {}' is not
+  }
+  ```
 Add compiler warning "useless trait type". Plenty of Java devs will do `Set x = HashSet()`
 Ptr, UniquePtr, SharedPtr, (MarkSweepPtr?)
+this should be a valid lambda, ie. shouldn't require parentheses: `[x,y]=>x+y`;
 assert as keyword?
+no global reflection like Reflect.types (array of all types), or anything similar
+  not only would that be costly, probably have no uses, violate NO GLOBAL STATE,
+  but also it could be dangerous, because compiling and runinng untrusted code
+  should be safely possible
+runinng untrusted code should be safely possible
 functions must explicitly return, other blocks of code return the last expression
 class Class - used in reflection, const and not copyable
 this code `(a() => a())()` should execute in O(0), but should produce warning
   this expression has no observable effect
+same, or analogous way of communication between threads and coroutines?
 online repl that can also handle directory uploads of whole projects
 repl requires three newlines to eval
 `return { code block; }` is error?
@@ -318,13 +402,49 @@ types must start with uppercase and non-type variables with lowercase letter,
 compile flag --provable-contracts: tries to prove things like reflexivity and
   transitivity of equals, etc
 stats about compiling performance
+think about memory management, how out of memory should be handled and granularized,
+  both intra and inter-thread-wise
+"nearly out of memory" event, prioritized to other events
+synchronous `usedMemory(ThreadPool tp = ThreadPool.top)`, `avaiableMemory`
+  and `freeMemory` functions
+stl - permissions for things like playing sound, info about hardware, filesystem
+  access...
+  capability based permissions model
+`mut` mutable, `const` immutable, no mmodifier only mutable using another reference?
+for each function, find out the max amount of stack it needs, before another
+  function will chceck for avaiable stack space
+instead of blocking, a coroutine should message a thread that (and which) blocking
+  operation needs to happen
+go's channels?
+can declarations be inside other expressions?
+  ```
+  Tree t(Node root(null, Node(root), Node(root)));
+  ```
+  I dunno why, but I get a bit haskelly feel from that and looks interesting
+optimization: if a pattern where components pass properties in anonymous classes
+  becomes common, and child components usually get less properties than the parent,
+  and the properties are const, an interesting optimization might be to pass all
+  the props anyway
+a way to mark code as library code, or a convention that code in `lib/` is library
+  code; its warnings are counted but not displayed by default
+replace `return` with `ret` and `const` with `cst`?
+should all class members be read-only for anything except the class they are in?
+some recursive functions could preemptively allocate new stack for them?
+go: abandoning segmented stacks just because of hot-split was probably an
+  overreaction. instead of shrinking immediately as stack wasn't used anymore,
+  the solution would be to
+objects must not be placed on the stack if a pointer to them can escape to
+  a longer living variable
+shrinking allocated memory should be possible?
+the runtime must we entirely written in chalk or assembly, must be compilable
+  by chalk compiler. No dependence on C, C's stl, or any other non-chalk whatever
 should all fields be modifiable in constructor and assign function?
 request fast persistent memory - useful on pcs that have just a few GB of SSD
 trailing comma allowed if closing parenthesis/bracket/whatever is on next line
 Error class, destructor throws if ignore() wasn't called
 prefer 'start - end' to 'start - length', because some types are orderable even
   if the difference is not measurable
-warning: function can be static
+warning: function can be static (if this is not used either explicitly or implicitly)
 compile option: --aggresive-generics
 optimize out object creation in argument instead of having emplace?
 warn on `x && Int a(0)` (ERRCODE: Variable declaration in implicit scope);
@@ -332,6 +452,30 @@ small standard library, official packages in userland?
 ability to inspect (and/or redirect) stdout? perhaps a compile time option that
   allows it?
 function splitting optimization
+`Object.shrink()`?
+  shrinks all members, eg. unused memory in dynamic arrays, NOP for most objects
+rust-like guarantees about object lifetime/mutability?
+allocators
+`import "x" using allocator`
+What is the address of constants like integers and null? Also, what is `null == null`?
+Should enums variables be pointers? Otherwise they would have to be explicit
+  pointers anyway.
+should composite types include functions?
+regex - should classes be autogenerated from `Expr` instances?
+What is a common name for program entities such as variables or types?
+  In other words, identifiers bind to what? (I could just enumerate, but a common
+  name would be useful.) I'd say value.
+Should constant members be reassignable in the assign method?
+what about coroutines?
+  if closures are supported, should using a suspended coroutine as closure
+  be supported?
+continuations? delimited/not
+could go's channels be replaced by thread-safe promises?
+go keyword? or other easy way to create threads/parallelism
+must main return `None`? Note this wouldn't prohibit actually calling it and
+  have it executed
+are pointers their own types, or are they type modifiers?
+Are classes types, or is there just a bijection between classes and class types?
 package manager
 guaranteed copy elision in as many cases as possible
   eg. in `void f(Bool b) { b ? { shortCode } : { longCode } }` `f(true)` could be
@@ -339,6 +483,7 @@ guaranteed copy elision in as many cases as possible
 function and type definitions are hoisted
 html+friends as gui
 audio library
+if assignment has side effects, should they happen when assigning to blank identifier?
 documentation generator (like javadoc)
 hooks in compiler that can run unit tests or do whathever, like npm scripts?
 mathematical proofs about invariants in the program? eg. assert param 'x' is a square number
@@ -353,7 +498,26 @@ array: no remove(), because its unclear whether all the elements after it should
   - shift(Int index = 0, Int length); // also unshift
   - arr[index] = arr.pop();
 every object on heap must be owned by a UniquePtr
-hot deployment of code, lazy loading? `Module m = import("path")`
+TODO make sure async functions and generators are orthogonal.
+mark files/folders as resources (to be included in executable/compiled too)
+`--shutUpAndCompile`? used to compile (i suppose usually legacy c/c++) code with
+  errors someone is not able to fix
+  Only prints: "I hope you know what you are doing."
+`--assumeCorrectCode` compiler flag, so compiler doesn't have to spend time checking for errors?
+  if this exists, it will definitely be on under `--shutUpAndCompile`
+?Int should be of the same bit length as Int, smallest value used as null?
+  overflow and underflow should result in null? unless using wraparound operators?
+  Operator trying to assign potentially null to Int, (not ?Int) should 1. be
+  compile error (maybe only under compiler flag like `--strictMath` for plus and
+  minus) or function- or module-wide setting; 2. be a runtime error
+  There could be a type like TCInt (Two's Complement Int) such that `?TCInt` is
+  wider than `TCInt`, ie. it behaves like Int in all other programming languages
+It must not be possible to do anything as crazy as javascripts turing complete
+  subset from `[]()!+`. security-wise, it must be easy and not unntuitive to
+  create a code sanitizer that works with chalk AST
+if 0 tuple is allowed, should `type Null = ();`? or should null be an enum?
+hot deployment of code
+lazy loading? `Module m = import("path")`
 what about 3 possible path formats?
   1. `/absolute/path`
   2. `./relative/path`
@@ -369,6 +533,23 @@ function can specify assumptions about its inputs, if those assumptions are not
 varargs? both runtime and generic
 correct order of evaluation of module-wide and member variables that depend on each other
   cycles are error
+prevent cycles in pointers?
+`chalk --silent` minimum text output
+IDE could add grey text to multiline constructors (in <>):
+  ```
+  Html(
+    Head(
+      ...
+    ) <Head>
+    Body(
+      ...
+    ) <Body>
+  ) <Html>
+  ```
+  it could also highlight lines that contain highlighted parentheses
+feature that would enable program to drop loaded parts of itself when memory is full
+  think react router that lazily loads and sometimes unloads parts of website
+`Int` numerical overflow should throw, `WrapInt`
 names cannot contain underscore; use `camelCase`
 this produces warning: `trait A {} trait B : A {} class C : A, B {}` - A is reduntant
 utf8 by default (or only)
@@ -379,6 +560,7 @@ method autobinding?
   a.foo; // Bound
   ```
 Constructor params prefixed with underscore are assigned to members
+named lambdas? for one-liner function/method declarations
 option to translate mathematical proofs about source code to mathematical proofs
   about the executable file (verifiable with the executable alone)
 disallow returning local types and functions
@@ -530,10 +712,13 @@ Null f(*Int a, *Int b) { a += 2; b = 7         }
   same behaviour, they must specify the exact same function.
   - statement order in the source must not dictate statement order in some
     abstract representation of the function - must be a relative concept, just
-    like position in physics (because of threads)
+    like position in physics (because of threads), ie. it must not be part of
+    semantics unless one statement depends on the other
   - comptime arithmetic must evaluate whenever possible
 compiler must comptime execute pure functions with all arguments known at comptime
 variables that are written to, but never read should be marked as unused
+ffastmath should be default behaviour unless overriden by a compiler flag,
+  or a module- or function-wide \[\[strictMath]] directive
 an expression that has no observable effects should produce a warning
   ```
   Null main() {
@@ -556,13 +741,36 @@ keywords:
   `break x;` sugar for `return x;` ?
   for cycle sugar for the `loop` function:
   ```
-  for { break 7; } == 7; // ?
-  
-  
   Bool loop(comptime Bool cond(), comptime Bool body(), comptime void increment()) {
     return cond() ? body() && (increment(); loop(cond, body, increment)) : true;
   }
   ```
+  ```
+  // For can also return user specified values
+  Ret x = for ... {
+    ... && break Ret(1);
+  } else Ret(2);
+  
+  // Keyword break can stop named outer loop, too
+  for-label {
+    for { break-label 42; }
+  }
+  
+  // if there are just 2 subexpressions in for head, initialization is omitted
+  for x < 3; x++ {}
+  
+  ///
+  Return type of 'for' expression is the common type of all 'break' expressions
+  and the 'else' part of the 'for' expression (if the 'else' part is not explicit,
+  it implicitly returns 'true'). However, smart typing should be able to detect
+  that the type of `for { break 7; }` is Int, not common(Int, Bool).
+  Same with 'and', 'or', ternary operator, and switch expression.
+  ///
+  ```
+```
+[ 0, 1 ] + 2 == [ 0, 1, 2 ] // ?
+[ 0, 1 ] ++ [ 2 ] == [ 0, 1, 2 ] // ?
+```
 the compiler must not create stores to memory where there are none?
 only identifiers exported from `index.chalk` (or `main.chalk`) are guaranteed to
   be preserved by compilation? alternatives:
@@ -596,6 +804,10 @@ documentation: allow notes that popup on underlined pieces of text, only use thi
   when someone who would not gain any info from reading it knows he doesn't have
   to read it (this pretty much restricts its use for definitions)
 inline assembly?
+`Ast a = { Int i; };`
+ASCII only, including proofs. No single-character greek variable names.
+website should require little internet connection (fast load times important),
+  be single-page, reference should be interactive (eg. instant search of definitions)
 functions are const by default
 ```
 class HashSet { /* ... */ }
@@ -633,14 +845,19 @@ reflection:
 generic types can be only class types or the declared trait type
 something like linq (ie. inline SQL)?
 Implicit type conversions: class to traits, trait loss and trait reordering
-go's channels? can they be a class?
+go's channels? can they be a just part of stl? How are they different from
+  `Stream<Promise<T>>`?
+is `AsyncStream<T>` necessary? or is `Stream<Promise<T>>` enough?
 async functions and threads should be similar if possible and reasonable (?)
+  would it be possible to have things like locks and memory fences only if
+  interacting coroutines happen to be in different threads?
 no empty statement (`;`), use empty block `{}` instead
 no named parameter calls
 a type can implement Nullable, save space if optional
 function binding operator?
 algebraic data types? (`data D = A Int | B Int Int`)
 debugger should be able to output stack trace with library methods hidden
+stack overflow should not happen unless there is no memory at all
 always infer generic params if possible
 ```
 // Indentation
@@ -672,15 +889,178 @@ dangling references and self deleting objects - how to make them compile-time
 support calling an expression that is not a simple identifier, eg. `(a ? b : c)()`
 optional - use same length as non-optional type if possible
 functions types can have default parameters?
+`Object(Object... o)` subtype of all functions?
+standard library should contain complex numbers and quaternions
+variable stack frame length: if some variables are only created in a later part
+  of a function, preceding function calls can use part of the stack frame of
+  current function
+replace `a?b:c` by `if a then b else c`?
+warn on compile-time known branches
+types A, B are identical if A is B and B is A
+warning for labels unused
+use STL instead of STD as abbreviation for standard library
+Is `class|Int` and `class|Int` allowed? If
+classes and traits must have uppercase starting letter, other variables must have lowercase starting letter
+for statements - support all `for {}; for cond {}; for cond; inr {}; for init; cond; inr {}` 
+compiler - if a nullable `value` is unsafely used as non-null, assume it is non-null,
+  but still warn on compile-time known branches like `value == null`.
+  Warn if all branches do the same (I've seen too many `if x { a() } else a()` in
+  beginners' code).
+proofs - explicit proof passing vs local state
+no undefined behaviour - safe code must be completely deterministic
+cross-compiling should be as easy as normal compilation, no building compilers from scratch
+chalk (the software tool) should be a compiler, package manager (both client and
+  server), version control and documentation generator.
+  As version control, it should support pluggable diffing (eg. someone could write
+  a diffing plugin for images, or database files), language definitions (eg. plugin
+  for lua) and maybe documentation generation
+`chalk clean` remove what can be generated/downloaded
+don't even support `T a = ..., thisSecondDeclarationAfterEquals;`? `T a, b;` should work, though
+array/tuple of iterables is also iterable with its contents, eg.
+  ```
+  ( A a, B b ) : ([m,n],[o]) { executes for (m,o) },
+  ( ?A a, ?B b ) : ([m,n],[o]) { executes for (m,o) and (n, null) }
+  ```
+`(n)T` syntax shorthand for n-tuples of 'T'?
+use `[]` for both array and tuples? that would be right if I decided there should be one-tuples, `[T]`
+reflection: `fn.ast is ?AST`
+version control should be transactional, and it must not be possible to corrupt
+  history like in git
+compiler: languages to bytecode should be translated with plugins
+support for microchips programming
+anonymous classes implement Anonymous trait
+  use case: map constructor that takes objects as params
+compiler: option to assign max time to optimizations, max space of binary/additional
+  space due to optimizations (todo count negative space?)
+customized error messages (eg contain names of affected variables)
+What about finite fields? Will they get some love from stl?
+  ```
+  FField<17> a = 3;
+  a ** -1 // 6
+  ```
 compiler should emit an error by default if it cannot prove program will terminate
   (not exactly terminate, consuming infinite input is fine)
   (code can suppress this error?)
-`class is class` (because of generics, eg. `Set<class>()`)
+what is `class is class` (because of generics, eg. `Set<class>()`)
 maybe rename the `is` relation to `extends`?
+module-wide destructuring
+tuples
+compiler should be able to export program to a single html file
+  ```
+  (Int, String) a = (2, "hello");
+  
+  (256:Int) fixedSizeIntArr;
+  (256:Int,String) 257Tuple;
+  
+  (Int i, String str) = a; // tuple destructuring, pick one
+  ( Int i, String str ) = a;
+  
+  ( i, str ) = (3, "world");
+  ```
+documentation must handle the fact that documentation comments may be overriden
+  by other documentation comments when variables are re-exported
+  - maybe a message like "Declaration imported from [x](/link/to/source.chalk)"
+    where `source.chalk` is the module where `x` is imported from
+  - re-exports without a rewriting documentation should contain message like
+    "Declaration and documentation imported from \[...\]"
+a way to distinguish external and internal documentation?
+type assertions that panic if incorrect?
+if chalks website will contain an IDE, it should allow multiple people to edit
+  the same file in real time, like google docs. This should be optional
+`Bool ( a, b, c ) : Bool.combinations(3) {}`
+all comments should end with a dot or a comma?
+if it is error if yield is in lambda, compiler should explain the error so that
+  it explains why exactly yield cannot be used here
+map.inverse()
+for loops must await their previous iterations by default
+debugger's ability to inspect comptime values
+what can be provably deadlock/livelock free?
+make a mutable value const? (eg. before sending it to other thread)?
+path analysis must recognize that after `cond && return`, cond is false, in
+  particular, smart typing must recognize that after `x is T && return;` x is not T
+http://blog.reverberate.org/2012/04/it-not-bug-it-subtle-unsupported-corner.html
+  NO. never do this
+should the semantics of return statement be use the fact that it returns None
+  to prove that no code after it executes? That would mean returning None would
+  not end program, it would just end current scope
+debugger - all of this: https://developers.google.com/web/updates/2018/05/devtools
+comptime variables? (accessible by comptime code)
+  ```
+  comptime []Subcommand subcommands;
+
+  comptime String help() {
+    String helpStart = "...";
+    String helpEnd = "...";
+
+    return helpStart + subcommands.map(a => a.help).join("\n") + helpEnd; // Optimization: `subcomands[x].help` points inside returned value of this
+  }
+
+  subcommands.push(Subcommand("help", () => print(help())))
+
+  ///
+  # Multiple issues:
+
+  1. Comptime is no longer pure and local
+  2. Perhaps illustrated by this example - help should not be a function, but
+     a variable. But in that case, there's a problem with order of execution: `help`
+     depends on `subcommands`, but one subcommand, and therefore the `subcommands`
+     variable as well, depends on `help`.
+  ///
+  ```
+some (all?) errors and warnings should not be part of AST definition, but the
+  transformation rules. Errors should be able to back-propagate to a position
+  in sourcce code
+class cannot be instantiated if it has no fields
+```
+// Pointers to fields?
+
+class A {
+  B b;
+}
+
+class B {
+  C c;
+}
+
+A::B::C foo = c;
+*A::B::C pA = A(); // ?
+A::B::*C pF = foo; // ?
+```
+pointers:
+  ```
+  = assign
+  := assign to a pointer
+  ::= etc. or maybe in reverse?
+  ```
+compiler must warn if it cannot prove comptime code terminates
+auto-convert `struct snake_case` from C to `class SnakeCase` in Chalk
+```
+static class Namespace {
+  Int a; // Automatically public.
+  
+  static Int b; // Warning: reduntant keyword 'static'.
+  
+  new() {} // Just a normal, static function
+}
+
+Namespace.new();
+
+Namespace n; // Error: cannot instantiate static class.
+```
 non-exported types should not be acquirable to outside code? possible paths:
   through reflection (Type.getSupertype)
   returned from function
 `final trait` only extendible in its own (module/library)
+  ```
+  final trait T {
+    own A : T {}
+    own B : T {}
+    own C : T {}
+  }
+  
+  T.subtypes is []class;
+  T.subtypes == [ A, B, C ];
+  ```
 ```
 ?A foo() { randBool() ? A() : null }
 
@@ -697,7 +1077,18 @@ Null bar() {
 type Empty == |;
 type Object == &;
 ```
+starting stack shouldn't be any special from other stacks (of other threads,
+  coroutines maybe)?
+pools as hierarchical collections of threads
+  - resource management
+  - ability to move couroutines, threads and pools between pools
+promise/coroutine cancellation
+why does async have to be explicit (`Promise<T>` instead of just `T`)?
+  because otherwise every function invocation would possibly block,
+  which opens too much problems with race conditions
 spec: known types - enforces restriction on some types in std
+https://github.com/Kotlin/kotlinx.coroutines/blob/master/coroutines-guide.md
+http://cr.openjdk.java.net/~rpressler/loom/Loom-Proposal.html
 const variable can be assigned only once, not necessarily when declared?
 ```
 class X {
@@ -711,6 +1102,8 @@ Null fn(shared const X this, Int i) = X.foo;
 `Ptr` (aka `*`) should either be set to null if its referred object is destroyed,
   or it should keep the object alive TODO
 `UnsafePtr` is like a pointer in c++ - no controls
+no as-if rule in spec - the need for explicit as-if rule means badly defined
+  semantics, it should follow from them instead of having to be part of the spec
 should all variables be secretly pointers, as in Java?
 switch - `default:` vs `case _:`?
 returning local type returns `null`
@@ -894,42 +1287,20 @@ if `try { x } catch E { y }` will ever be part of chalk, make scope of y subscop
   after try block?
 
 
-What should `null == null` be?
 
-1. Always `true` - Floats are `null` instead of `NaN`, so this is against that
-   standard. (TODO replace 'that' with that standard's name (no internet ATM (more parentheses)))
-   Also, the reasoning that `NaN` shouldn't equal `NaN` applies to `null`, ie.
-   unknown value shouldn't be confident that it equals other unknown value.
-   Personally, I'm very much against this option.
-2. Always `false` - consistent with that standard (parentheses! (TODO)), but I
-   think this is going too far, see third option.
-3. False unless it has the same address in memory, ie. is the same variable.
-   This would technically also be against ((())), but:
-   3.1 it's a very special case not likely to cause problems (prove me wrong),
-   3.2 in this case, I believe it's justified, it's the standard that is wrong.
-       An unknown value cannot know whether it is the same value as another
-       unknown value, but it definitely is the same as itself,
-   3.3 it would be consistent with how equality is checked in case of non-null
-       values. `Object.equals` returns true if the arguments have the same address
-       and calls `ParamType.equals` otherwise.
-   The only downside I see is that this is the most complicated option, and
-   might be confusing to those who don't know about it, but I like this one the most.
-
-TODO redefine using `common type`:
-If the type of either second or third operand of conditional operator is `noreturn`,
-then the type of the return value and both operands must be `noreturn`.
-If the type of either second or third operand of conditional operator is `void`,
-then the type of the return value is also `void`.
-If the types of the second and third operands are the same, then the type of return
-value is also of the same type.
-Else the return type of conditional operator is class X : All Traits Shared By Both
-warn if this is used needlessly
+the return type of `c ? a : b` is the common type of `a` and `b`.
+common type of `None` and `T` is `T`, where `T` is any type
+`a orelse b` equals `a` if not null, else `b`
+~ vs ! as bitwise negation?
+array concatenation operator
+warn if `this` keyword is used needlessly
 automatically parallelize for loops with await if it doesn't depend on previous iteration?
   or a different syntax for parallel/promise-parallel loops?
 
 
 
 ```
+// Or maybe Array.depthOf
 Array.dimensionOf(nonArrayType) = 0
 Array.dimensionOf(ArrayType<ValueType>) = comptime 1 + Array.dimensionOf(ValueType);
 ```
@@ -942,7 +1313,7 @@ chalk run main.cpp # runs interpreter
 chalk run .
 chalk math proof.chalk # like 'chalk run', but ensures only math proofs are run, cannot contain other code
                        # make this secure behabior just a special case of run (maybe even the default one?)
-chalk eval "noreturn main() { /* ... */ }"
+chalk eval "None main() { /* ... */ }"
 chalk eval "2 + 3"
 chalk repl
 chalk translate file.js out.elf --readOnly // readonly means no formatting of source code
@@ -1046,6 +1417,8 @@ class B : X { foo(){} }
 A|B is X // True
 A|B x = bar();
 x.foo();
+
+[ T t, Int index ] : tArr {}
 ```
 
 
@@ -1063,3 +1436,430 @@ x.foo();
 
 
 
+should temporary objects be allocated on the heap unless they are provably local?
+references: it would be nice if there were references to portions of String and Buffer,
+  but I do not want a situation like in Rust that reference is its own type different from `*String`
+underscore for unused function parameters
+trait can declare variables?
+overflow and division by zero on non-nullable types throws exception, there's a wrap-around Int type
+golang's defer? destructors do the same, so why?
+struct, union and array destructuring, destructuring of a single variable from
+  anonymous class/union doesn't require braces, optional declaration adds one optional,
+  that can result in ??Type
+two types of array destructuring:
+  ```
+  without global type - RHS must be array literal
+  [ a, b, auto d ] = [ a, b, foo() ];
+  
+  with global type - RHS can be anything
+  Type [ a, b ] = bar()
+  ```
+```
+// Declaration
+{ MType x: newName, Int y } = f(); // Only works on anonymous classes
+PType { x: newName, y } = f(); // Only works on type PType
+?Type [ a: { ?Int32 i: aInt }, b ] = g();
+
+// Assignment
+{ x: newName } = f();
+[ a: { i: aInt }, _, b ] = g();
+
+// should work because of smart casts - 123 and "a" are first converted to Object,
+// then back to int and String
+[ x, y ] = [ 123, "a" ];
+
+// Union
+{ ?File? file, ?Error err } = Union<File, Error>(Error("Not a real IO operation"));
+
+// Function parameters
+void fn(Complex { re: realPart, im }) {}
+```
+In `expr && { A }`, expr is part of scope A. Also `||`, `?`, `switch`, etc
+Place local variable on heap if it has chance of being returned, like go?
+If `X` is binary operator that returns `Bool`, then `A !X B == !(A X B)`, eg.
+  `!instanceof`
+allocators, way to manage allocators of libraries that were written without them
+c++ style constructor initialization list
+`is` operator:
+  1. `a is A` - true if a is an instance of type A; checked at runtime if necessary
+  2. `a is null` - true if a is null
+trait type values should work like rusts Box
+classes themselves are instances of class `Class`?; `Class` is enum?
+type variables, eg. `class Y() { return class A {} } class X = Y();`
+type aliases, `class F = A<Int,Int>`?
+custom smart pointers?
+problem - class declaration is a statement, not an expression
+anonymous classes syntax: `class { Int a, Int b }` or just `{ Int a, Int b }`?
+smart casts (kotlin)
+`final trait T {}; class A : T {}; class B : T {}`, is ` T is A|B` true?
+break; continue;
+container.firstMatch
+how to import identifiers with underscore:
+  ```
+  import { a_b: aB } from "ugly.c"
+  import { a_b } from "ugly.c" // Error: identifiers cannot contain underscore
+  ```
+warning: multiple imports from the same file
+must a const variable be initialized when declared? Would be convenient if not
+chalk version control and package manager - private issues, report vulnerabilities
+error - have a special error message for type mismatch error if assigning to
+  variable of type `?*T`. Instead of focusing on potential assignment of... uh oh...
+  what is the difference between assigning `T()` to `?*T a` (should always work)
+  and to `[]T` on invalid index? what error should that be?
+  source of the problem - next issue
+`A|B foo = A(); foo = B();` what is the second expression? is it an error? It
+  definitely isn't a call to function assign, because foo's value is of type A.
+  And what about pointers?
+  ```
+  A|B foo = A();
+  *A a;
+  
+  foo is A && a = foo; // Smart casts
+  
+  assign(foo, B());
+  
+  ///
+  What is a? Could if efficiently become null (if it was of ?*A)? Is this
+  compile-time error? Should smart casts be modified? Should type reassignments
+  be disallowed? Should all values in unions be stored on heap, with type
+  reassignment allocating new object (and old object would continue to live)?
+  Would the last option mean that *T|X could point to T?
+  ```
+if all variables will work like in java, have a `trait ValueType {}`.
+IDE when let keyword is used instead of types (just once for parameters), compiler
+  could automatically replace it with a correct type it can guess, or create error
+warn on `for true {}` - replace with `for {}`
+trait unions? eg.
+```
+trait Y {}
+trait X {
+  void a() {}
+  
+  Y {
+    void b() {}
+  }
+}
+
+class A : X {} // methods: a
+class B : X, Y {} // methods: a, b
+```
+unary minus
+types can specify a value that is null? If thay do that, optional types will
+  consume as much memory as non-optional, but this creates the risk that a type
+  will suddenly become null on its own (even if it's not optional).
+  - this would require a proof that null and non-null will always stay null, resp. non-null
+  - class X : Nullable {}
+support immediately invoked function expressions
+enum instances should be copyable and able to change themselves to other instances
+  ```
+  enum Bool {
+    true, false;
+    
+    not() { this = Bool.false }
+  }
+  
+  true.not() == false;
+  ```
+promise errors if it is destructed with error
+semicolon must be omitted if closing brace is on the same line
+statement cannot contain empty line
+  ```
+  // Error, statement cannot contain empty line
+  i =
+  
+  2;
+  ```
+just like there are methods that are const, there should be methods that are shared
+ability to control every dynamically created object so that a long-running program
+  can defragment its ram by moving/deleting and recreating everything on heap
+  - this icludes language provided objects on heap, eg. closures
+types are first class citizens?
+iterators
+function values are never mutable, but pointers can be
+streams (with forEach, reduce, etc)
+multiline comments?
+`class X<class Y : Printable>`, `List<?>` for list of Printables
+nullable types can be used in the following ways:
+  1. compiler can infer variable is not null, can be dereferenced without dynamic
+     check
+  2. some function/method/operator to dereference pointer with dynamic check
+     that pointer is not null
+  3. `unsafe` dereferencing without check
+array elements of type X can be accessed in the following ways:
+  1. like X if compiler can infer index is not out of bounds
+  2. like nullable X (like c++ std::optional), with bounds checking, null if out of bounds
+  3. `unsafe`
+every type has class, including pointer, array; Ptr.isNull(val)
+type modifiers (pointers, arrays, references, const, ...) work on every variable,
+  not just one
+a function with a default argument is a supertype of a function without the argument
+multiple return values?
+array literals use square brackets
+trait can have own static variables not usable from class
+something like my init.js
+?. operator? a?.b returns null if a is null, else returns a.b
+?: operator? a ?: b returns a if nonnull, else returns b
+placement function call?
+treat mutable, async and threaded similarly
+  1. iterator must track changes if it iterates either mutable or shared (or async) object.
+  2. a function that returns promise can be either run as coroutine or a thread (await vs go)
+move an object and change pointers (even constant) with one operation?
+keyword `final` forbids overriding a method
+every member is a getter? no setters
+inner classes:
+  ```
+  class A {
+    Int a;
+    
+    // Member class, every instance can have a different one
+    class B;
+    
+    // Member inner class, one for all instances of A
+    class C {
+      getA() { return a }
+    }
+  }
+  ```
+classes can be variables, but instantiation needs comptime class
+  ```
+  class X : Object = getClassX(); // Warning, explicit implementation of Object
+  
+  X a; // Error if getClass is not comptime
+  
+  X.getFields(); // Never an error
+  ```
+is returning a reference ok if and only if it refers to nonlocal object? this should be easy to check statically
+everything is thread-local by default
+no inline keyword, or anything that is supposed to do compiler's job
+Function trait, Closure class able to hold closures? Reflection powerful enough
+  to enable code only implementation lambdas and nested functions cannot be
+  returned if they capture ref to local variable, by default they do what?
+types can be variables, parameter types that are inferable from arguments must be implicit
+Should enums be copyable? yes, they are constant, anyway. should their copy
+  constructors be allowed to have side effects? (or any copy constructors?)
+how should destructor be named? `~new`
+Is it possible to assign `A fn(?B)` to `A fn(B)`? should be
+Allocators and a type for stack frames? `Function.StackFrame` or `StackFrame<*Function fn>`
+A single Function type for all types of functions, no special function pointer
+`Allocator<X>` trait, `DefaultAllocator<X>` class
+`auto` keyword?
+null coalescing operator, `a ?? b == (a == null ? b : a)`
+If a package p imports package q, the completion of q's init functions happens
+  before the start of any of p's. The start of the function main happens after
+  all init functions have finished.
+implicit 'type converions' for functions (there is runtime overhead):
+`A f(args...) -> void f(args...)`
+`A f(T x) -> A f(B : T x)`
+
+
+
+
+
+
+
+Standard library + userland libraries:
+well thought out containers (arrays, sets, maps) each with methods from Stream (forEach,
+  map, filter, fold)
+
+net
+  http, https
+  fetch
+
+fs (async only)
+
+init
+  `initTask(Promise fn)` - executes fn before main()
+
+ast (chalks abstract syntax tree)?
+
+time
+  getMiliSec
+  getNanoSec
+  sleep (maybe in a more concurency-related place?)
+
+console
+  getPassword
+
+json
+
+object serialization
+
+dom (document object model)
+  audio
+
+compression + (deflate, gzip, zlib, lzma, zip, tar, webp, wav, midi, mp3, ...)
+crypto
+universal sql driver
+ddcp
+math
+  complex numbers
+  random
+  BigInt
+regex
+email
+rpc - remote procedure calls
+asm - inline assembler (implementation obviously provided by the compiler)
+
+
+Commpiler+interpreter+package manager abilities:
+translate between languages
+option for no optimizations
+template expansion only
+comptime evaluation only
+produces a warning if code has no side effects
+modular, usable from CLI and through API
+run tests after compiling/before publishing
+scripts?
+
+
+
+
+
+
+-- Experimental code examples --
+
+```
+
+{ OptType b: mut f, d: g } = x;
+
+for [ elem, index ] : array {}
+
+// Union<File, Error> open(String s)
+
+// Both of these work, see destructuring
+{ ?File file, ?Error err} = open("./photo.png", Mode.RNO);
+File f = open("./photo.png", Mode.RNO);
+
+Folder dir(root, dirPath, Mode.RWO);
+await dir.open();
+
+File file(folder, path, Mode.RWO);
+assert(file.path == path);
+assert(gile.getFullPath() == String.concat(folder.getFullPath(), path));
+await file.open();
+
+class Car {
+  Int speed;
+  
+  Car null() : speed(-1) {}
+  
+  Bool isNull() = speed < 0
+}
+
+Bool fn([]Int32 ints) {
+  void helper(Int32 x) {
+    foo(x) && fn.return true; // makes the function fs return
+  }
+  
+  for i : ints { helper(i) }
+}
+
+
+class Reflect.classOf(var) x();
+class var.class x();
+Reftlect.classOf(var) x();
+var.class x();
+
+class X : Reflect.traitsOf(var) x();
+
+X a = new(1, 2); // allocates on stack
+UniquePtr<X> b = new(1, 2); // allocates on heap
+
+await atomicVar.lock();
+
+
+//named function
+void fn() {}
+
+//anonymous function
+void() {}
+
+void a() = fn;
+void *a() = fn;
+
+void []fnArr(Param x) = [];
+
+
+Iterator fn() {
+  a.forEach(Promise<>(AType elem) { fn.yield(a); });
+  
+  // or
+  a.forEach(fn.yield);
+}
+
+auto fn() {
+  return(
+    { Int x: 6
+    , Float y: 7.8
+    }
+  );
+}
+
+auto fn() {
+  return {
+    Int x: 6
+    Float y: 7.8
+  };
+}
+
+enum { a, b, c }
+
+enum {
+  anana,
+  cnonarrrna,
+  bnenana,
+}
+
+enum {
+  anana
+  cnonarrrna
+  bnenana
+}
+
+class X {
+  ~Int i;
+}
+
+Car c;
+
+Car.getField("i")?.set(c, 42);
+Car.class.getField("i")?.set(c, 42);
+
+Bool binaryOperation(Bool _, Bool _) = foo(); // foo() must return a function with a conforming signature
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```

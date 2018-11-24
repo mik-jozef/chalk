@@ -40,6 +40,7 @@ export class Maybe : Expr {
   new([]const Expr _expr) {}
 }
 
+// Rename to Or, add And?
 export class OneOf : Expr {
   pub const []const Expr alternatives;
   

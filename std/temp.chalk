@@ -4,6 +4,8 @@ trait Object {
   pub class Class;
   
   Field getField(String name);
+  
+  Bool same(T a, T b, Int derefs = 0) { true if a and b have the same address in memory after each being dereferenced derefs times }
 }
 
 trait ErrCode {}
@@ -37,7 +39,7 @@ trait Number {
   Self mul(*Self number);
   Self div(*Self number);
   Self mod(*Self number);
-  Self pow(*Self number);
+  Self pow(*Self number); // Problem: exponentiation in FiniteField<n> takes FiniteField<n-1> as a parameter, not Self
   
   own Self add(Self a, *Self b) {
     return a.add(b);
@@ -69,12 +71,12 @@ trait Number {
 
 class Float32 : Nullable, Number {
   static Float32 null;
-  static Float32 Infinity;
+  static Float32 Inf;
 }
 
 class Float64 : Number {
   static Float32 null;
-  static Float32 Infinity;
+  static Float32 Inf;
 }
 
 export class Int64 : Number, Stream {
@@ -137,6 +139,7 @@ class Math {}
 trait ArrayTrait<T> {
   Bool unshift(Int index = 0);
   indexOf
+  has
 }
 
 class ArrayCell<T, Int i> {
@@ -197,6 +200,9 @@ trait Set<T> : Iterable<T> {
   *Set<T> remove(*Set<T> a) {
     a.forEach(e => remove(e));
   }
+  
+  // Returns the set of all subsets of this.
+  Set<T> subsets() {}
   
   own Set union(Set a, *Set b) {
     return a.remove(e=>!b.has(e));
@@ -343,7 +349,7 @@ trait AsyncIterable<I: AsyncIterator> {
   I asyncIter();
 }
 
-class String : CML<{}> {}
+class String<Alphabet alphabet = Utf8> {}
 
 class BigInt : Number {}
 class StringBuilder {}
@@ -487,7 +493,7 @@ enum Null {
   Bool equals() { return false }
 }
 
-
+enum None {}
 
 
 

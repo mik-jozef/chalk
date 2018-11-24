@@ -111,6 +111,14 @@ export class Errors : Enum {
     }
     ```
     """
+  ),
+  UM(
+    "error",
+    "unsupported magic",
+    """
+    The `[[magic]]` literal can only be used in a few parts of the standard
+    library, and cannot be used in most code.
+    """
   );
   
   pub String id;
