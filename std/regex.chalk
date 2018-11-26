@@ -1,9 +1,11 @@
-/**
- * TODO
- * 
- * Field("str", Class)
- * Field("str", [ Text("aaa") ])
-**/
+///
+TODO
+
+Field("str", Class)
+Field("str", [ Text("aaa") ])
+
+should error handling be part of RegeRex?
+///
 
 /// Common type of parts of regex.
 export trait Expr {}

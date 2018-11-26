@@ -2,6 +2,10 @@
 
 A collection of ideas that I hope will turn into a working programming language.
 
+Note: this readme is out of date. Most up-to-date information probably will be
+in `spec.md`.
+
+Current status, as of 25. 11. 2018: still just a collection of ideas.
 
 ## Highlights TODO
 - modules
@@ -21,14 +25,14 @@ A collection of ideas that I hope will turn into a working programming language.
 ### What chalk does *NOT* and will not have
 - header files
 - macros
-- garbage collection
+- (stop the world) garbage collection
 - significant whitespace
 - class inheritance
 - wrong methods called because of polymorphism
 - statements; everything is an expression
 - synchronous IO (but there is compile-time IO)
-- global variables
-- namespaces
+- global variables (but there are module-wide ones)
+- namespaces (but there are static classes)
 - duck typing, including in templates
 - (probably) exceptions
 

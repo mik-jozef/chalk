@@ -19,6 +19,7 @@ export class Err {
   }
 }
 
+// Runs functions when destructed
 export class Defer {
   []*Function<void, []> functions();
   
@@ -105,7 +106,7 @@ class Compiler {
   translate(String source, Eval.format.function) {}
 }
 
-class Buffer {
+class Buffer : Viewable {
   
 }
 
@@ -136,30 +137,21 @@ class Functions {
 
 class Math {}
 
-trait ArrayTrait<T> {
+// TODO: array will probably need formal semantics
+export class Array<T> : Viewable {
+  Int size;
+  *T arrStart;
+  *T memAllocStart;
+  
+  new(Int reservedSpace);
+  new(Int _size, Int reservedSpace = size, void initializer(*T elem, Int index));
   Bool unshift(Int index = 0);
   indexOf
   has
 }
 
-class ArrayCell<T, Int i> {
-  T t;
+export class Tuple<type... types> : ArrayTrait<T> {
   
-  ArrayCell<T, i - 1> nextCell;
-  
-  ?*T getValue(Int i) { return i == 0 ? t : nextCell.getValue(i - 1); }
-}
-
-class ArrayCell<T, 0> {
-  ?*T getValue(Int i) { return null; }
-}
-
-class Array<T, Int i> : ArrayTrait<T> {
-  ArrayCell<i> cell;
-  
-  new(void initializer(*T elem, Int index)) {}
-  
-  void sort(todo);
 }
 
 *T move<T>(T t) { return t; }
@@ -187,6 +179,7 @@ trait Map {}
 class HashMap {}
 class TreeMap {}
 
+// TODO what about `Map<T,Null>`?
 trait Set<T> : Iterable<T> {
   Bool has(*Set<T> a);
   
@@ -259,12 +252,15 @@ class RefBox<T> : Pointer<T> {} // shared_ptr (maybe RcBox, or other?)
 
 class Json {}
 
+// TODO should this be a trait?
 class Buffer {}
 
 trait Function {
   class ReturnType;
   
   []Param Params;
+  
+  ?Ast body;
 }
 
 class Function<class R, []class params> {
@@ -320,6 +316,11 @@ class InStream : Iterator<Buffer> {
   Promise<Buffer> read(Int bytes) {}
 }
 
+class Promise<T> {
+  static Promise<[]T> all(T, Stream<Promise<T>>);
+  static (Promise<T>, Stream<Promise<T>>) first(T, Stream<Promise<T>>);
+}
+
 class OutStream {
   Promise write(*Buffer b) {}
 }
@@ -349,7 +350,8 @@ trait AsyncIterable<I: AsyncIterator> {
   I asyncIter();
 }
 
-class String<Alphabet alphabet = Utf8> {}
+// Should this class be split for UTF-8 strings and strings with finite alphabet?
+class String<Alphabet alphabet = Utf8> : Viewable, Buffer {}
 
 class BigInt : Number {}
 class StringBuilder {}
@@ -405,6 +407,7 @@ class LinkedList<T> {
   popFront();
 }
 
+// TODO should this take two Comparables instead of ints?
 trait Slicable {
   Self slice(Int from, Int to);
 }
@@ -413,11 +416,9 @@ trait Viewable : Slicable {
   Self view(Int from, Int to);
 }
 
-class CompleTFloat : Number {
+class ComplexFloat : Number {
   pub Float re;
   pub Float im;
-  
-  
 }
 
 trait Random {

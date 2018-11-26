@@ -1,57 +1,12 @@
-```
-JS      https://developer.mozilla.org/bm/docs/Web/JavaScript
-Zig     https://github.com/zig-lang/zig
-Python  https://www.python.org/
-C++     https://cppreference.com
-D       https://dlang.org/
-Rust    https://www.rust-lang.org
-Go      https://golang.org/
-Ada?
-```
+Questions about types:
+1. Is there a one-to-one correspondence between type constructors (eg. `A|B`)
+   and types?
+   - Not a good idea: take `A|A` or `A&B|C` and `(A|C)&(B|C)`. If there was such
+     a bijection, there would also probably have to be nontrivial type conversions
+     to get around it.
+2. Are classes and traits types, or is there just a one-to-one correspondence
+   between them and their corresponding types?
 
-TODO
-what is `const ?mut Type`? shouldn't `?` be a type modifier instead of a type?
-  it should be a type, because `??T` is a valid type, eg type of.
-  `[ T(), null ][foo()]`. TODO how to distingush first- and second-level `null`?
-`class` and `trait` are types, (the only provided by the language itself?),
-  `class X is class`
-how could `T fn(...)` in `10.map(i=>fn(i, ...))` get access to previously computed values
-  in array? the alternative requires `?T` instead of `T`:
-  `a = Array<?T>(10); ( *?T t, Int i ) : a {...}`
-conversion between tuples and arrays?
-composite types
-  - type unions and type intersections, supported natively by the type system
-  - functions
-`[]String x(reservedSpace);`
-String,Buffer,Array:Viewable|Viewer; Viewer.view();
-assert array length >= 0
-what about limited support to recursively defined variables, eg.
-  ```
-  X a = X(b);
-  X b = X(a);
-  ```
-arrays with arbitrary length
-```
-Null foo(A a, B b) {
-  assume {
-    isNice(a);
-  }
-  
-  a.bar(b);
-  
-  Proof() {
-    ...
-  }
-}
-```
-should error handling be part of RegeRex?
-```
-class X : Enum<Int> { a: 1, b: 3, c: 7, d: 15 }
-```
-`{} is Enum<Object>`
-merge `class` and `Object`?
-enum with zero, one or just two variable generates a warning - The canonical
-  zero/one/two-element enum is `None`/`Null`/`Bool`
 first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
    ```
    class C {
@@ -67,51 +22,7 @@ first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-clas
    
    f = 3; // ?
    ```
-warning on empty class, class with just one member (and no functions)
-`Set<T>` is just `Map<T, Void>`
-should `this = null`; be supported? Could be used in streams (copying IOStream to OStream)?
-if a generic function has parameter instantiated to `Void`, should the parameter
-  be removed?
-documentation comments
-  ```
-  /// Single line
-  
-  ///
-  Multiple lines
-  ///
-  ```
-wrapping operators `+%, -%, *%`
-backtick instead of `<`, `>` for generics? would conflict with markdown, looks slighly weird
-	```
-	Set`Int` a;
-	class Map`type K, type V` {}
-	Set<Int> a;
-	class Map<type K, type V> {}
-	```f
-string (or array? or collection) concatenation `++`
-if a condition is always true or always false (ie. comptime known), it should
-  be a warning, or maybe even an error, that includes conditions in for loops
-autoconversion optional to bool?
-function values vs function pointers?
-`Null(){}.ReturnType == Null`
-`Null(){}.Params`
-`move(dest, source)` - moves source to dest (and assigns null to source?)
-`Null is foo && (foo = null)` - or something similar
-```
-type T = foo();
-T a;
-typeof(a) == T // true;
-```
-what about strict vs optimized float? Floating Point Operations (Zig)
-enforce class contents order: enum values, variables, methods, nested classes
-block returns last statement, function must return explicitly
-import() function that dynamically loads code, not part of global namespace
-do not have different types of arrays - I'm looking at std::vector
-Function pointer is simply a pointer to Function class, no special treatment from compiler
-no out-of-class function definitions
 it is an error if class members and class member initialization order is different
-functions are hoisted
-promises
 ```
 class A {
   new(B _, C _) {}
@@ -120,31 +31,6 @@ class A {
 Null foo(b, c) {
   A a = A(b, c); // Equevalent to A a = unsafe undefined; A.new(a, b, c)
   A(b, c); // still valid
-}
-```
-generate warning if unsafe code is safe?
-program is safe if every `unsafe` code is provably safe
-string implements Buffer
-warning - unnecessary union (eg. `T|T`, `A|B` if `A is B`)
-```
-class C {} class D {}
-
-trait T {
-  Null foo();
-}
-
-class A : T {
-  C foo() {}
-}
-
-class B : T {
-  D foo() {}
-}
-
-Null main() {
-  A|B var = Math.randBool() ? A() : B();
-  
-  C|D ret = var.foo(); // This must compile
 }
 ```
 ```
@@ -167,13 +53,9 @@ class F {
   C&D foo() {}
 }
 ```
-array.size, not array length
-class Defer - runs functions when destructed
 json support, import json as object
 `Reflect(var).set("x", 5)` reflect constructor creates object bound to certain instance
 `fn.class.nestedFunctions.get("x");`
-safe code must be defined
-libexport? a way to distinguish internal and external exports in a library
 math: dimenisional quantities;
 std/test.chalk
 `Map<Int, class> = Map([ Map.Entry(0, String), Map.Entry(1, Bool) ]);`
@@ -288,7 +170,7 @@ Nat a, b {
   distinct(a, b, 1);
 }
 ```
-terms that need to be defined: value, member, ...
+terms that need to be defined: value, member, field (TODO rename field, because field is a mathematical structure), instance, object
 should const be transitive?
 Set syntax: `Set<Int|String> s = { 1, 2, "abc" }`
 What is `*mut Int i = 1;`? Options:
@@ -395,10 +277,6 @@ repl requires three newlines to eval
    };
    ```
 let library authors release codemods - eg. to rename an identifier, ...
-just one type for functions
-types must start with uppercase and non-type variables with lowercase letter,
-  so `Foo<a> b` is unambiguously declaration
-  and `foo<a> b` is an error (cannot convert Bool to Number)?
 compile flag --provable-contracts: tries to prove things like reflexivity and
   transitivity of equals, etc
 stats about compiling performance
@@ -433,6 +311,10 @@ some recursive functions could preemptively allocate new stack for them?
 go: abandoning segmented stacks just because of hot-split was probably an
   overreaction. instead of shrinking immediately as stack wasn't used anymore,
   the solution would be to
+partial comptime evaluation?
+should generics be replaced with functions that return classes?
+what about generic functions? or type parameter inference?
+something like go's select statement - allows exactly one communication
 objects must not be placed on the stack if a pointer to them can escape to
   a longer living variable
 shrinking allocated memory should be possible?
@@ -853,9 +735,19 @@ async functions and threads should be similar if possible and reasonable (?)
   interacting coroutines happen to be in different threads?
 no empty statement (`;`), use empty block `{}` instead
 no named parameter calls
+`T t = undefined` should not be unsafe code, it should just error if variable is
+  - written to if not known whether defined
+  - read if possibly still undefined
 a type can implement Nullable, save space if optional
 function binding operator?
 algebraic data types? (`data D = A Int | B Int Int`)
+  should they be merged with enums?
+  ```
+  enum Tree {
+    Leaf Int,
+    Leaf Tree Tree Int;
+  }
+  ```
 debugger should be able to output stack trace with library methods hidden
 stack overflow should not happen unless there is no memory at all
 always infer generic params if possible
@@ -1826,40 +1718,39 @@ Car.getField("i")?.set(c, 42);
 Car.class.getField("i")?.set(c, 42);
 
 Bool binaryOperation(Bool _, Bool _) = foo(); // foo() must return a function with a conforming signature
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```
+how could `T fn(...)` in `10.map(i=>fn(i, ...))` get access to previously computed values
+  in array? the alternative (first declaring, then assigning) requires `?T` instead of `T`:
+  `a = Array<?T>(10); ( *?T t, Int i ) : a {...}`
+conversion between tuples and arrays?
+```
+Null foo(A a, B b) {
+  assume {
+    isNice(a);
+  }
+  
+  a.bar(b);
+  
+  Proof() {
+    ...
+  }
+}
+```
+problem: T.equals must be computable, and thats bad for classes like Nat and ZFCSet.
+  maybe they shouldn't be classes, byt pure types?
+  a solution for these particular types is:
+  ```
+  class Nat {
+    *Nat predecessor;
+    
+    static equals(Nat a, Nat b) => a.predecessor == b.predecessor;
+  }
+  
+  class Set {
+    []Set elements;
+    
+    static equals(Set a, Set b) => a.elements == b.elements;
+  }
+  ```
+  However, I'm unsure if there is always a workaround.
+`move(dest, source)` - moves source to dest (and assigns null to source?)

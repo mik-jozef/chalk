@@ -7,8 +7,10 @@ import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
 
 import { isNull } from "std/compiler-magic.chalk";
 
+Module import() {}
+
 export trait Object {
-  get class Class;
+  get class Type;
   
   get static String name;
   
@@ -27,6 +29,10 @@ export trait Object {
   }
   
   final static []Field getFields(FieldType type = FieldType.all) {
+    // Magic.
+  }
+  
+  final static []Field getMembers(MemberType type = MemberType.all) {
     // Magic.
   }
   
