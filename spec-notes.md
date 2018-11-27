@@ -1,12 +1,3 @@
-Questions about types:
-1. Is there a one-to-one correspondence between type constructors (eg. `A|B`)
-   and types?
-   - Not a good idea: take `A|A` or `A&B|C` and `(A|C)&(B|C)`. If there was such
-     a bijection, there would also probably have to be nontrivial type conversions
-     to get around it.
-2. Are classes and traits types, or is there just a one-to-one correspondence
-   between them and their corresponding types?
-
 first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
    ```
    class C {

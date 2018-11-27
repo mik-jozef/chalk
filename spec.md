@@ -94,28 +94,38 @@ If `A` is a type, the pointer type to `A`, denoted by `*A`, is a type.
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
 
 ### The *is* relation
-The *is* relation is a binary relation between types. It is a partial order, that
-is, for all types `A`, `B`, `C`:
+The *is* relation is a binary relation between types. It is the smallest relation
+such that:
 
-1. `A` is `A` ('is' is reflexive)
-2. `A` is `B` and `B` is `A` implies `A` equals `B` ('is' is anti-symmetric)
-3. `A` is `B` and `B` is `C` implies `A` is `C` ('is' is transitive)
+0. It is a partial order, that is, for all types `A`, `B`, `C`:
+   0. `A` is `A` ('is' is reflexive)
+   1. `A` is `B` and `B` is `A` implies `A` equals `B` ('is' is anti-symmetric)
+   2. `A` is `B` and `B` is `C` implies `A` is `C` ('is' is transitive)
 
-For all types `T`:
- - `T` is `class` iff `T` equals `class`
- - `T` is `trait` iff `T` equals `trait`
- - `T` is `type` iff `T` equals `class`, `trait` or `type`
- - for all classes `C`, `T` is `C` iff `T` equals `C`
+1. For all types `A`, `B`, `C`, `D`:
+   0. `A` equals `class`, `trait` or `type` implies `A` is `type`
+   1. `A` extends `B` implies `A` is `B`
+   2. `A` is `B` implies `*A` is `*B`
+   3. `A|B` is `B|A` is `A|B`
+   4. `A&B` is `B&A` is `A&B`
+   5. `A` is `A|B`
+   6. `A&B` is `A`
+   7. [[`None`]] is `A`
+   8. `A` is `C` and `B` is `C` implies `A|B` is `C`
+   9. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
 
- - `T|T` is `T`
- - `T&T` is `T`
- - 
+> TODO do these rules specify what I had in mind? Are they complete and minimal?
 
-For all class and trait types `T`, `T` is `A` if `T` extends `A`.
+### Common type
+If `A` and `B` are types, the common type `C` of `A` and `B` is the most specific
+TODO define 'most specific' type such that `A` is `C` and `B` is `C`.
 
-`T()` is `Null()`
+### Type conversions
+`T(...rest)` to `Null(...rest)`
+`T` to `*T`
+`*T` to `T`
 
-> This is a valid piece of code.
+> TODO this must be a valid piece of code.
 > ```
 > class B {}
 > 
@@ -127,12 +137,6 @@ For all class and trait types `T`, `T` is `A` if `T` extends `A`.
 >   B foo() {}
 > }
 > ```
-
-### Common type
-If `A` and `B` are types, the common type `C` of `A` and `B` is the most specific
-TODO define 'most specific' type such that `A` is `C` and `B` is `C`.
-
-### Type conversions
 
 ### Type templates
 

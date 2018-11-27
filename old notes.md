@@ -162,6 +162,86 @@ Note: yes.
 ##### String should implement Buffer
 Node: I'm not sure, left a comment in temp.chalk
 
+##### Questions about types:
+1. Is there a one-to-one correspondence between type constructors (eg. `A|B`)
+   and types?
+   - Not a good idea: take `A|A` or `(A&B)|C` and `(A|C)&(B|C)`. If there was such
+     a bijection, there would also probably have to be nontrivial type conversions
+     to get around it.
+2. Are classes and traits types, or is there just a one-to-one correspondence
+   between them and their corresponding types?
+   - I'll go with class are types, and if something breaks down, I'll change that.
+3. How to handle `A|*A`? Dum dum duuuum.
+   1. Make it an error.
+   2. Use the other order for assignment, ie. `=` assigns a value, `:=` a pointer,
+      `::=` pointer to pointer, etc.
+      
+      This is the opposite of the order I had in mind because of \<del>generics\</>
+      a flawed argument involving generics. But now that I think about it, this
+      is probably the correct order. However, it means pointers should be initialized
+      with `:=`, which ... I wouldn't expect.
+      
+      Original, flawed argument: in `class<T>`, `=` would assign the pointer, so
+      if `T == *A`, `=` would still assign to pointer. Yeah, but of different depth.
+
+Notes:
+1. No, eg. `A|A` should equal `A` and `(A&B)|C` should equal `(A|C)&(B|C)`. Part
+   of the spec.
+2. Part of the spec.
+2. I'll go with 2.
+
+##### Some proofs about types
+> Eg. Some proofs:
+> 0. ``
+> 1. `(A&B)|C` equals `(A|C)&(B|C)`
+>    - `A&B` is `A` is `A|C`
+>    - `C` is `A|C`
+>    - `(A&B)|C` is `A|C`
+> 
+>    - `A&B` is `B` is `B|C`
+>    - `C` is `B|C`
+>    - `(A&B)|C` is `B|C`
+> 
+>    - `((A&B)|C)|((A&B)|C)` is `(A|C)&(B|C)`
+>    - `(A&B)|C` is `((A&B)|C)|((A&B)|C)` is `(A|C)&(B|C)`
+> 
+>    - `(A|C)&(B|C)` is `A|C`
+>    - `(A|C)&(B|C)` is `B|C`
+>    - `(A|C)&(B|C)` is `(A&B)|C`
+> 
+> 2. `A|None` is `A`
+>    - `A` is `A`
+>    - `None` is `A`
+>    - `A|None` is `A`
+> 3. `A&None` is `None` - trivial
+> 4. `A` is `C` implies `A|B` is `C|B`
+>    - `A` is `C` is `C|B`
+>    - `B` is `C|B`
+>    - `A|B` is `C|B`
+> 5. `A&B` is `A|B`
+>    - `A&B` is `A` is `A|B`
+>    - `A&B` is `B` is `A|B`
+>    - `A&B` is `A|B`
+> 6. `(A&B)|C` is `(B&A)|C`
+>    - `A&B` is `B&A` is `(B&A)|C`
+>    - `C` is `(B&A)|C`
+>    - `(A&B)|C` is `(B&A)|C`
+> 7. `(A|B)|C` is `A|(B|C)`
+>    - `A` is `A|(B|C)`
+>    - `B` is `B|C` is `A|(B|C)`
+>    - `A|B` is `A|(B|C)`
+>    - `C` is `B|C` is `A|(B|C)`
+>    - `(A|B)|C` is `A|(B|C)`
+> 8. `(A&B)&C` is `A&(B&C)`
+>    - `(A&B)&C` is `A&B` is `A`
+>    - `(A&B)&C` is `A&B` is `B`
+>    - `(A&B)&C` is `C`
+>    - `(A&B)&C` is `B&C`
+>    - `(A&B)&C` is `A&(B&C)`
+
+Note I made this to make sure the rules of 'is' relation are sane and complete.
+Now I don't need it.
+
 
 
 
