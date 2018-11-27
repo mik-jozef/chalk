@@ -24,6 +24,11 @@ This is the specification of the Chalk programming language.
 > Your feedback is welcome. For simple typos (or formatting issues) I'll appreciate
 > a pull request.
 
+This specification is a ChalkDoc document. You can view the source [here](TODO).
+
+> TODO this specification isn't YET a ChalkDoc document, but it will be.
+> For now, markdown is a good approximation
+
 {{ToC}}
 
 ## Type system and TODO the entities that live in chalk-space
@@ -55,7 +60,7 @@ type `type`.
 A *composite type* is a type that is not [[atomic type|atomic]]. Composite types
 are composed from one or more atomic types.
 
-Every composite type can be created by a series of compositions of [[type
+Every composite type can be created by a finite series of compositions of [[type
 constructor]]s, namely the [[type union constructor]], the [[type intersection
 constructor]] and the [[function type constructor]].
 
@@ -65,7 +70,8 @@ Composite types have [[The types class, trait and type|the type `type`]].
 > type. An example is the union of an atomic type with itself.
 
 > TODO is it bad that if `T` is an atomic type, `*T` or `T()` are composite types?
-> Maybe a different name would be more appropriate?
+> Maybe a different name would be more appropriate? Also, atomic type means
+> something completely different to a C++ programmer.
 
 > TODO is `type` a good choice for the type of function types?
 
@@ -88,7 +94,10 @@ from these types, denoted by `R(P0, P1, ..., Pn-1)`, is a type.
 > parameter Int and return an Int.
 
 #### Pointer types
-If `A` is a type, the pointer type to `A`, denoted by `*A`, is a type.
+If `A` is a type, the pointer type to `A` is a type.
+
+A pointer to function type `A(...rest)` is denoted by `A*(...rest)`, a pointer to
+other types is denoted by `*A`.
 
 ### Type modifiers
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
@@ -106,24 +115,24 @@ such that:
    0. `A` equals `class`, `trait` or `type` implies `A` is `type`
    1. `A` extends `B` implies `A` is `B`
    2. `A` is `B` implies `*A` is `*B`
-   3. `A|B` is `B|A` is `A|B`
-   4. `A&B` is `B&A` is `A&B`
-   5. `A` is `A|B`
-   6. `A&B` is `A`
-   7. [[`None`]] is `A`
+   3. [[`None`]] is `A`
+   4. `A|B` is `B|A` is `A|B`
+   5. `A&B` is `B&A` is `A&B`
+   6. `A` is `A|B`
+   7. `A&B` is `A`
    8. `A` is `C` and `B` is `C` implies `A|B` is `C`
    9. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
 
-> TODO do these rules specify what I had in mind? Are they complete and minimal?
+> TL;DR 4-7: type unions and intersections behave as you would probably expect.
 
-### Common type
-If `A` and `B` are types, the common type `C` of `A` and `B` is the most specific
-TODO define 'most specific' type such that `A` is `C` and `B` is `C`.
+> TODO do these rules specify what I had in mind? Are they complete and minimal?
 
 ### Type conversions
 `T(...rest)` to `Null(...rest)`
 `T` to `*T`
 `*T` to `T`
+
+> TODO type conversions (this section)
 
 > TODO this must be a valid piece of code.
 > ```
@@ -139,15 +148,40 @@ TODO define 'most specific' type such that `A` is `C` and `B` is `C`.
 > ```
 
 ### Type templates
+> TODO type templates (this section)
 
 ## Modules
-### TODO this header name
-#### Source code representation
-#### Chalkdoc
-#### Expressions
+Modules are TODO.
 
-### Modules
-Start with an optional [[comment]], then continue with [[declaration]]s.
+> TODO What ARE modules? They aren't files, because I don't want this specification
+> to dictate how they are stored, they could also be database entries or contents
+> of HTML tags and the specification shouldn't care.
+
+### Source code representation
+Modules must be encoded as valid UTF-8 without byte order mask.
+
+### Types of modules
+#### Chalk modules
+Starts with an optional [[comment]], then continue with [[declaration]]s.
+
+Files with `.chalk` extension contain exactly one chalk module.
+
+#### Chalkdoc modules
+
+Files with `.chalkdoc` extension contain exactly one chalkdoc module.
+
+> TODO am I sure about this? `.chalkdoc` files would be similar to markdown,
+> with code in `{{}}`.
+
+#### TODO what about JavaScript, Haskell, C, and HTML modules? Yes, I'm crazy!
+And yes, they should be able to import and export between each other, call each
+others' functions, etc.
+
+> Maybe, if one day I really add this, This section should be renamed to "Other
+> modules", with links to separate documents about these languages.
+
+### Expressions
+An expression is called a terminating expression if it returns [[`None`]].
 
 ### Comments
 Single line comments start with `//`. Multiple line comments start and end with
@@ -169,6 +203,9 @@ Single line comments start with `//`. Multiple line comments start and end with
 
 ### Imports
 #### Default import
+Unless a module explicitly imports the file `"std/global.chalk"`, the first import
+of that module will implicitly be import of all (variables/identifiers?) from
+that file.
 
 ### Declarations
 [[Type declaration]]s in all [[scope]]s and [[variable declarations]] in
@@ -181,13 +218,26 @@ only visible after they are defined.
 Type identifiers must start with an uppercase, other lowercase.
 
 ###### Keywords
+Keyword is a string that cannot be an identifier
+
+```
+export []String keywords =
+    [ "auto", "assume", "await", "break", "case", "catch", "class", "comptime"
+    , "const", "continue", "default", "enum", "export", "final", "for", "friend"
+    , "function", "get", "import", "is", "mut", "own", "pub", "return", "set"
+    , "shared", "static", "switch", "throw", "trait", "try", "type", "yield"
+    ];
+```
+
+> TODO display list of keywords
+
 ###### The blank identifier
 ##### Exports
 > libexport? a way to distinguish internal and external exports in a library
 
-#### Classes
+#### Class templates
 ##### Enums
-#### Traits
+#### Trait templates
 #### Functions
 #### Variables
 
@@ -249,7 +299,11 @@ Type identifiers must start with an uppercase, other lowercase.
 | `a ?: b`    | `Optional.getValue(a, b)` | (`a` must be `Optional`)
 
 TODO string, array, tuple, (or collection) concatenation operator `++`
+
 TODO what about wrapping operators `+%, -%, *%`?
+
+TODO should bitwise and, or, xor and bitshift operators really be part of
+     the language?
 
 Operators that are not syntactic sugar:
 
@@ -275,12 +329,12 @@ must be `Bool`.
 #### Smart typing (TODO why is it here?)
 #### Conditionals
 #### For loops
-##### Break expression
-##### Continue expression
+##### Break expressions
+##### Continue expressions
 #### Switch expressions
 #### Function calls
 #### Operators
-#### Terminating statements (return, break, continue, anything that returns None)
+#### The return expression (TODO maybe this should be under Functions)
 
 ### Functions
 Functions that don't return [[None]] or [[Null]] must return with a [[return statement]].
@@ -292,14 +346,14 @@ Functions that don't return [[None]] or [[Null]] must return with a [[return sta
 #### Async functions
 #### Lambda functions
 
-## Generics
+## Reflection
+> TODO this should not be its own chapter. Reflection is partly stl, partly
+> compiler magic to comply stl's spec.
 
-## Reflection (TODO should this be its own chapter? Or just part of Standard library)
-
-## Semantics (program initialization and execution) (should this be its own section?)
-### Program initialization
-#### Order of evaluation
-> What about limited support to recursively defined variables, liek this:
+## Semantics (program initialization and execution) (should this be its own chapter?)
+### Program initialization (This looks like it could be its own chapter)
+#### Order of evaluation (of declarations)
+> What about limited support to recursively defined variables, like this:
 > ```
 > X a = X(b);
 > X b = X(a);
@@ -336,9 +390,9 @@ Contains `type`. (Ie. for all values v, `v.type` is valid.)
 
 ### Compile-time code execution
 ### Safe code
-Safe code is deterministic, and corresponds to subset of Chalk that should be
-TODO (something like: generally used - ie. don't use unsafe code unless you have
-a really good reason).
+> Safe code is deterministic, and corresponds to subset of Chalk that should be
+> TODO (something like: generally used - ie. don't use unsafe code unless you have
+> a really good reason).
 
 Program is safe if every `unsafe` code is provably safe.
 
@@ -350,6 +404,7 @@ Program is safe if every `unsafe` code is provably safe.
 
 ## Scopes
 
+## Bytecode
 
 ## Standard library
 ### Default import

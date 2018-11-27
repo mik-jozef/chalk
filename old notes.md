@@ -192,8 +192,7 @@ Notes:
 
 ##### Some proofs about types
 > Eg. Some proofs:
-> 0. ``
-> 1. `(A&B)|C` equals `(A|C)&(B|C)`
+> 0. `(A&B)|C` equals `(A|C)&(B|C)`
 >    - `A&B` is `A` is `A|C`
 >    - `C` is `A|C`
 >    - `(A&B)|C` is `A|C`
@@ -209,30 +208,30 @@ Notes:
 >    - `(A|C)&(B|C)` is `B|C`
 >    - `(A|C)&(B|C)` is `(A&B)|C`
 > 
-> 2. `A|None` is `A`
+> 1. `A|None` is `A`
 >    - `A` is `A`
 >    - `None` is `A`
 >    - `A|None` is `A`
-> 3. `A&None` is `None` - trivial
-> 4. `A` is `C` implies `A|B` is `C|B`
+> 2. `A&None` is `None` - trivial
+> 3. `A` is `C` implies `A|B` is `C|B`
 >    - `A` is `C` is `C|B`
 >    - `B` is `C|B`
 >    - `A|B` is `C|B`
-> 5. `A&B` is `A|B`
+> 4. `A&B` is `A|B`
 >    - `A&B` is `A` is `A|B`
 >    - `A&B` is `B` is `A|B`
 >    - `A&B` is `A|B`
-> 6. `(A&B)|C` is `(B&A)|C`
+> 5. `(A&B)|C` is `(B&A)|C`
 >    - `A&B` is `B&A` is `(B&A)|C`
 >    - `C` is `(B&A)|C`
 >    - `(A&B)|C` is `(B&A)|C`
-> 7. `(A|B)|C` is `A|(B|C)`
+> 6. `(A|B)|C` is `A|(B|C)`
 >    - `A` is `A|(B|C)`
 >    - `B` is `B|C` is `A|(B|C)`
 >    - `A|B` is `A|(B|C)`
 >    - `C` is `B|C` is `A|(B|C)`
 >    - `(A|B)|C` is `A|(B|C)`
-> 8. `(A&B)&C` is `A&(B&C)`
+> 7. `(A&B)&C` is `A&(B&C)`
 >    - `(A&B)&C` is `A&B` is `A`
 >    - `(A&B)&C` is `A&B` is `B`
 >    - `(A&B)&C` is `C`
@@ -241,6 +240,19 @@ Notes:
 
 Note I made this to make sure the rules of 'is' relation are sane and complete.
 Now I don't need it.
+
+##### Replace "common type of `A` nad `B`" with `A|B`
+Note: yes
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,5 +1,7 @@
 TODO some (most?) warnings could be required by the spec.
 
+### Errors
+
 ### Warnings
 Unnecessary composite type (`??T`, `T&T`, `A|B` if `A is B`)
 
@@ -21,4 +23,10 @@ Unsafe code is safe.
 
 Any piece of code that provably has no side effects must produce a warning.
 
-Duplicate extends
+Duplicate extends, import, friend
+
+### Other
+Behavior of a program that compiles must be completely specified by source code.
+What are compiler options like ffastmath in gcc must be part of source code.
+Compiler options can only mess with levels of optimization, what is a valid program
+and what not (eg. enabling new, experimental syntax), never with semantics.

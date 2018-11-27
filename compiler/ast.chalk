@@ -6,7 +6,7 @@ Hint for Notepadqq:
   Indent is two spaces.
 ///
 
-import { Regex } from "std/regex.chalk";
+import { Regex } from "stl/regex.chalk";
 
 { class Expr, class OneOf, class Space } = Regex;
 
@@ -28,7 +28,7 @@ export class Comment : Regex {
           [ [ Match(Comment::comment, { multiline: false }), Space("\n") ]
           , [ Text("/")
             , Space("\n")
-            , And([ Match(Comment::comment) ], [ Not("///") ])
+            , And([ Match(Comment::comment, { multiline: true }) ], [ Not("///") ])
             , StartSpace()
             , Text("///")
             ]

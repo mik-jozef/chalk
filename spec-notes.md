@@ -161,7 +161,7 @@ Nat a, b {
   distinct(a, b, 1);
 }
 ```
-terms that need to be defined: value, member, field (TODO rename field, because field is a mathematical structure), instance, object
+terms that need to be defined: value, member, field (TODO rename field, because field is a mathematical structure), instance, object, scope, variable, symbol?
 should const be transitive?
 Set syntax: `Set<Int|String> s = { 1, 2, "abc" }`
 What is `*mut Int i = 1;`? Options:
@@ -191,6 +191,10 @@ if `stream is Stream<T>`, `[ a, ...stream, b ]` should create array of `T&a.type
 Rational numbers in stl? thay would have to have a big warning in documentation
   they are just for storing user input like `0.1`, not for computation
   maybe they shouldn't even implement Number
+`class C = class<type A, type B> {}`? this should probably be an error
+`class<type A> C = class<type A, type B> {}<Int, A>`?
+`class<type> C = class<type A> {}`?
+what about importing/rebinding all values with the same identifier?
 A function/module/codeblock?-wide setting that would disable optimisations messing
   with time of execution of the function? This would have applications for when
   different execution times could reveal information that should remain secret.
@@ -434,6 +438,9 @@ method autobinding?
   ```
 Constructor params prefixed with underscore are assigned to members
 named lambdas? for one-liner function/method declarations
+  `getSize() => size`
+should member initializer lists be part of chalk?
+  yes. left out == initialized with default constructor
 option to translate mathematical proofs about source code to mathematical proofs
   about the executable file (verifiable with the executable alone)
 disallow returning local types and functions
@@ -592,6 +599,7 @@ compiler must comptime execute pure functions with all arguments known at compti
 variables that are written to, but never read should be marked as unused
 ffastmath should be default behaviour unless overriden by a compiler flag,
   or a module- or function-wide \[\[strictMath]] directive
+Behavior of a program must be completely specified by source code.
 an expression that has no observable effects should produce a warning
   ```
   Null main() {
@@ -781,7 +789,10 @@ replace `a?b:c` by `if a then b else c`?
 warn on compile-time known branches
 types A, B are identical if A is B and B is A
 warning for labels unused
-use STL instead of STD as abbreviation for standard library
+use STL instead of STD as abbreviation for standard library?
+  motivation - std is not a good abbreviation, because when I hear std, I think
+  of something else, however, stl isn't much better - it sounds like steel.
+  I'd rather want something short that makes me think "standard library" immediately
 Is `class|Int` and `class|Int` allowed? If
 classes and traits must have uppercase starting letter, other variables must have lowercase starting letter
 for statements - support all `for {}; for cond {}; for cond; inr {}; for init; cond; inr {}` 

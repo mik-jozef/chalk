@@ -10,7 +10,7 @@ of code that change the code as little as possible to be error-free, but not
 logic-free, etc
 ///
 
-import { Error } from "std/regex.chalk";
+import { Error } from "sdl/regex.chalk";
 
 export class Errors : Enum {
   MEMD(
