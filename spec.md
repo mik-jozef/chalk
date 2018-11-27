@@ -1,7 +1,7 @@
 # Chalk programming language
 This is the specification of the Chalk programming language.
 
-> Notes like this one are added to make the specification clearer, provide examples
+> Notes like this one are here to make the specification clearer, provide examples
 > or for other informative purposes. However, they are are not part of the
 > specification.
 
@@ -27,7 +27,7 @@ This is the specification of the Chalk programming language.
 This specification is a ChalkDoc document. You can view the source [here](TODO).
 
 > TODO this specification isn't YET a ChalkDoc document, but it will be.
-> For now, markdown is a good approximation
+> For now, markdown is a good approximation.
 
 {{ToC}}
 
@@ -64,14 +64,16 @@ Every composite type can be created by a finite series of compositions of [[type
 constructor]]s, namely the [[type union constructor]], the [[type intersection
 constructor]] and the [[function type constructor]].
 
-Composite types have [[The types class, trait and type|the type `type`]].
-
 > However, not all applications of these type constructors result in a composite
 > type. An example is the union of an atomic type with itself.
 
+Composite types have [[The types class, trait and type|the type `type`]].
+
 > TODO is it bad that if `T` is an atomic type, `*T` or `T()` are composite types?
-> Maybe a different name would be more appropriate? Also, atomic type means
-> something completely different to a C++ programmer.
+> Maybe a different name would be more appropriate? "Derived types", maybe?
+> 
+> Also, "atomic type" isn't exactly ideal either, since it means something
+> completely different to a C++ programmer. "Base type"?
 
 > TODO is `type` a good choice for the type of function types?
 
