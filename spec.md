@@ -41,11 +41,11 @@ A *value* is either a [[type]], a [[type template]], or an [[object]].
 Every value has a [[type]] and an [[interface]].
 
 ### Types
-A *type* is either an [[atomic type]] or a [[composite type]]. Every type is
+A *type* is either a [[base type]] or a [[derived type]]. Every type is
 a [[value]].
 
-#### Atomic types
-An *atomic type* is either [[The types class, trait and type|the type `class`]],
+#### Base types
+A *base type* is either [[The types class, trait and type|the type `class`]],
 [[The types class, trait and type|the type `trait`]], [[The types class, trait
 and type|the type `type`]], a [[class]], or a [[trait]].
 
@@ -56,24 +56,18 @@ type `type`.
 
 > TODO can (and should) the type `type` be defined as `class|trait`?
 
-#### Composite types
-A *composite type* is a type that is not [[atomic type|atomic]]. Composite types
-are composed from one or more atomic types.
+#### Derived types
+A *derived type* is a type that is not a [[base type]]. Derived types are derived
+from one or more base types.
 
-Every composite type can be created by a finite series of compositions of [[type
+Every derived type can be created by a finite series of compositions of [[type
 constructor]]s, namely the [[type union constructor]], the [[type intersection
 constructor]] and the [[function type constructor]].
 
-> However, not all applications of these type constructors result in a composite
-> type. An example is the union of an atomic type with itself.
+> However, not all applications of these type constructors result in a derived
+> type. An example is the union of a base type with itself.
 
-Composite types have [[The types class, trait and type|the type `type`]].
-
-> TODO is it bad that if `T` is an atomic type, `*T` or `T()` are composite types?
-> Maybe a different name would be more appropriate? "Derived types", maybe?
-> 
-> Also, "atomic type" isn't exactly ideal either, since it means something
-> completely different to a C++ programmer. "Base type"?
+Derived types have [[The types class, trait and type|the type `type`]].
 
 > TODO is `type` a good choice for the type of function types?
 
