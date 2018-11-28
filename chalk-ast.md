@@ -1,5 +1,3 @@
-TODO ChalkDoc, Literal
-
 ## Module
 ?Comment moduleDoc
 `[]Import` imports
@@ -12,14 +10,14 @@ ChalkDoc comment
 Identifier|ObjectDest import
 Expr From
 
-## Declaration == ClassTemplate|TraitTemplate|Function|Variable|Destructuring
+## Declaration = ClassTemplate|TraitTemplate|Function|Variable|Destructuring
 
-## Expr == Literal|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
+## Expr = Literal|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
 
 ## Identifier
-String name - `?_(a-z|A-Z)[](a-z|A-Z|0-9)` except keywords
+`?_(a-z|A-Z)*(a-z|A-Z|0-9) except keywords` name
 
-## Destructuring == ObjectDest|ArrayDest|TupleDest
+## Destructuring = ObjectDest|ArrayDest|TupleDest
 
 ## ObjectDest
 `[](?Type, Identifier, ?Identifier)` rhs
@@ -27,7 +25,7 @@ Expr lhs;
 
 ## ArrayDest
 ?Type type
-`[](?Type, Identifier)` rhs
+`[]?(?Type, Identifier)` rhs
 Expr lhs
 
 ## TupleDest
@@ -67,11 +65,36 @@ Identifier name
 `[](Identifier, ?[]Expr)` memberInit
 `[]Expr` body
 
-END
 ## Variable
 ?Comment doc
 Type type
-Identifier name
-?Expression init
+?Identifier name
+?Expr init
 
-## Literal|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return|MemberAccess
+## Literal = Number|String|Array|Tuple|Object|Set
+
+## Number
+`?(0b|0o|0x)(1-9)*(0-9)?(.+0-9)?((e|E)?-(1-9)*(0-9))` number
+
+## String
+`"*[^"]"` string
+
+## Array|Tuple|Object|Set|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return|MemberAccess|ChalkDoc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

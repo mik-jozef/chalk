@@ -439,8 +439,16 @@ method autobinding?
 Constructor params prefixed with underscore are assigned to members
 named lambdas? for one-liner function/method declarations
   `getSize() => size`
+preserve the `T t(constructor, params)` variable definition syntax
+  and make `T(constructor, params)` an anonymous variable definition
 should member initializer lists be part of chalk?
   yes. left out == initialized with default constructor
+how to handle `{}`, the empty object/set/code block/destructuring?
+  destructuring and code blocks could be required to always be nonempty
+  (except for for cycle code block, if that's how it will be specified),
+  maybe it could always be interpreted as a value of type `class {}&Set`
+  until assignment? similarly, type of empty array would be `[]None`?
+  This would require that such values change their types if they are modified.
 option to translate mathematical proofs about source code to mathematical proofs
   about the executable file (verifiable with the executable alone)
 disallow returning local types and functions
@@ -652,6 +660,7 @@ keywords:
 [ 0, 1 ] + 2 == [ 0, 1, 2 ] // ?
 [ 0, 1 ] ++ [ 2 ] == [ 0, 1, 2 ] // ?
 ```
+`const export mut T t`, `mut export T t`
 the compiler must not create stores to memory where there are none?
 only identifiers exported from `index.chalk` (or `main.chalk`) are guaranteed to
   be preserved by compilation? alternatives:
@@ -1469,6 +1478,7 @@ ability to control every dynamically created object so that a long-running progr
   - this icludes language provided objects on heap, eg. closures
 types are first class citizens?
 iterators
+remove blank identifiers, make them a special syntax in array and tuple destructuring
 function values are never mutable, but pointers can be
 streams (with forEach, reduce, etc)
 multiline comments?
@@ -1593,7 +1603,7 @@ regex
 email
 rpc - remote procedure calls
 asm - inline assembler (implementation obviously provided by the compiler)
-
+generic database interface?
 
 Commpiler+interpreter+package manager abilities:
 translate between languages

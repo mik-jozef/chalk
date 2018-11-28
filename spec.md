@@ -50,9 +50,9 @@ A *base type* is either [[The types class, trait and type|the type `class`]],
 and type|the type `type`]], a [[class]], or a [[trait]].
 
 ##### The types class, trait and type
-The types *class*, *trait* and *type* are the three types that are defined in
-this specification, instead of being declared in the source code. They have the
-type `type`.
+The types *class*, *trait* and *type* are the three (distinct) types that are
+defined in this specification, instead of being declared in the source code.
+They have the type `type`.
 
 > TODO can (and should) the type `type` be defined as `class|trait`?
 
@@ -111,26 +111,47 @@ such that:
    0. `A` equals `class`, `trait` or `type` implies `A` is `type`
    1. `A` extends `B` implies `A` is `B`
    2. `A` is `B` implies `*A` is `*B`
-   3. [[`None`]] is `A`
-   4. `A|B` is `B|A` is `A|B`
-   5. `A&B` is `B&A` is `A&B`
-   6. `A` is `A|B`
-   7. `A&B` is `A`
-   8. `A` is `C` and `B` is `C` implies `A|B` is `C`
-   9. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
+   3. `A|B` is `B|A` is `A|B`
+   4. `A&B` is `B&A` is `A&B`
+   5. `A` is `A|B`
+   6. `A&B` is `A`
+   7. `A` is `C` and `B` is `C` implies `A|B` is `C`
+   8. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
+   9. [[`None`]] is `A`
+   10. `A` and `B` are distinct classes implies `A&B` is [[`None`]]
 
-> TL;DR 4-7: type unions and intersections behave as you would probably expect.
+> TL;DR 3-8: type unions and intersections behave as you would probably expect.
 
-> TODO do these rules specify what I had in mind? Are they complete and minimal?
+> TODO are these rules reasonable? Are they complete and minimal?
 
 ### Type conversions
+Values of certain types can be converted to values of different types, according
+to rules specified in this section.
+
+> TODO maybe this section should be somewhere under Semantics, not under the type
+> system.
+
+#### Pointer enreference
+Values of type `T` can convert to values of type `*T`.
+
+#### Pointer dereference
+Values of type `*T` can convert to values of type `T`.
+
+> TODO should I specify that only the shortest possible conversions happen,
+> or should I embrace the chaos of nondeterminism knowing that spurious type
+> conversions won't have any observable effect?
+
+> TODO it also needs to be specified precisely to what values values can convert,
+> otherwise the nondeterminism would become a bit annoying.
+
+#### Function type conversions
+
 `T(...rest)` to `Null(...rest)`
-`T` to `*T`
-`*T` to `T`
 
 > TODO type conversions (this section)
 
 > TODO this must be a valid piece of code.
+> 
 > ```
 > class B {}
 > 
@@ -146,7 +167,7 @@ such that:
 ### Type templates
 > TODO type templates (this section)
 
-## Modules
+## Modules (TODO rename to Syntax?)
 Modules are TODO.
 
 > TODO What ARE modules? They aren't files, because I don't want this specification
@@ -154,9 +175,9 @@ Modules are TODO.
 > of HTML tags and the specification shouldn't care.
 
 ### Source code representation
-Modules must be encoded as valid UTF-8 without byte order mask.
+Modules must be encoded as valid UTF-8 without byte order mark.
 
-### Types of modules
+### Types of modules (TODO rename to Modules?)
 #### Chalk modules
 Starts with an optional [[comment]], then continue with [[declaration]]s.
 
@@ -174,7 +195,7 @@ And yes, they should be able to import and export between each other, call each
 others' functions, etc.
 
 > Maybe, if one day I really add this, This section should be renamed to "Other
-> modules", with links to separate documents about these languages.
+> module types", with links to separate documents about these languages.
 
 ### Expressions
 An expression is called a terminating expression if it returns [[`None`]].
@@ -188,7 +209,7 @@ Single line comments start with `//`. Multiple line comments start and end with
 >
 > This is fine:
 > ```
-> a = b; // An assignment
+> a = b; // A comment
 > ```
 > 
 > This isn't:
@@ -198,6 +219,13 @@ Single line comments start with `//`. Multiple line comments start and end with
 > ```
 
 ### Imports
+> TODO Imports make exported variables (bindings?) from other modules visible
+in the current module.
+
+> TODO Resolving the location of modules is a responsibility of the compiler.
+>
+> TODO Should there be some restrictions on location resulution?
+
 #### Default import
 Unless a module explicitly imports the file `"std/global.chalk"`, the first import
 of that module will implicitly be import of all (variables/identifiers?) from
@@ -210,11 +238,16 @@ even before they are defined. [[Variable declaration]]s in [[function scope]] ar
 only visible after they are defined.
 
 #### Documentation comments
-##### Identifiers (and scope?)
+#### Identifiers (and scope?)
+Identifier is a string that matches `(a-z|A-Z)*(a-z|A-Z|0-9)` and is not a keyword.
+
+> TODO regex grammar might change, but it should be readable to anyone who knows
+> regexes. Note like with types, modifiers (like the Kleene star) are on the left.
+
 Type identifiers must start with an uppercase, other lowercase.
 
-###### Keywords
-Keyword is a string that cannot be an identifier
+##### Keywords
+Keyword is a string that cannot be an identifier.
 
 ```
 export []String keywords =
@@ -227,31 +260,28 @@ export []String keywords =
 
 > TODO display list of keywords
 
-###### The blank identifier
-##### Exports
+#### Exports
+#### Exports
 > libexport? a way to distinguish internal and external exports in a library
 
 #### Class templates
+> Should `this = null`; be supported? Eg. for numeric overflow
+
 ##### Enums
+
 #### Trait templates
 #### Functions
 #### Variables
 
 ### Literals
-#### (Simple? Constant?) literals
-##### Numbers (TODO divide between integer and floating point?)
-##### Strings
-#### Composite literals (they create new value each time they are evaluated)
-##### Arrays
-##### Tuples
-##### Objects
-#### Type literals (they create only one value)
-##### Class literals
-> Should `this = null`; be supported? Eg. for numeric overflow
-##### Enum literals
-##### Anonymous class literals
-##### Trait literals
-##### Function literals
+Literals create new value each time they are evaluated.
+
+#### Numbers (TODO divide between integer and floating point?)
+#### Strings
+#### Arrays
+#### Tuples
+#### Objects
+#### Sets
 
 ### Operators
 | Example     | Sugar for          | Trait
