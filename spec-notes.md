@@ -79,16 +79,12 @@ enum X<Int> {
 }
 ```
 default, aggresively enforced code style
-chalk compiler should be able to
-1. publish stats about compiling times (percentage spent on parsing, theorem proving, generating binaries, downloading dependencies, running comptime code, optimizing; avaiable as granularly as possible)
-2. do code coverage and tests
-3. format source code
+
 chalk should allow control of every memory allocation
 html library for gui, chalk to webasm
-generics with types are arguments? eg. `Array<class C> c = [ Int, Bool ]`
+generics with types as arguments? eg. `Array<class C> c = [ Int, Bool ]`
 division accepts maybe numbers and returns maybe number, can return a number if
   denominator is provably not null
-warn on TODO comments
 optimizations should provably not change the program
 safe program should never enter an infinite loop (without consuming input)
 `[[ std-call ]] Int() { return 42 }` or `@std-call Int() { return 42 }`
@@ -96,8 +92,6 @@ reflection of modules
 focus on good debugger
  - ideally, debugger should be able to show out-of-order execution of instructions
    if there is more than one thread
-ability to run source code deterministically (optional control over thread scheduler,
-  faking filesystem and time)
 levels of concurrency: (process pool, process, thread pool, thread - on potentially
   different cores), (coroutines - on the same cpu)
 capabilities? eg. load a module that has only a partial access to standard library?
@@ -163,6 +157,27 @@ Nat a, b {
 ```
 terms that need to be defined: value, member, field (TODO rename field, because field is a mathematical structure), instance, object, scope, variable, symbol?
 should const be transitive?
+ChalkDoc (or ChalkMark): \[\[this]] refers to a definition.
+  Each definition is associated with a header in an article.
+  If the heading is in the current article, definition is underline dotted,
+  else it is a link.
+  On mouseover, the definition is displayed, on click, focus is moved to its
+  associated heading
+should there be function type conversions, and functions would only hold instances
+  with precisely their signature, or should function types be part of the is
+  relation, and be able to hold functions that accept more than their signatures
+  disclose?
+  ```
+  Null(Int) foo = Null e() {}; // This should be allowed
+  Null() bar;
+  
+  foo is Null() && bar = foo; // Is this allowed?
+  ```
+make clear the distinction between `Null foo()` and `Null() foo`
+variable scope is
+  0. from its definition to the end of block, if its parent is that block, else
+     only inside itself and its subexpressions; or:
+  1. from its definition to the end of the parent expression
 Set syntax: `Set<Int|String> s = { 1, 2, "abc" }`
 What is `*mut Int i = 1;`? Options:
   - error: cannot have a pointer to literal. Seems unnecessarily restrictive
@@ -171,6 +186,11 @@ What is `*mut Int i = 1;`? Options:
   - normal, 'i' now contains a unique value equal to 1; This means literals
     are evaluated each time they are encountered, like composite literals,
     but unline type definitions
+`!is` operator
+maybe switch shouldn't have any continue or fallthrough expressions
+  did I ever use it?
+a way to call default implementation from a trait of a method, if it is overriden
+  by the class?
 Compiler optimizations:
   Assuming `Set<T>.subsets(Set<T>)` constructs the set of all subsets, this code
   ```
@@ -183,7 +203,7 @@ Compiler optimizations:
   `Set<T>.subsetsStream(Set<T>)`?
 replace trait Number with traits Additive|MultiplicativeGroup, Field, etc?
   Would there also be a way to force classes implementing A|MGroup to also
-  implement Field? - not a good idea, since Int is not a field (overflow results in null)
+  implement Field? - not a good idea, since Int is none of these (overflow results in null)
 `permutationStream()`
 if `stream is Stream<T>`, `[ a, ...stream, b ]` should create array of `T&a.type&b.type`
   if `stream.length` is known at compile time, `( a, ...stream, b )` should create
@@ -1479,6 +1499,7 @@ ability to control every dynamically created object so that a long-running progr
 types are first class citizens?
 iterators
 remove blank identifiers, make them a special syntax in array and tuple destructuring
+unify `[]T` and `T...`?
 function values are never mutable, but pointers can be
 streams (with forEach, reduce, etc)
 multiline comments?

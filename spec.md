@@ -38,23 +38,28 @@ A *value* is either a [[type]], a [[type template]], or an [[object]].
 
 > Informally, a value is anything that can be inside a variable.
 
-Every value has a [[type]] and an [[interface]].
+Every value is an instance of a [[type]] and has an [[interface]].
 
 ### Types
 A *type* is either a [[base type]] or a [[derived type]]. Every type is
 a [[value]].
 
 #### Base types
-A *base type* is either [[The types class, trait and type|the type `class`]],
-[[The types class, trait and type|the type `trait`]], [[The types class, trait
-and type|the type `type`]], a [[class]], or a [[trait]].
+A *base type* is either [[the type `class`]], [[the type `trait`]], [[the type
+`type`]], a [[class]], or a [[trait]].
 
 ##### The types class, trait and type
 The types *class*, *trait* and *type* are the three (distinct) types that are
 defined in this specification, instead of being declared in the source code.
-They have the type `type`.
+They are [[instance]]s of [[the type `type`]].
 
 > TODO can (and should) the type `type` be defined as `class|trait`?
+
+#### Class types
+Class types are [[instance]]s of [[the type `class`]].
+
+#### Trait types
+Trait types are [[instance]]s of [[the type `trait`]].
 
 #### Derived types
 A *derived type* is a type that is not a [[base type]]. Derived types are derived
@@ -62,14 +67,15 @@ from one or more base types.
 
 Every derived type can be created by a finite series of compositions of [[type
 constructor]]s, namely the [[type union constructor]], the [[type intersection
-constructor]] and the [[function type constructor]].
+constructor]], the [[function type constructor]] and the [[pointer type constructor]].
 
 > However, not all applications of these type constructors result in a derived
 > type. An example is the union of a base type with itself.
 
-Derived types have [[The types class, trait and type|the type `type`]].
+Derived types have are [[instance]]s of [[the type `type`]].
 
-> TODO is `type` a good choice for the type of function types?
+> TODO is `type` a good choice for the type of function types? Should function
+> types even have a type?
 
 ##### Type union constructor
 If `A` and `B` are types, the *type union* of `A` and `B`, denoted by `A|B`, is
@@ -83,14 +89,14 @@ If `A` and `B` are types, the *type intersection* of `A` and `B`, denoted by
 If `R` and `P0`, ..., `Pn-1` for a natural `n` are types, the function type created
 from these types, denoted by `R(P0, P1, ..., Pn-1)`, is a type.
 
-> Zero is a natural number. `R()` is a type, distinct from `R`.
+> Zero is a natural number. `R()` is a type.
 
 > `R` can be a function type. For example, `Int(Int)(Int)` is the type of functions
 > that accept single parameter Int and return functions that accept a single
 > parameter Int and return an Int.
 
-#### Pointer types
-If `A` is a type, the pointer type to `A` is a type.
+##### Pointer type constructor
+If `A` is a type, the *pointer* to `A` is a type.
 
 A pointer to function type `A(...rest)` is denoted by `A*(...rest)`, a pointer to
 other types is denoted by `*A`.
@@ -124,8 +130,21 @@ such that:
 
 > TODO are these rules reasonable? Are they complete and minimal?
 
+> TODO these rules do not prohibit types that should be distinct from actually
+> being distinct.
+
+### Type templates
+> TODO type templates (this section)
+
+### Objects
+An object is an instance of a [[type]] that is not [[the type `class`]], [[the
+type `trait`]] or [[the type `type`]].
+
+> TODO should these three types have a common name? They appear together quite
+> often.
+
 ### Type conversions
-Values of certain types can be converted to values of different types, according
+[[Value]]s of certain [[types]] can be converted to values of different types, according
 to rules specified in this section.
 
 > TODO maybe this section should be somewhere under Semantics, not under the type
@@ -142,13 +161,26 @@ Values of type `*T` can convert to values of type `T`.
 > conversions won't have any observable effect?
 
 > TODO it also needs to be specified precisely to what values values can convert,
-> otherwise the nondeterminism would become a bit annoying.
+> otherwise the nondeterminism would become a bit annoying. This also applies
+> to pointer enreference and function type conversions.
 
 #### Function type conversions
-
-`T(...rest)` to `Null(...rest)`
-
-> TODO type conversions (this section)
+> TODO what about: A function value 'foo' can convert to value 'bar' if the
+> following construction is a valid function:
+>
+> ```
+> Ret bar(A new, B function, C with, D optional, E... restParams) {
+>   auto ret = foo(new, function, with, optional, ...restParams);
+>   
+>   ret is None || ret is Null ? return : return ret;
+> }
+> ```
+> 
+> If not, I think these rules capture that pretty well:
+> `A(...)` to `B(...)` if `A` is `B` or `B` is `Null` or `B` is `None` (return type looseing?)
+> `R(..., A...)` to `R(...)` (rest parameters removal)
+> `R(..., A...)` to `R(..., A, A...)` (parameter introduction/rest parameters unwinding)
+> `R(..., A, ...)` to `R(..., B, ...)` if `B` is `A` or `B` is `Null` (parameter type restriction)
 
 > TODO this must be a valid piece of code.
 > 
@@ -160,12 +192,12 @@ Values of type `*T` can convert to values of type `T`.
 > }
 > 
 > class A : T {
->   B foo() {}
+>   B foo() => B()
 > }
 > ```
 
-### Type templates
-> TODO type templates (this section)
+#### TODO name (array type loosening?)
+Empty array of type `[]None` can convert to an empty array of any type.
 
 ## Modules (TODO rename to Syntax?)
 Modules are TODO.
@@ -348,6 +380,8 @@ must be `Bool`.
 #### Member access operator
 ##### Methods
 #### The 'is' operator
+#### Assignment
+> `=` assigns value, `:=` assigns pointer, `::=` assigns pointer to pointer, etc.
 
 ### Code blocks/Expressions (and control flow?) (and scope?)
 [[Code block]] returns the last [[expression]].

@@ -36,26 +36,26 @@ Note: new rules - the return type of `c ? a : b` is the common type of `a` and `
 ##### What should `null == null` be?
 Options:
 
-1. Always `true` - Floats are `null` instead of `NaN`, so this is against that
+0. Always `true` - Floats are `null` instead of `NaN`, so this is against that
    standard. (TODO replace 'that' with that standard's name (no internet ATM (more parentheses)))
    Also, the reasoning that `NaN` shouldn't equal `NaN` applies to `null`, ie.
    unknown value shouldn't be confident that it equals other unknown value.
    Personally, I'm very much against this option.
-2. Always `false` - consistent with that standard (parentheses! (TODO)), but I
+1. Always `false` - consistent with that standard (parentheses! (TODO)), but I
    think this is going too far, see third option.
-3. False unless it has the same address in memory, ie. is the same variable.
+2. False unless it has the same address in memory, ie. is the same variable.
    This would technically also be against ((())), but:
-   3.1 it's a very special case not likely to cause problems (prove me wrong),
-   3.2 in this case, I believe it's justified, it's the standard that is wrong.
+   3.0 it's a very special case not likely to cause problems (prove me wrong),
+   3.1 in this case, I believe it's justified, it's the standard that is wrong.
        An unknown value cannot know whether it is the same value as another
        unknown value, but it definitely is the same as itself,
-   3.3 it would be consistent with how equality is checked in case of non-null
+   3.2 it would be consistent with how equality is checked in case of non-null
        values. `Object.equals` returns true if the arguments have the same address
        and calls `ParamType.equals` otherwise.
    The only downside I see is that this is the most complicated option, and
    might be confusing to those who don't know about it, but I like this one the most.
 
-Note: pick 3.
+Note: pick 2.
 
 
 ##### rename `noreturn` to `Empty`?
@@ -163,17 +163,17 @@ Note: yes.
 Node: I'm not sure, left a comment in temp.chalk
 
 ##### Questions about types:
-1. Is there a one-to-one correspondence between type constructors (eg. `A|B`)
+0. Is there a one-to-one correspondence between type constructors (eg. `A|B`)
    and types?
    - Not a good idea: take `A|A` or `(A&B)|C` and `(A|C)&(B|C)`. If there was such
      a bijection, there would also probably have to be nontrivial type conversions
      to get around it.
-2. Are classes and traits types, or is there just a one-to-one correspondence
+1. Are classes and traits types, or is there just a one-to-one correspondence
    between them and their corresponding types?
    - I'll go with class are types, and if something breaks down, I'll change that.
-3. How to handle `A|*A`? Dum dum duuuum.
-   1. Make it an error.
-   2. Use the other order for assignment, ie. `=` assigns a value, `:=` a pointer,
+2. How to handle `A|*A`? Dum dum duuuum.
+   0. Make it an error.
+   1. Use the other order for assignment, ie. `=` assigns a value, `:=` a pointer,
       `::=` pointer to pointer, etc.
       
       This is the opposite of the order I had in mind because of \<del>generics\</>
@@ -185,10 +185,10 @@ Node: I'm not sure, left a comment in temp.chalk
       if `T == *A`, `=` would still assign to pointer. Yeah, but of different depth.
 
 Notes:
-1. No, eg. `A|A` should equal `A` and `(A&B)|C` should equal `(A|C)&(B|C)`. Part
+0. No, eg. `A|A` should equal `A` and `(A&B)|C` should equal `(A|C)&(B|C)`. Part
    of the spec.
-2. Part of the spec.
-2. I'll go with 2.
+1. Part of the spec.
+2. I'll go with 1.
 
 ##### Some proofs about types
 > Eg. Some proofs:

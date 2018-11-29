@@ -20,16 +20,16 @@ Expr From
 ## Destructuring = ObjectDest|ArrayDest|TupleDest
 
 ## ObjectDest
-`[](?Type, Identifier, ?Identifier)` rhs
+`[](?Type, Identifier, ?(Identifier|Destructuring))` rhs
 Expr lhs;
 
 ## ArrayDest
 ?Type type
-`[]?(?Type, Identifier)` rhs
+`[]?(?Type, ?(Identifier|Destructuring))` rhs
 Expr lhs
 
 ## TupleDest
-`[](Type, Identifier)` rhs
+`[](Type, ?(Identifier|Destructuring))` rhs
 Expr lhs
 
 ## Type
@@ -79,8 +79,51 @@ Type type
 ## String
 `"*[^"]"` string
 
-## Array|Tuple|Object|Set|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return|MemberAccess|ChalkDoc
+## Array
+`[]Expr` elements
 
+## Tuple
+`[]Expr` elements
+
+## Object
+`[](Identifier, Expr)` entries/keyValPairs/elements/?
+
+## Set
+`[]Expr` elements
+
+## Operator
+TODO Operator, including MemberAccess
+
+## CodeBlock
+`[](Expr|Comment)` contents
+
+## Switch
+?Expr cond
+`[](Expr, Expr|CodeBlock)` cases
+
+## ForLoop
+?Identifier name
+`?(Expr, ?(Expr, ?Expr))` head
+CodeBlock body
+
+## Break
+?Identifier name
+?Expression expr
+
+## Continue
+?Identifier name
+?Expression expr
+
+## FunctionCall
+Expr function
+`[]Expr` params
+?Expr spread (?)
+
+## Return
+?Expr value
+
+## ChalkDoc
+TODO ChalkDoc
 
 
 

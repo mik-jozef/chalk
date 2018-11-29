@@ -261,6 +261,8 @@ trait Function {
   []Param Params;
   
   ?Ast body;
+  
+  own apply(fn, type|Object... args)
 }
 
 class Function<class R, []class params> {
