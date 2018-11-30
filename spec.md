@@ -24,21 +24,19 @@ This is the specification of the Chalk programming language.
 > Your feedback is welcome. For simple typos (or formatting issues) I'll appreciate
 > a pull request.
 
-This specification is a ChalkDoc document. You can view the source [here](TODO).
+This specification is a ChalkDoc document. You can view the source [here]() TODO source.
 
-> TODO this specification isn't YET a ChalkDoc document, but it will be.
+> TODO This specification isn't YET a ChalkDoc document, but it will be.
 > For now, markdown is a good approximation.
 
 {{ToC}}
 
-## Type system and TODO the entities that live in chalk-space
-
-### Values
+## Values
 A *value* is either a [[type]], a [[type template]], or an [[object]].
 
 > Informally, a value is anything that can be inside a variable.
 
-Every value is an instance of a [[type]] and has an [[interface]].
+Every value is an [[instance]] of a [[type]] and has an [[interface]].
 
 ### Types
 A *type* is either a [[base type]] or a [[derived type]]. Every type is
@@ -53,13 +51,11 @@ The types *class*, *trait* and *type* are the three (distinct) types that are
 defined in this specification, instead of being declared in the source code.
 They are [[instance]]s of [[the type `type`]].
 
-> TODO can (and should) the type `type` be defined as `class|trait`?
+##### Class types
+*Class types* (or *classes*) are [[instance]]s of [[the type `class`]].
 
-#### Class types
-Class types are [[instance]]s of [[the type `class`]].
-
-#### Trait types
-Trait types are [[instance]]s of [[the type `trait`]].
+##### Trait types
+*Trait types* (or *traits*) are [[instance]]s of [[the type `trait`]].
 
 #### Derived types
 A *derived type* is a type that is not a [[base type]]. Derived types are derived
@@ -72,10 +68,7 @@ constructor]], the [[function type constructor]] and the [[pointer type construc
 > However, not all applications of these type constructors result in a derived
 > type. An example is the union of a base type with itself.
 
-Derived types have are [[instance]]s of [[the type `type`]].
-
-> TODO is `type` a good choice for the type of function types? Should function
-> types even have a type?
+Derived types are [[instance]]s of [[the type `type`]].
 
 ##### Type union constructor
 If `A` and `B` are types, the *type union* of `A` and `B`, denoted by `A|B`, is
@@ -101,10 +94,10 @@ If `A` is a type, the *pointer* to `A` is a type.
 A pointer to function type `A(...rest)` is denoted by `A*(...rest)`, a pointer to
 other types is denoted by `*A`.
 
-### Type modifiers
+#### Type modifiers
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
 
-### The *is* relation
+#### The *is* relation
 The *is* relation is a binary relation between types. It is the smallest relation
 such that:
 
@@ -123,66 +116,27 @@ such that:
    6. `A&B` is `A`
    7. `A` is `C` and `B` is `C` implies `A|B` is `C`
    8. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
-   9. [[`None`]] is `A`
-   10. `A` and `B` are distinct classes implies `A&B` is [[`None`]]
+   9. `D(..., []A)` is `D(...)`
+   10. `D(..., []A)` is `D(..., A, []A)`
+   11. `A` is `B` or `B` is `Null` or `B` is `None` implies `A(...)` is `B(...)`
+   12. `B` is `A` or `B` is `Null` or `B` is `None` implies `A(..., A, ...)` is `A(..., B, ...)`
+   13. [[`None`]] is `A`
+   14. `A` is a class and `A` does not extend `B` implies `A&B` is [[`None`]]
+   15. TODO, see TL;DR section
 
-> TL;DR 3-8: type unions and intersections behave as you would probably expect.
+> TL;DR for 1.0-1.TODO:
+> 0-2. read that
+> 3-8. type unions and intersections behave as you would probably expect
+> 9-12. if you can call an instance of `A` where you could call an instance of `B`, `A` is `B`
+> 13. [[`None`]] is `A`
+> 14-TODO. if the type `A&B` cannot possibly have any instances, it is `None`
 
-> TODO are these rules reasonable? Are they complete and minimal?
+> TODO Are these rules reasonable? Are they complete and minimal?
 
-> TODO these rules do not prohibit types that should be distinct from actually
-> being distinct.
+> TODO These rules do not prohibit certain types that should be distinct from
+> actually being distinct. That is yet to be specified.
 
-### Type templates
-> TODO type templates (this section)
-
-### Objects
-An object is an instance of a [[type]] that is not [[the type `class`]], [[the
-type `trait`]] or [[the type `type`]].
-
-> TODO should these three types have a common name? They appear together quite
-> often.
-
-### Type conversions
-[[Value]]s of certain [[types]] can be converted to values of different types, according
-to rules specified in this section.
-
-> TODO maybe this section should be somewhere under Semantics, not under the type
-> system.
-
-#### Pointer enreference
-Values of type `T` can convert to values of type `*T`.
-
-#### Pointer dereference
-Values of type `*T` can convert to values of type `T`.
-
-> TODO should I specify that only the shortest possible conversions happen,
-> or should I embrace the chaos of nondeterminism knowing that spurious type
-> conversions won't have any observable effect?
-
-> TODO it also needs to be specified precisely to what values values can convert,
-> otherwise the nondeterminism would become a bit annoying. This also applies
-> to pointer enreference and function type conversions.
-
-#### Function type conversions
-> TODO what about: A function value 'foo' can convert to value 'bar' if the
-> following construction is a valid function:
->
-> ```
-> Ret bar(A new, B function, C with, D optional, E... restParams) {
->   auto ret = foo(new, function, with, optional, ...restParams);
->   
->   ret is None || ret is Null ? return : return ret;
-> }
-> ```
-> 
-> If not, I think these rules capture that pretty well:
-> `A(...)` to `B(...)` if `A` is `B` or `B` is `Null` or `B` is `None` (return type looseing?)
-> `R(..., A...)` to `R(...)` (rest parameters removal)
-> `R(..., A...)` to `R(..., A, A...)` (parameter introduction/rest parameters unwinding)
-> `R(..., A, ...)` to `R(..., B, ...)` if `B` is `A` or `B` is `Null` (parameter type restriction)
-
-> TODO this must be a valid piece of code.
+> TODO This must be a valid piece of code.
 > 
 > ```
 > class B {}
@@ -194,9 +148,54 @@ Values of type `*T` can convert to values of type `T`.
 > class A : T {
 >   B foo() => B()
 > }
+> 
+> // A.foo implements T.foo, even though their return types are different
 > ```
 
-#### TODO name (array type loosening?)
+### Type templates
+> TODO Type templates (this section)
+
+### Objects
+An *object* is an instance of a [[type]] that is not [[the type `class`]], [[the
+type `trait`]] or [[the type `type`]].
+
+> TODO Should these three types have a common name? They appear together quite
+> often.
+
+### Type conversions
+[[Instance]]s of certain [[types]] can be converted to instances of different
+types, according to rules specified in this section.
+
+> TODO Maybe this section should be somewhere under Semantics, not here.
+
+#### Pointer enreference
+Instances of type `T` can convert to instances of type `*T`.
+
+#### Pointer dereference
+Instances of type `*T` can convert to instances of type `T`.
+
+> TODO Should I specify that only the shortest possible conversions happen,
+> or should I embrace the chaos of nondeterminism knowing that spurious type
+> conversions won't have any observable effect?
+
+> TODO It also needs to be specified precisely to what values values can convert,
+> otherwise the nondeterminism would become a bit annoying.
+
+#### Integer widening
+Instances of type `Int8` can convert to instances of type `Int16`, `Int16` to
+`Int32` and `Int32` to `Int64`.
+
+#### Integer narrowing
+Instances of type `Int64` can convert to instances of type `?Int32`, `Int32` to
+`?Int16` and `Int16` to `?Int8`.
+
+#### Null conversions
+If a type `T` is [[`Nullable`]], `T.null` and [[`null`]] can convert between each
+other.
+
+> TODO Am I sure about this?
+
+#### TODO Name (array type loosening?)
 Empty array of type `[]None` can convert to an empty array of any type.
 
 ## Modules (TODO rename to Syntax?)
@@ -206,12 +205,18 @@ Modules are TODO.
 > to dictate how they are stored, they could also be database entries or contents
 > of HTML tags and the specification shouldn't care.
 
+### Module documentation comments
+Modules optionally start with a comment called a *documentation comment*.
+
+> Every module should have a documentation comment that briefly summarizes
+> the module's contents and explains how it works.
+
 ### Source code representation
 Modules must be encoded as valid UTF-8 without byte order mark.
 
 ### Types of modules (TODO rename to Modules?)
 #### Chalk modules
-Starts with an optional [[comment]], then continue with [[declaration]]s.
+Starts with an optional [[comment]], then continues with [[declaration]]s.
 
 Files with `.chalk` extension contain exactly one chalk module.
 
@@ -219,10 +224,10 @@ Files with `.chalk` extension contain exactly one chalk module.
 
 Files with `.chalkdoc` extension contain exactly one chalkdoc module.
 
-> TODO am I sure about this? `.chalkdoc` files would be similar to markdown,
+> TODO Am I sure about this? `.chalkdoc` files would be similar to markdown,
 > with code in `{{}}`.
 
-#### TODO what about JavaScript, Haskell, C, and HTML modules? Yes, I'm crazy!
+#### TODO What about JavaScript, Haskell, C, and HTML modules? Yes, I'm crazy!
 And yes, they should be able to import and export between each other, call each
 others' functions, etc.
 
@@ -250,6 +255,14 @@ Single line comments start with `//`. Multiple line comments start and end with
 >     "function call");
 > ```
 
+#### Documentation comments
+*Documentation comments* are either [[module documentation comments]] or
+[[declaration documentation comments]].
+
+> Documentation comments should provide useful information about ... TODO
+> They might be automatically extracted from the source code by documentation
+> generators.
+
 ### Imports
 > TODO Imports make exported variables (bindings?) from other modules visible
 in the current module.
@@ -269,11 +282,11 @@ that file.
 even before they are defined. [[Variable declaration]]s in [[function scope]] are
 only visible after they are defined.
 
-#### Documentation comments
+#### Declaration documentation comments
 #### Identifiers (and scope?)
 Identifier is a string that matches `(a-z|A-Z)*(a-z|A-Z|0-9)` and is not a keyword.
 
-> TODO regex grammar might change, but it should be readable to anyone who knows
+> TODO Regex grammar might change, but it should be readable to anyone who knows
 > regexes. Note like with types, modifiers (like the Kleene star) are on the left.
 
 Type identifiers must start with an uppercase, other lowercase.
@@ -290,11 +303,11 @@ export []String keywords =
     ];
 ```
 
-> TODO display list of keywords
+> TODO Display code
 
 #### Exports
-#### Exports
-> libexport? a way to distinguish internal and external exports in a library
+> TODO Keyword libexport? A way to distinguish internal and external exports
+> in a library
 
 #### Class templates
 > Should `this = null`; be supported? Eg. for numeric overflow
@@ -356,12 +369,12 @@ Literals create new value each time they are evaluated.
 | `??a`       | `Optional.getValue(a)`    | (`a` must be `Optional`)
 | `a ?: b`    | `Optional.getValue(a, b)` | (`a` must be `Optional`)
 
-TODO string, array, tuple, (or collection) concatenation operator `++`
+> TODO String, Array, Tuple, (or Collection) concatenation operator `++`
 
-TODO what about wrapping operators `+%, -%, *%`?
+> TODO What about wrapping operators `+%, -%, *%`?
 
-TODO should bitwise and, or, xor and bitshift operators really be part of
-     the language?
+> TODO Should bitwise and, or, xor and bitshift operators really be part of
+> the language?
 
 Operators that are not syntactic sugar:
 
@@ -407,7 +420,7 @@ Functions that don't return [[None]] or [[Null]] must return with a [[return sta
 #### Lambda functions
 
 ## Reflection
-> TODO this should not be its own chapter. Reflection is partly stl, partly
+> TODO This should not be its own chapter. Reflection is partly stl, partly
 > compiler magic to comply stl's spec.
 
 ## Semantics (program initialization and execution) (should this be its own chapter?)

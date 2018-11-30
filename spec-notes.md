@@ -14,6 +14,7 @@ first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-clas
    f = 3; // ?
    ```
 it is an error if class members and class member initialization order is different
+`Int a, b;` allowed, `Int a = 1, b;` error?
 ```
 class A {
   new(B _, C _) {}
@@ -44,6 +45,11 @@ class F {
   C&D foo() {}
 }
 ```
+set `Int` width per program, module, function?
+maybe `Int` should be defined as `?T` for `T` one of `Int8/16/32/64`?
+nullable types to give meaning to `null += 2`? what would the consequences of
+  this for the type `Null` be? Could it still be an enum/a class? Would it require
+  type conversions between these nulls?
 json support, import json as object
 `Reflect(var).set("x", 5)` reflect constructor creates object bound to certain instance
 `fn.class.nestedFunctions.get("x");`
@@ -163,6 +169,7 @@ ChalkDoc (or ChalkMark): \[\[this]] refers to a definition.
   else it is a link.
   On mouseover, the definition is displayed, on click, focus is moved to its
   associated heading
+a function is defined by one or more function literals
 should there be function type conversions, and functions would only hold instances
   with precisely their signature, or should function types be part of the is
   relation, and be able to hold functions that accept more than their signatures
@@ -612,17 +619,21 @@ if function X contains just a call to function Y, function X must be inlined
 style - class variables first, then constructors, then methods
 style - empty line at the start of a function just if the first expression is
   type/function definition
+two function literals can have the same name if at at least one index the type
+  intersection of their parameters is `None`
+what about type conversions `A -> A|B` and `A&B -> B`?
 ```
 Null f(*Int a, *Int b) { a += 1; b = 7; a += 1 }
 Null f(*Int a, *Int b) { a += 2; b = 7         }
+///
+According to spec, these functions must not just specify a function with the
+same behaviour, they must specify the exact same function.
+ - statement order in the source must not dictate statement order in some
+   abstract representation of the function - must be a relative concept, just
+   like position in physics (because of threads), ie. it must not be part of
+   semantics unless one statement depends on the other
+ - comptime arithmetic must evaluate whenever possible
 ```
-  According to spec, these functions must not just specify a function with the
-  same behaviour, they must specify the exact same function.
-  - statement order in the source must not dictate statement order in some
-    abstract representation of the function - must be a relative concept, just
-    like position in physics (because of threads), ie. it must not be part of
-    semantics unless one statement depends on the other
-  - comptime arithmetic must evaluate whenever possible
 compiler must comptime execute pure functions with all arguments known at comptime
 variables that are written to, but never read should be marked as unused
 ffastmath should be default behaviour unless overriden by a compiler flag,

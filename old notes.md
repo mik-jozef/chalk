@@ -244,6 +244,15 @@ Now I don't need it.
 ##### Replace "common type of `A` nad `B`" with `A|B`
 Note: yes
 
+##### Can (and should) the type `type` be defined as `class|trait`?
+Note: No, because instances of `class|trait` should be instances of `class` or
+`trait`, and that is not true about all instances of `type`
+
+##### Is `type` a good choice for the type of function types?
+Should function types even have a type?
+
+Note: I don't see why it wouldn't be.
+
 
 
 
