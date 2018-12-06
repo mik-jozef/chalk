@@ -18,7 +18,7 @@ This is the specification of the Chalk programming language.
 > * [Haskell](https://www.haskell.org/)
 
 > TODO This spec is a work in progress.
-> That means it contains TODO notes, like this one. When the specifications is
+> That means it contains TODO notes, like this one. When the specification is
 > finished, the TODO notes must all be removed.
 > 
 > Your feedback is welcome. For simple typos (or formatting issues) I'll appreciate
@@ -53,6 +53,9 @@ They are [[instance]]s of [[the type `type`]].
 
 ##### Class types
 *Class types* (or *classes*) are [[instance]]s of [[the type `class`]].
+
+###### Modules
+A *module* is a [[class]] `C` such that `C` is [[Module]].
 
 ##### Trait types
 *Trait types* (or *traits*) are [[instance]]s of [[the type `trait`]].
@@ -109,7 +112,7 @@ such that:
 1. For all types `A`, `B`, `C`, `D`:
    0. `A` equals `class`, `trait` or `type` implies `A` is `type`
    1. `A` extends `B` implies `A` is `B`
-   2. `A` is `B` implies `*A` is `*B`
+   2. `A` is `B` implies `*A` is `*B` // TODO This might be wrong
    3. `A|B` is `B|A` is `A|B`
    4. `A&B` is `B&A` is `A&B`
    5. `A` is `A|B`
@@ -136,6 +139,11 @@ such that:
 > TODO These rules do not prohibit certain types that should be distinct from
 > actually being distinct. That is yet to be specified.
 
+> TODO should `R()` be `R(A)`?
+> Use case: `forEach(Null(T elem, Int index))` called with `Null(T)`
+
+> TODO how to prevent `A` from being assignable to `*(A|B)`?
+
 > TODO This must be a valid piece of code.
 > 
 > ```
@@ -152,8 +160,14 @@ such that:
 > // A.foo implements T.foo, even though their return types are different
 > ```
 
+> TODO should explicitly extending the trait [[Module]] be prohibited?
+> If not, should it be possible to import modules that are explicitly classes?
+
 ### Type templates
 > TODO Type templates (this section)
+
+#### Class templates
+#### Trait templates
 
 ### Objects
 An *object* is an instance of a [[type]] that is not [[the type `class`]], [[the
@@ -193,17 +207,17 @@ Instances of type `Int64` can convert to instances of type `?Int32`, `Int32` to
 If a type `T` is [[`Nullable`]], `T.null` and [[`null`]] can convert between each
 other.
 
-> TODO Am I sure about this?
-
-#### TODO Name (array type loosening?)
+#### Array type loosening (TODO better name, maybe?)
 Empty array of type `[]None` can convert to an empty array of any type.
 
 ## Modules (TODO rename to Syntax?)
-Modules are TODO.
+A *module* is TODO.
 
 > TODO What ARE modules? They aren't files, because I don't want this specification
 > to dictate how they are stored, they could also be database entries or contents
 > of HTML tags and the specification shouldn't care.
+
+> A *module* is an [[instance]] of a [[class]] that is [[Module]]?
 
 ### Module documentation comments
 Modules optionally start with a comment called a *documentation comment*.
@@ -242,7 +256,7 @@ Single line comments start with `//`. Multiple line comments start and end with
 `///`.
 
 > Unlike in many other languages, comments cannot appear anywhere inside
-> the source code. For example, they cannot be inside an expression.
+> the source code. For example, they cannot be inside a function call.
 >
 > This is fine:
 > ```
@@ -259,7 +273,7 @@ Single line comments start with `//`. Multiple line comments start and end with
 *Documentation comments* are either [[module documentation comments]] or
 [[declaration documentation comments]].
 
-> Documentation comments should provide useful information about ... TODO
+> Documentation comments should provide useful information about the program.
 > They might be automatically extracted from the source code by documentation
 > generators.
 
@@ -336,25 +350,13 @@ Literals create new value each time they are evaluated.
 | `a *= b`    | `a.mul(b)`         | Number
 | `a /= b`    | `a.div(b)`         | Number
 | `a %= b`    | `a.mod(b)`         | Number
-| `a **= b`   | `a.pow(b)`         | Number
-| `a <<= b`   | `a.shl(b)`         | (must be `Int`)
-| `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
-| `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
-| `a &= b`    | `a.bitwiseAnd(b)`  | (must be `Int`)
-| `a \|= b`   | `a.bitwiseOr(b)`   | (must be `Int`)
-| `a ^= b`    | `a.bitwiseXor(b)`  | (must be `Int`)
+| `a **= b`   | `a.pow(b)`         | Number // Or `a ^= b`
 | `a + b`     | `Number.add(a, b)` | Number
 | `a - b`     | `Number.sub(a, b)` | Number
 | `a * b`     | `Number.mul(a, b)` | Number
 | `a / b`     | `Number.div(a, b)` | Number
 | `a % b`     | `Number.mod(a, b)` | Number
-| `a ** b`    | `Number.pow(a, b)` | Number
-| `a << b`    | `Int.shl(a, b)`        | (must be `Int`)
-| `a >> b`    | `Int.shr(a, b, true)`  | (must be `Int`)
-| `a >>> b`   | `Int.shr(a, b, false)` | (must be `Int`)
-| `a & b`     | `Int.bitwiseAnd(a, b)` | (must be `Int`)
-| `a \| b`    | `Int.bitwiseOr(a, b)`  | (must be `Int`)
-| `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
+| `a ** b`    | `Number.pow(a, b)` | Number // Or `a ^ b`
 | `a == b`    | `Object.equals(a, b)`  | Object
 | `a != b`    | `!Object.equals(a, b)` | Object
 | `a < b`     | `Int.sign(Comparable.cmp(a, b)) == -1` | Comparable
@@ -365,27 +367,36 @@ Literals create new value each time they are evaluated.
 | `a = b`     | `a.assign(b)`             | Object
 | `a[b]`      | `a.get(b)`                | Indexable
 | `!a`        | `Bool.not(a)`             | (`a` must be `Bool`)
-| `?a`        | `Optional.hasValue(a)`    | (`a` must be `Optional`)
-| `??a`       | `Optional.getValue(a)`    | (`a` must be `Optional`)
-| `a ?: b`    | `Optional.getValue(a, b)` | (`a` must be `Optional`)
+| `a ?: b`    | `Null.getValue(a, b)`     | (no restriction)
+| `a ++ b`    | ??                        | // String | Array | Tuple | (Collection?) concatenation operator
 
-> TODO String, Array, Tuple, (or Collection) concatenation operator `++`
-
-> TODO What about wrapping operators `+%, -%, *%`?
-
-> TODO Should bitwise and, or, xor and bitshift operators really be part of
-> the language?
+Maybe, but probably not:
+| `a <<= b`   | `a.shl(b)`         | (must be `Int`)
+| `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
+| `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
+| `a &= b`    | `a.bitwiseAnd(b)`  | (must be `Int`)
+| `a \|= b`   | `a.bitwiseOr(b)`   | (must be `Int`)
+| `a ^= b`    | `a.bitwiseXor(b)`  | (must be `Int`)
+| `a << b`    | `Int.shiftLeft(a, b)`        | (must be `Int`)
+| `a >> b`    | `Int.shiftRight(a, b, true)`  | (must be `Int`)
+| `a >>> b`   | `Int.shriftRight(a, b, false)` | (must be `Int`) // Maybe one of `>>`, `>>>` should be deprecated in favor of `<<` with negative argument?
+| `a & b`     | `Int.bitwiseAnd(a, b)` | (must be `Int`)
+| `a \| b`    | `Int.bitwiseOr(a, b)`  | (must be `Int`)
+| `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
+| `??a`       | `Null.getValue(a)`     | (`a` must be `Optional`) // Why would I add a way to ignore the type system? maybe there should be an unsafe function for that
+| `a +% b`    | ??                     | (must be `Int`)
+| `a -% b`    | ??                     | (must be `Int`)
+| `a *% b`    | ??                     | (must be `Int`) // Wrapping operators
 
 Operators that are not syntactic sugar:
 
 | Example     | Operator      | Return type
 | -------     | --------      | -----------
-| `a; b`      | Sequential    | Type of `b`
 | `a.b`       | Member access | Type of `b`
 | `a?.b`      | Member access | Type of `b` or `Null`
-| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`.
-| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`.
-| `a ? b : c` | Conditional   | Common type of `b` and `c`
+| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
+| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
+| `a ? b : c` | Conditional   | Union of types of `b` and `c`
 
 The first operand of [[conditional]], [[logical and]] and [[logical or]] operators
 must be `Bool`.
@@ -460,7 +471,6 @@ Contains `type`. (Ie. for all values v, `v.type` is valid.)
 > }
 > ```
 
-
 ### Compile-time code execution
 ### Safe code
 > Safe code is deterministic, and corresponds to subset of Chalk that should be
@@ -491,4 +501,4 @@ Program is safe if every `unsafe` code is provably safe.
 > Maybe functions (or blocks of code, entire module, or entire program)
 > could be specified to use strict if needed, else something like ffastmath
 > would be used
-#### The import() function
+#### The import function

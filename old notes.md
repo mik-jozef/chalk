@@ -253,6 +253,20 @@ Should function types even have a type?
 
 Note: I don't see why it wouldn't be.
 
+##### The `?` and `??` operators
+From the operator table:
+| `?a`        | `Optional.hasValue(a)`    | (`a` must be `Optional`)
+
+Note: `?` deprecated in favor of `a is Null`..
+
+##### The `;` operator
+Note: semicolon is a part of code block grammar, not an operator
+
+##### Terms that need to be defined
+value, instance, object
+
+Note: done
+
 
 
 

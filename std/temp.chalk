@@ -148,6 +148,10 @@ export class Array<T> : Viewable {
   Bool unshift(Int index = 0);
   indexOf
   has
+  push
+  pop
+  shift
+  unshift
 }
 
 export class Tuple<type... types> : ArrayTrait<T> {
@@ -155,6 +159,7 @@ export class Tuple<type... types> : ArrayTrait<T> {
 }
 
 *T move<T>(T t) { return t; }
+
 export class Union<[]class> {
   pub Bool hasValue<X>() {}
   pub ~*X getValue<X>() {}
@@ -170,6 +175,8 @@ class Array<T> : Indexable<T>, Iterable<T> {
   
   Iterator<T> reverseIter() {}
   Array<T> reverse() {}
+  
+  find(Bool(T elem, Int index))
 }
 
 class Date {}

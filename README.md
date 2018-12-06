@@ -13,12 +13,12 @@ Current status, as of 25. 11. 2018: still just a collection of ideas.
 - reflection
 - generics
 - sensible alternative to operator overloading
+- (nested) classes
 - traits
 - compile time execution of code
 - async functions
 - generators
 - RAII
-
 
 ## Language and standard library
 

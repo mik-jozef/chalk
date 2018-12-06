@@ -36,7 +36,7 @@ export trait Object {
     // Magic.
   }
   
-  own Bool equals<T>(?T a, ?T b, Int derefs) { // Note third parameter, TODO
+  own Bool equals<class T>(?T a, ?T b, Int derefs) { // Note third parameter, TODO
     Pointer.equals(a, b) && return true;
     
     (isNull(a) || isNull(b)) && return false;
@@ -71,7 +71,7 @@ export trait Optional<T : Nullable> {
 export trait Optional<T> {}
 
 export class String {
-  find, todo
+  // find, match, count, upper(start, length/end), lower, isUpper, isLower, split, replace
   
   getBytes();
   

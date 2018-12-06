@@ -74,7 +74,7 @@ Type type
 ## Literal = Number|String|Array|Tuple|Object|Set
 
 ## Number
-`?(0b|0o|0x)(1-9)*(0-9)?(.+0-9)?((e|E)?-(1-9)*(0-9))` number
+`?(0b|0o|0x)(1-9)*(0-9)?(.+0-9)?(e?-(1-9)*(0-9))` number
 
 ## String
 `"*[^"]"` string

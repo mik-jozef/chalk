@@ -14,6 +14,40 @@ first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-clas
    f = 3; // ?
    ```
 it is an error if class members and class member initialization order is different
+order of member initializations should be determinad according to the same rules
+  that determine order of module variable initializations
+`&` for weak pointers?
+Transactional memory, even intra-thread? (on resources with multiple references
+  to it)
+`const`, (`immutable`?) would return their subexpressions, except constant/(immutable?)
+should modifying `shared` variable be possible outside `shared` code? Ie. should
+  every such manipulation become implicitly `shared`?
+copying streams?
+There should be no static state - no module-wide variables, static variables, etc.
+  if this was true, dependency management would be a lot easier.
+  This aproach is be consistent with "no global anything" - no global variables,
+  no global reflection, no global state.
+  This improves code locality.
+class is static if all contents are static vs if it has static keyword
+  - the second. Static classes cannot be instantiated.
+  - can empty classes be?
+Instead of calling the main function, the first code should be instantiation of
+  the `Main` class? Or either? Should it necesarily be in `main.chalk`?
+```
+pub class A {
+  Int a = c + 1; // Warning: initialization expression is never used
+  Int b = c + 2;
+  Int c;
+  
+  new() : a(3) { // Member initialization list overrides initialization expression, happens at the same time
+    c = 4; // body of new executes after all members (except undefined-initialized) are initialized
+  }
+}
+
+A().a == 3
+A().b == 2
+A().c == 4
+```
 `Int a, b;` allowed, `Int a = 1, b;` error?
 ```
 class A {
@@ -51,6 +85,9 @@ nullable types to give meaning to `null += 2`? what would the consequences of
   this for the type `Null` be? Could it still be an enum/a class? Would it require
   type conversions between these nulls?
 json support, import json as object
+maybe pointers should have a private assign method a friend function assign?
+should traits be able to have friends (passable to classes), and specify private
+  methods?
 `Reflect(var).set("x", 5)` reflect constructor creates object bound to certain instance
 `fn.class.nestedFunctions.get("x");`
 math: dimenisional quantities;
@@ -161,7 +198,7 @@ Nat a, b {
   distinct(a, b, 1);
 }
 ```
-terms that need to be defined: value, member, field (TODO rename field, because field is a mathematical structure), instance, object, scope, variable, symbol?
+terms that need to be defined: member, field (TODO rename field, because field is a mathematical structure), scope, variable, (symbol?)
 should const be transitive?
 ChalkDoc (or ChalkMark): \[\[this]] refers to a definition.
   Each definition is associated with a header in an article.
@@ -1119,9 +1156,37 @@ const variable can be assigned once, not necessarily when declared?
 detect out of bounds array acess at compile time if posisible
 error: "Trait 'Type' cannot be explicitly extended (by a class)". 'Enum' extends
   'Type'. Can other traits extend 'Type' and 'Enum'?
+model theory: formulate theories as classes, models == instances?
 file extension `.cdoc` where contents of \`\`\` \`\`\` are inverted, ie. text
   is code and code is text
 equality operator for types?
+support a way to create a new instance from an old, possibly immutable one
+  by what would normally modify it instead - eg. each assignment to a member
+  creates a new instance
+immutable keyword? (makes a value immutable as long as there are immutable
+  bindings to it?)
+  - would still enable calling mutating methods on it, but they would create
+    and return a new instance?
+`===` for `Object.same`? (ie. on the same memory address)
+rename constructor to `init`?
+optimization:
+  ```
+  x is A && foo();
+  x is B && bar();
+  
+  // if A&B is None, optimize the above to:
+  x is A ? foo() : x is B && bar();
+  
+  x is A
+      ? foo()
+      : x is B && bar();
+  
+  x is A ? {
+    foo()
+  } : { // This is a bit ugly
+    x is B && bar()
+  }; // This semicolon is ugly
+  ```
 warn on conditionals that are always true/false
 warn on `((x))` double parentheses, maybe all unnecessary parentheses?
 what about transactional memory?
@@ -1259,6 +1324,8 @@ chalk help
 chalk help ERRCODE # prints detailed help for error ERRCODE
 
 chalk hotdeploy pid ./code # ?
+
+chalk tutorial // The same as the web tutorial
 ```
 
 ```
