@@ -31,6 +31,8 @@ This specification is a ChalkDoc document. You can view the source [here]() TODO
 
 {{ToC}}
 
+> TODO Maybe ToC should be inserted automatically
+
 ## Values
 A *value* is either a [[type]], a [[type template]], or an [[object]].
 
@@ -46,7 +48,7 @@ a [[value]].
 A *base type* is either [[the type `class`]], [[the type `trait`]], [[the type
 `type`]], a [[class]], or a [[trait]].
 
-##### The types class, trait and type
+##### The types class, trait and type (TODO common name? kinds? primitive types? basic types?)
 The types *class*, *trait* and *type* are the three (distinct) types that are
 defined in this specification, instead of being declared in the source code.
 They are [[instance]]s of [[the type `type`]].
@@ -70,6 +72,19 @@ constructor]], the [[function type constructor]] and the [[pointer type construc
 
 > However, not all applications of these type constructors result in a derived
 > type. An example is the union of a base type with itself.
+
+> TODO should the notion of a constructor be scrapped in favor of just takling
+> about types themselves, not their constructors?
+
+> TODO what about first class fields?
+> 
+> ```
+> class C { Int a, b }
+>
+> C:Int i = a; // or C:a
+> 
+> C():i // equals C().a
+> ```
 
 Derived types are [[instance]]s of [[the type `type`]].
 
@@ -96,6 +111,8 @@ If `A` is a type, the *pointer* to `A` is a type.
 
 A pointer to function type `A(...rest)` is denoted by `A*(...rest)`, a pointer to
 other types is denoted by `*A`.
+
+
 
 #### Type modifiers
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
@@ -166,6 +183,10 @@ such that:
 ### Type templates
 > TODO Type templates (this section)
 
+> TODO should this be renamed to something like "Higher-order types", "Parametrized
+> types" or similar, and the name "type templates" be left to either instances of
+> parametrized types or the expression that defines a parametrized type?
+
 #### Class templates
 #### Trait templates
 
@@ -181,6 +202,11 @@ type `trait`]] or [[the type `type`]].
 types, according to rules specified in this section.
 
 > TODO Maybe this section should be somewhere under Semantics, not here.
+
+> Note: type conversions do not modify values, they produce new values instead.
+> 
+> TODO maybe this note should be somewhere else, and be more general, because
+> values are never modified, right? Just replaced by newer 'versions'.
 
 #### Pointer enreference
 Instances of type `T` can convert to instances of type `*T`.
@@ -371,19 +397,6 @@ Literals create new value each time they are evaluated.
 | `a ++ b`    | ??                        | // String | Array | Tuple | (Collection?) concatenation operator
 
 Maybe, but probably not:
-| `a <<= b`   | `a.shl(b)`         | (must be `Int`)
-| `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
-| `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
-| `a &= b`    | `a.bitwiseAnd(b)`  | (must be `Int`)
-| `a \|= b`   | `a.bitwiseOr(b)`   | (must be `Int`)
-| `a ^= b`    | `a.bitwiseXor(b)`  | (must be `Int`)
-| `a << b`    | `Int.shiftLeft(a, b)`        | (must be `Int`)
-| `a >> b`    | `Int.shiftRight(a, b, true)`  | (must be `Int`)
-| `a >>> b`   | `Int.shriftRight(a, b, false)` | (must be `Int`) // Maybe one of `>>`, `>>>` should be deprecated in favor of `<<` with negative argument?
-| `a & b`     | `Int.bitwiseAnd(a, b)` | (must be `Int`)
-| `a \| b`    | `Int.bitwiseOr(a, b)`  | (must be `Int`)
-| `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
-| `??a`       | `Null.getValue(a)`     | (`a` must be `Optional`) // Why would I add a way to ignore the type system? maybe there should be an unsafe function for that
 | `a +% b`    | ??                     | (must be `Int`)
 | `a -% b`    | ??                     | (must be `Int`)
 | `a *% b`    | ??                     | (must be `Int`) // Wrapping operators

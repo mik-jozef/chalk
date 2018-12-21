@@ -1,19 +1,9 @@
-first class fields? https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
-   ```
-   class C {
-     Int a, b;
-   }
-   
-   C c;
-   
-   static C:Int f = a;
-   c:f = 3; // ?
-   
-   C:Int f = c.a;
-   
-   f = 3; // ?
-   ```
-it is an error if class members and class member initialization order is different
+it is an error if class members and class member initialization order is different?
+unlike coq, proofs in chalk must be readable by anyone who has a familiarity with
+  a programming language and proofs in natural language
+  ideally, it would be so intuitive that anyone with a familiarity with proofs
+  in natural language should be able to start proving in chalk by just looking
+  at a few examples and copying what he sees
 order of member initializations should be determinad according to the same rules
   that determine order of module variable initializations
 `&` for weak pointers?
@@ -23,7 +13,47 @@ Transactional memory, even intra-thread? (on resources with multiple references
 should modifying `shared` variable be possible outside `shared` code? Ie. should
   every such manipulation become implicitly `shared`?
 copying streams?
-There should be no static state - no module-wide variables, static variables, etc.
+binary format of values usable for both serialization and permanent storage
+do not create event loop unless a program uses it?
+`chalk gui/frontend 345` - creates a visual gui for the tool at a local port and prints
+  the url (eg. `http://localhost:345/main`)?
+issue tracking - let developers customize issue creation form, eg. to include
+  dropdowns for categorization of the issue (to automatically assign labels)
+if an expression ends with `}`, it shouldn't end with a semicolon
+either have all values on heap by default, or warn if a reference to a local
+  variable could potentially outlive the variable
+should comptime type creation be allowed? if so, should it be possible
+  to use interfaces of comptime-created types? I do not like the idea of
+  type correctness depending on results of provably terminationg (or even general)
+  computation.
+destructuring anonymous object that has extraneous members should be a warning
+a subset of chalk with its own file extension that could be used instead of
+  json? Only those parts that do not cause computation/only pure computation
+  would be allowed. The advantage would be enums, custom types, no need of
+  a scheme (correctness could be checked by constructors, for example)
+  `.purechalk`?
+expression has no observable effect warning should be also produced when an
+  expression E has a subexpression S that has observable effect, but E could be
+  replaced by a smaller expression that has the same observable effect as S, eg.
+  `b && b && print("a")` if `b` has no observable effect
+  `b ? true : false`
+function literals should produce only one value per program run?
+If spec becomes too long, maybe support only displaying some parts?
+  ChalkMark could support this in general
+nested forEach?
+  ```
+  // Prints 235
+  Int i : []Int arr : [ [ 2 ], [ 3, 5 ] ] {
+    print(i);
+  }
+  
+  // This is uglier, but something smilar should be possible maybe?
+  Int i : []Map map : [ ... ] { map.get("numbers") } {
+    print(i);
+  }
+  ```
+There should be no static/global state - no module-wide variables, static variables,
+  etc.
   if this was true, dependency management would be a lot easier.
   This aproach is be consistent with "no global anything" - no global variables,
   no global reflection, no global state.
@@ -252,7 +282,7 @@ replace trait Number with traits Additive|MultiplicativeGroup, Field, etc?
 if `stream is Stream<T>`, `[ a, ...stream, b ]` should create array of `T&a.type&b.type`
   if `stream.length` is known at compile time, `( a, ...stream, b )` should create
   a `stream.length + 2`-tuple of `T&a.type&b.type`
-Rational numbers in stl? thay would have to have a big warning in documentation
+Rational numbers in stlib? thay would have to have a big warning in documentation
   they are just for storing user input like `0.1`, not for computation
   maybe they shouldn't even implement Number
 `class C = class<type A, type B> {}`? this should probably be an error
@@ -344,7 +374,7 @@ think about memory management, how out of memory should be handled and granulari
 "nearly out of memory" event, prioritized to other events
 synchronous `usedMemory(ThreadPool tp = ThreadPool.top)`, `avaiableMemory`
   and `freeMemory` functions
-stl - permissions for things like playing sound, info about hardware, filesystem
+stlib - permissions for things like playing sound, info about hardware, filesystem
   access...
   capability based permissions model
 `mut` mutable, `const` immutable, no mmodifier only mutable using another reference?
@@ -378,7 +408,8 @@ objects must not be placed on the stack if a pointer to them can escape to
   a longer living variable
 shrinking allocated memory should be possible?
 the runtime must we entirely written in chalk or assembly, must be compilable
-  by chalk compiler. No dependence on C, C's stl, or any other non-chalk whatever
+  by chalk compiler. No dependence on C, C's standard library, or any other
+  non-chalk whatever
 should all fields be modifiable in constructor and assign function?
 request fast persistent memory - useful on pcs that have just a few GB of SSD
 trailing comma allowed if closing parenthesis/bracket/whatever is on next line
@@ -751,6 +782,42 @@ generate hidden classes that are return type of generator functions that use `yi
 variables - replace trait type with class type if known at compile time
 function bind operator? `Function.bind((a, b, c) => a + b * c, 1, 2)(3) == 7`
 for-else?
+```
+immutable []Int a = [ 0, 1, 2 ];
+
+Null foo() {
+  []Int b = copy {
+    a[0] = 5; // equals [ 5, 1, 2 ] and is mutable
+    a.push(3); // [ 0, 1, 2, 3 ]
+  }
+}
+```
+reduce readme.md, that file should only contain a short text and links to other
+  docs/website
+create examples where chalk can be used (after that will be possible):
+  https server, arduino app, a website, operating system
+big topic - generic type variance
+  related to type modifiers - if `A` is `B`, `Set<A>` could be `const Set<B>`,
+  but not `Set<B>`
+  it would be strongly preferable to avoid undecidability of the is relation,
+  (and membership in the language Chalk)
+algorithmic construction of proofs?
+what is done by `elim` and `split` tactics should happen automatically (?)
+`Exists<A, P>`? (or `E<A, P>`)
+chalk should make it easy to write programs that react well to memory constraints,
+  (do not crash on out of memory, are able to free some on request, etc)
+  should all functions that have potentially unbounded memory requirements
+  return `Error|T`? at first that glance that seems excessive, but I don't know
+  how annoying that would be in practise
+should allocating new memory in destructors be disallowed?
+  could offer a guarantee that destructing an object will leave a process with
+  strictly more memory
+  is there even a use case for destructor allocating new memory?
+  counterargument: possibly possible memory behavior should be known about any 
+  functions and only when such a guarantee is needed and a destructor doesn't
+  fulfill it, it should just be an error
+should `==` always mean `Object.equals`? equality might not always be computable
+  for types that are not meant for computation, but proofs.
 ufcs? member functions are accessible as `ClassType.memberFn`, not as `instance.memberFn`,
   `x.a(b, c)` is equivalent to either `a(x, b, c)` or `xType.a(x, b, c)`, the first
   form must not be used if ambiguous
@@ -793,17 +860,22 @@ think about deffered loading of code so the whole application doesn't have to be
 chalk should be low-level enough so that an os can be written in it
 unary ^ as bitwise negation?
 remember `X.Y a;` is variable declaration even though `X.Y` is a member access
-  operator, not a type
-math assumption: all comptime functions terminate
+  expression, not a type
+math assumption: all comptime functions terminate -- even better all comptime
+  functions should provably terminate, and all runtime functions should throw
+  a warning if they don't
+should every value have an address and every variable a value, or should every
+  variable have an address and a value, and value not have an address?
 should taking a pointer to a temporary object produce a warning, an error or nothing?
 reflection:
   is comptime
-  ability to detect if trait method is overriden
+  ability to detect if trait method is overriden?
+    what about `Class1.foo == Trait1.foo`?
   If you'll support inspecting private members, only allow it in tests
 generic types can be only class types or the declared trait type
 something like linq (ie. inline SQL)?
 Implicit type conversions: class to traits, trait loss and trait reordering
-go's channels? can they be a just part of stl? How are they different from
+go's channels? can they be a just part of stlib? How are they different from
   `Stream<Promise<T>>`?
 is `AsyncStream<T>` necessary? or is `Stream<Promise<T>>` enough?
 async functions and threads should be similar if possible and reasonable (?)
@@ -866,11 +938,9 @@ replace `a?b:c` by `if a then b else c`?
 warn on compile-time known branches
 types A, B are identical if A is B and B is A
 warning for labels unused
-use STL instead of STD as abbreviation for standard library?
-  motivation - std is not a good abbreviation, because when I hear std, I think
-  of something else, however, stl isn't much better - it sounds like steel.
-  I'd rather want something short that makes me think "standard library" immediately
-Is `class|Int` and `class|Int` allowed? If
+use `stlib` instead of `std` as abbreviation for standard library?
+  motivation - std has multiple meanings
+Is `class|Int` allowed?
 classes and traits must have uppercase starting letter, other variables must have lowercase starting letter
 for statements - support all `for {}; for cond {}; for cond; inr {}; for init; cond; inr {}` 
 compiler - if a nullable `value` is unsafely used as non-null, assume it is non-null,
@@ -1183,13 +1253,45 @@ optimization:
   
   x is A ? {
     foo()
-  } : { // This is a bit ugly
+  }:{ // No spaces around ':', (unless it is on the same line as ...)
     x is B && bar()
-  }; // This semicolon is ugly
+  }; // This semicolon is ugly, maybe semicolons shouldn't be next to }
   ```
 warn on conditionals that are always true/false
 warn on `((x))` double parentheses, maybe all unnecessary parentheses?
 what about transactional memory?
+should the main method be required to be in a certain path?
+should it be possible to have multiple functions named main?
+  if yes, should it be possible to compile a program with a different starting
+  point?
+since there are no global objects, and permissions should be capability based,
+  the main method should receive thinggs like `console`, and `rootDir`
+  as parameters
+```
+Dir a(root, "a/b/");
+File f = a.open("c/a.png");
+f.path == ( a, "c/a.png" );
+a.path == ( root, "a/b/" );
+
+Dir b(d);
+// Is this a good idea? shouldn't it return a new object (with the same handle)
+// instead? Current path doesn't fit into my mental model of a state of a directory.
+a.setPath("c/");
+Dir c(d);
+// should `f == a.open("./a.png")`?
+f.path == a.open("./a.png").path; // Uses currentPath
+f.path == a.open("c/a.png").path; // Doesn't use currentPath
+a.open("a.png").path == b.open("c/a.png").path;
+// Should `a.open("a.png").path == c.open("c/a.png").path;`?
+```
+```
+A a(); // equals `A a = A()`;
+A(Int) a = Int i => A();
+```
+`Prop true = a || !a; Prop false = a && !a`
+custom implicit type conversions? would have to be opt-in, not opt-out like in C++
+proofs should, or at least should be able to, display the theorem to be proven
+  at the start?
 compiler
   1. warn if generic param could be replaced by trait
   2. warn on TODO comments
@@ -1751,7 +1853,7 @@ class Car {
 
 Bool fn([]Int32 ints) {
   void helper(Int32 x) {
-    foo(x) && fn.return true; // makes the function fs return
+    foo(x) && fn.return true; // makes the function fn return (maybe return-fn instead?)
   }
   
   for i : ints { helper(i) }

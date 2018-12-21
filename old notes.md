@@ -267,11 +267,60 @@ value, instance, object
 
 Note: done
 
+##### Rejected operators, part 1
+| Bit manipulation operators | Their methods | Trait
+| ---- | ---- | ----
+| `a <<= b`   | `a.shl(b)`         | (must be `Int`)
+| `a >>= b`   | `a.shr(b, true)`   | (must be `Int`)
+| `a >>>= b`  | `a.shr(b, false)`  | (must be `Int`)
+| `a &= b`    | `a.bitwiseAnd(b)`  | (must be `Int`)
+| `a \|= b`   | `a.bitwiseOr(b)`   | (must be `Int`)
+| `a ^= b`    | `a.bitwiseXor(b)`  | (must be `Int`)
+| `a << b`    | `Int.shiftLeft(a, b)`        | (must be `Int`)
+| `a >> b`    | `Int.shiftRight(a, b, true)`  | (must be `Int`)
+| `a >>> b`   | `Int.shriftRight(a, b, false)` | (must be `Int`)
+| `a & b`     | `Int.bitwiseAnd(a, b)` | (must be `Int`)
+| `a \| b`    | `Int.bitwiseOr(a, b)`  | (must be `Int`)
+| `a ^ b`     | `Int.bitwiseXor(a, b)` | (must be `Int`)
 
+Maybe one of `>>`, `>>>` should be deprecated in favor of `<<` with negative argument?
 
+Note: Regarding bit manipulation operators, I don't think they are common enough
+to deserve their own operator. I could still add them later if I change my mind,
+or use the operators for something else.
 
+##### Rejected operators, part 2
+| Null unwrap operator | Their methods | Trait
+| ----               | ----          |
+| `??a`       | `Null.getValue(a)`     | (`a` must be `Optional`)
 
+Note:
+Those that would sacrifice program reliability for performance deserve neither
+performance nor reliability.
+ - George Washington
 
+Why would I add a way to ignore the type system?
+
+##### First class fields?
+https://stackoverflow.com/questions/670734/c-pointer-to-class-data-member
+```
+class C {
+ Int a, b;
+}
+
+C c;
+
+static C:Int f = a;
+c:f = 3; // ?
+
+C:Int f = c.a;
+
+f = 3; // ?
+```
+
+Note: A TODO about in the code static class field was added to spec, with the
+static keyword removed, since the in the code non-static version seems to be
+just an ordinary pointer to `Int`.
 
 
 
