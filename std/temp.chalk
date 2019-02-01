@@ -154,6 +154,8 @@ export class Array<T> : Viewable {
   unshift
 }
 
+Promise sleep();
+
 export class Tuple<type... types> : ArrayTrait<T> {
   
 }

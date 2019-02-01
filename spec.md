@@ -1,5 +1,5 @@
 # Chalk programming language
-This is the specification of the Chalk programming language.
+This is the specification of the [[[Chalk]]] programming language.
 
 > Notes like this one are here to make the specification clearer, provide examples
 > or for other informative purposes. However, they are are not part of the
@@ -24,59 +24,75 @@ This is the specification of the Chalk programming language.
 > Your feedback is welcome. For simple typos (or formatting issues) I'll appreciate
 > a pull request.
 
-This specification is a ChalkDoc document. You can view the source [here]() TODO source.
+This specification is a [[ChalkDoc]] document. You can view the source \<here\>.
 
 > TODO This specification isn't YET a ChalkDoc document, but it will be.
 > For now, markdown is a good approximation.
+
+> TODO Link to the source.
 
 {{ToC}}
 
 > TODO Maybe ToC should be inserted automatically
 
 ## Values
-A *value* is either a [[type]], a [[type template]], or an [[object]].
+A *[[[value]]]* is either a [[type]], a [[type template]], or an [[object]].
 
-> Informally, a value is anything that can be inside a variable.
+> Informally, a [[value]] is anything that can be inside a [[variable]].
 
-Every value is an [[instance]] of a [[type]] and has an [[interface]].
+Every value is an [[[instance]]] of a [[type]] and has an [[interface]]. A value
+has a [[[target address]]] when it is an [[instance]] of a [[pointer type]].
+
+> TODO Does every value have an address? Or do only variables have them?
 
 ### Types
-A *type* is either a [[base type]] or a [[derived type]]. Every type is
+A *[[[type]]]* is either a [[base type]] or a [[derived type]]. Every type is
 a [[value]].
 
 #### Base types
-A *base type* is either [[the type `class`]], [[the type `trait`]], [[the type
-`type`]], a [[class]], or a [[trait]].
+A *[[[base type]]]* is either a [[primitive type]], a [[class type]], or a [[trait type]].
 
-##### The types class, trait and type (TODO common name? kinds? primitive types? basic types?)
-The types *class*, *trait* and *type* are the three (distinct) types that are
-defined in this specification, instead of being declared in the source code.
-They are [[instance]]s of [[the type `type`]].
+##### Primitive types (TODO other name? kinds, basic types, ...)
+The [[[primitive types]]] (*[[[the type class|class]]]*, *[[[the type trait|trait]]]* and
+*[[[the type type|type]]]*) are the three (distinct) types that are defined in this
+specification, instead of being declared in the source code. They are [[instance]]s
+of [[the type `type`]].
+
+> TODO Interface of these three types. Is it an empty set?
 
 ##### Class types
-*Class types* (or *classes*) are [[instance]]s of [[the type `class`]].
+A *[[[class type]]]* (or *class*) is an [[instance]] of [[the type `class`]].
 
 ###### Modules
-A *module* is a [[class]] `C` such that `C` is [[Module]].
+A *[[[module]]]* is a [[class type]] that [[is]] [[Module]].
 
 ##### Trait types
-*Trait types* (or *traits*) are [[instance]]s of [[the type `trait`]].
+A *[[[trait type]]]* (or *trait*) is an [[instance]] of [[the type `trait`]].
 
 #### Derived types
-A *derived type* is a type that is not a [[base type]]. Derived types are derived
+A *[[[derived type]]]* is a type that is not a [[base type]]. Derived types are derived
 from one or more base types.
 
-Every derived type can be created by a finite series of compositions of [[type
-constructor]]s, namely the [[type union constructor]], the [[type intersection
-constructor]], the [[function type constructor]] and the [[pointer type constructor]].
+Every derived type can be created by a finite series of compositions of [[[type
+constructor]]]s, namely the [[union type constructor]], the [[intersection
+type constructor]], the [[function type constructor]] and the [[pointer type
+constructor]].
 
 > However, not all applications of these type constructors result in a derived
 > type. An example is the union of a base type with itself.
 
-> TODO should the notion of a constructor be scrapped in favor of just takling
+Applications of [[function type constructor]] and [[pointer type constructor]]
+with distinct arguments result in distinct [[type]]s.
+
+Every type that is a [[base type]], a [[function type]] or a [[pointer type]] is
+either a [[base type]], a [[function type]] or a [[pointer type]].
+
+Derived types are [[instance]]s of [[the type `type`]].
+
+> TODO Should the notion of a type constructor be scrapped in favor of just talking
 > about types themselves, not their constructors?
 
-> TODO what about first class fields?
+> TODO What about first class fields?
 > 
 > ```
 > class C { Int a, b }
@@ -86,40 +102,46 @@ constructor]], the [[function type constructor]] and the [[pointer type construc
 > C():i // equals C().a
 > ```
 
-Derived types are [[instance]]s of [[the type `type`]].
+##### Union type constructor
+If `A` and `B` are [[type]]s, the *[[[union type]]]* of `A` and `B`, denoted by `A|B`, is
+a [[type]].
 
-##### Type union constructor
-If `A` and `B` are types, the *type union* of `A` and `B`, denoted by `A|B`, is
-a type.
+> TODO Interface
 
-##### Type intersection constructor
-If `A` and `B` are types, the *type intersection* of `A` and `B`, denoted by
-`A&B`, is a type.
+##### Intersection type constructor
+If `A` and `B` are [[type]]s, the *[[[intersection type]]]* of `A` and `B`, denoted by
+`A&B`, is a [[type]].
+
+> TODO Interface
 
 ##### Function type constructor
-If `R` and `P0`, ..., `Pn-1` for a natural `n` are types, the function type created
-from these types, denoted by `R(P0, P1, ..., Pn-1)`, is a type.
+If `R` and `P0`, ..., `Pn-1` for a natural `n` are [[type]]s, the [[function type]]
+created from these [[type]]s, denoted by `R(P0, P1, ..., Pn-1)`, is a [[type]].
 
 > Zero is a natural number. `R()` is a type.
 
-> `R` can be a function type. For example, `Int(Int)(Int)` is the type of functions
-> that accept single parameter Int and return functions that accept a single
-> parameter Int and return an Int.
+> `R()` can be a function type. For example, `Int(Int)(Int)` is the type of functions
+> that accept a single Int parameter and return functions that accept a single
+> Int parameter and return an Int.
+
+> TODO Interface
 
 ##### Pointer type constructor
-If `A` is a type, the *pointer* to `A` is a type.
+If `A` is a [[type]], the *[[[pointer type]]]* to `A` is a [[type]].
 
-A pointer to function type `A(...rest)` is denoted by `A*(...rest)`, a pointer to
-other types is denoted by `*A`.
+A [[pointer type]] to a [[function type]] `A(...)` is denoted by `A*(...)`,
+a [[pointer type]] to other [[type]]s is denoted by `*A`.
 
+The [[interface]] of [[pointer type]]s is [[empty interface|empty]].
 
-
-#### Type modifiers
+#### Type modifiers (Alternative name: Qualified types)
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
 
+> TODO Type with or without a type modifier is a qualified type. (?)
+
 #### The *is* relation
-The *is* relation is a binary relation between types. It is the smallest relation
-such that:
+The *[[[is relation|is|is]]]* relation is a [[binary relation]] between [[type]]s.
+It is the smallest relation such that:
 
 0. It is a partial order, that is, for all types `A`, `B`, `C`:
    0. `A` is `A` ('is' is reflexive)
@@ -127,8 +149,9 @@ such that:
    2. `A` is `B` and `B` is `C` implies `A` is `C` ('is' is transitive)
 
 1. For all types `A`, `B`, `C`, `D`:
-   0. `A` equals `class`, `trait` or `type` implies `A` is `type`
-   1. `A` extends `B` implies `A` is `B`
+   0. `A` equals [[the type class|`class`]], [[the type trait|`trait`]] or [[the
+      type type|`type`]] implies `A` is [[the type type|`type`]]
+   1. `A` [[extends]] `B` implies `A` is `B`
    2. `A` is `B` implies `*A` is `*B` // TODO This might be wrong
    3. `A|B` is `B|A` is `A|B`
    4. `A&B` is `B&A` is `A&B`
@@ -138,28 +161,26 @@ such that:
    8. `A` is `B|D` and `A` is `C|D` implies `A` is `(B&C)|D`
    9. `D(..., []A)` is `D(...)`
    10. `D(..., []A)` is `D(..., A, []A)`
-   11. `A` is `B` or `B` is `Null` or `B` is `None` implies `A(...)` is `B(...)`
-   12. `B` is `A` or `B` is `Null` or `B` is `None` implies `A(..., A, ...)` is `A(..., B, ...)`
-   13. [[`None`]] is `A`
-   14. `A` is a class and `A` does not extend `B` implies `A&B` is [[`None`]]
-   15. TODO, see TL;DR section
+   11. `A` is `B` or `B` is [[`Null`]] or `B` is [[`None`]] implies `A(...)` is `B(...)`
+   12. `B` is `A` or `B` is [[`Null`]] or `B` is [[`None`]] implies `D(..., A, ...)` is `D(..., B, ...)`
+   13. `A(...)` is `A(..., B)`
+   14. [[`None`]] is `A`
+   15. `A` is a [[class type]] and `A` does [[is]] not `B` implies `A&B` is [[`None`]]
+   16. TODO, see TL;DR section
 
-> TL;DR for 1.0-1.TODO:
+> TL;DR for 1.:
 > 0-2. read that
 > 3-8. type unions and intersections behave as you would probably expect
-> 9-12. if you can call an instance of `A` where you could call an instance of `B`, `A` is `B`
-> 13. [[`None`]] is `A`
-> 14-TODO. if the type `A&B` cannot possibly have any instances, it is `None`
+> 9-12. if any call to function of type `A` is type correct as a call to function of type `B`, `A` is `B`
+> 13-14. read that
+> 15-TODO. if the type `A&B` cannot possibly have any instances, it is `None`
 
 > TODO Are these rules reasonable? Are they complete and minimal?
 
 > TODO These rules do not prohibit certain types that should be distinct from
 > actually being distinct. That is yet to be specified.
 
-> TODO should `R()` be `R(A)`?
-> Use case: `forEach(Null(T elem, Int index))` called with `Null(T)`
-
-> TODO how to prevent `A` from being assignable to `*(A|B)`?
+> TODO How to prevent `A` from being assignable to `*(A|B)`?
 
 > TODO This must be a valid piece of code.
 > 
@@ -177,13 +198,13 @@ such that:
 > // A.foo implements T.foo, even though their return types are different
 > ```
 
-> TODO should explicitly extending the trait [[Module]] be prohibited?
+> TODO Should explicitly extending the trait [[Module]] be prohibited?
 > If not, should it be possible to import modules that are explicitly classes?
 
 ### Type templates
 > TODO Type templates (this section)
 
-> TODO should this be renamed to something like "Higher-order types", "Parametrized
+> TODO Should this be renamed to something like "Higher-order types", "Parametrized
 > types" or similar, and the name "type templates" be left to either instances of
 > parametrized types or the expression that defines a parametrized type?
 
@@ -205,7 +226,7 @@ types, according to rules specified in this section.
 
 > Note: type conversions do not modify values, they produce new values instead.
 > 
-> TODO maybe this note should be somewhere else, and be more general, because
+> TODO Maybe this note should be somewhere else, and be more general, because
 > values are never modified, right? Just replaced by newer 'versions'.
 
 #### Pointer enreference
@@ -243,7 +264,7 @@ A *module* is TODO.
 > to dictate how they are stored, they could also be database entries or contents
 > of HTML tags and the specification shouldn't care.
 
-> A *module* is an [[instance]] of a [[class]] that is [[Module]]?
+> A *module* is an [[instance]] of a [[class type]] that is [[Module]]?
 
 ### Module documentation comments
 Modules optionally start with a comment called a *documentation comment*.
@@ -349,7 +370,7 @@ export []String keywords =
 > TODO Keyword libexport? A way to distinguish internal and external exports
 > in a library
 
-#### Class templates
+#### Class templates (TODO or Class template definitions?)
 > Should `this = null`; be supported? Eg. for numeric overflow
 
 ##### Enums
@@ -457,7 +478,7 @@ Functions that don't return [[None]] or [[Null]] must return with a [[return sta
 > ```
 
 ### Interface (set of values accessible using member access moderator)
-#### Interface of class, trait and type
+#### Interface of types class, trait and type
 Contains `type`. (Ie. for all values v, `v.type` is valid.)
 #### Interface of union types
 > This is a valid peice of code:
@@ -505,6 +526,16 @@ Program is safe if every `unsafe` code is provably safe.
 ## Standard library
 ### Default import
 ### Well-known types
+#### None, Null and Bool
+The types `None`, `Null` and `Bool` must be defined in `stdlib/global.chalk` as
+follows:
+
+```
+export enum None {}
+export enum Null { null }
+export enum Bool { false, true }
+```
+
 #### Arrays
 [[Array]]s have arbitrary, dynamic length.
 

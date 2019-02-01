@@ -195,12 +195,14 @@ Notes:
 > 0. `(A&B)|C` equals `(A|C)&(B|C)`
 >    - `A&B` is `A` is `A|C`
 >    - `C` is `A|C`
->    - `(A&B)|C` is `A|C`
+>    - `(A&B)|C` is `A|C` is `(A|C)|None`
 > 
 >    - `A&B` is `B` is `B|C`
 >    - `C` is `B|C`
->    - `(A&B)|C` is `B|C`
+>    - `(A&B)|C` is `B|C` is `(B|C)|None`
 > 
+>    - `(A&B)|C` is `((A|C)&(B|C))|None` is `(A|C)&(B|C)`
+> or (how exactly did this work?):
 >    - `((A&B)|C)|((A&B)|C)` is `(A|C)&(B|C)`
 >    - `(A&B)|C` is `((A&B)|C)|((A&B)|C)` is `(A|C)&(B|C)`
 > 
@@ -321,6 +323,14 @@ f = 3; // ?
 Note: A TODO about in the code static class field was added to spec, with the
 static keyword removed, since the in the code non-static version seems to be
 just an ordinary pointer to `Int`.
+
+##### Should `R()` be `R(A)`?
+Use case: `forEach(Null(T elem, Int index))` called with `Null(T)`
+
+Note: yes.
+
+#### Should a type template be a value?
+Note: yes
 
 
 

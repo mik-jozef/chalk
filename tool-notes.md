@@ -1,7 +1,5 @@
 TODO some (most?) warnings could be required by the spec.
 
-### Errors
-
 ### Warnings
 Unnecessary composite type (`??T`, `T&T`, `A|B` if `A is B`)
 
@@ -25,9 +23,15 @@ Any piece of code that provably has no side effects must produce a warning.
 
 Duplicate extends, import, friend
 
-TODO found in comments
+"TODO" found in comments
  - should also disable some warnings eg. unused variable, (and mention that
    it those warnings were disabled if they were detected?)
+
+
+### Errors
+Incomplete expression/(Unmatched parenthesis?)
+Eg. ';' berofe ')'. Ideally, this error would not happen if semicolon was inserted
+into a valid expression, or when a comma was replaced by a semicolon.
 
 
 ### Other

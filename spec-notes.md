@@ -1,4 +1,95 @@
+should type templates be values? what about:
+  ```
+  class A<type T, Bool b> {}
+  
+  class<type T> = A<T, false>; // Is this allowed?
+  class<type T> = foo(T); // Is this allowed? What are the semantics?
+  ```
+Think hard about doing away with pointers. First, in most cases, the performance
+  gain from tight control over what is where in memory is probably not worth it
+  (performance usually depends on a small parf of code). Second, when such control
+  is needed, maybe it should be used explicitly with something else.
+  
+  Maybe revert the notation? `T` is a pointer, and `*T`, or similar is a value type?
 it is an error if class members and class member initialization order is different?
+can function types have default parameters? or just function values?
+chalk diff - smart diffing recognize when variable is renamed
+functions return `Null` by default?
+make a difference between propositions that must hold for a particular program
+  vs propositions that must hold for a particular piece of code, no matter how
+  it's used
+`chalk modules`
+`chalk modules list` - lists all chalk modules and their commands:
+  code, compiler, package manager (maybe split to client and server?), version control, gui?
+`chalk modules install`
+`chalk modules uninstall`
+```
+class C {
+  int a = 3;
+  
+  pub Int b = 3;
+  
+  ///
+  This needs to be true no matter how the class C is used, here the compiler should
+  be able to autoprove it.
+  ///
+  All C c: c.a > 0;
+  
+  // This must be proven true about all instances of C that exist in the program
+  assume All C c: c.b > 0;
+  
+  // This must throw an error, because a piece of code could set 'b' to -1;
+  All C c: c.b > 0;
+}
+
+C c();
+
+c.b = -1; // This must throw an error because of the `assume`.
+c.b = bar(); // if 'bar' is sufficiently complicated, this must require a proof that it returns positive numbers only
+```
+named propositions: `prop P = All C c: c.a > 0`? TODO `prop` vs `class`
+Chalk is a programming language, and a collection of tools, including a compiler,
+  package manager, and version control system.
+convert return and yield to function if they are not the top-level expression?
+  ```
+  Stream<Int> foo{
+    bar(yield);
+  }
+  
+  bar(Null fn(Int)) {
+    fn(3);
+  }
+  
+  foo().next() == 3 // ?
+  ```
+maybe unify preferred whitespace for objects and function calls,
+  ```
+  aFunction
+      ( multiline
+      , arguments
+      ); // makes me think if method calls should syntactycally expect a tuple
+  
+  // vs.
+  aFunction(multiline,
+        arguments
+      );
+  
+  // Objects are clear
+  auto x =
+      { a: 1
+      , b: 2
+      }; // Should this generate a warning: use enum instead?
+  ```
+maybe do away with semicolons? or replace with commas?
+  ```
+  { 1, 2, 3 } // Block of code, returns 3
+  ( 1, 2, 3 ) // Tuple, returns ( 1, 2, 3 )
+  
+  foo(),
+  bar(),
+  
+  Int a, b, // This is probably a definiteve argument against.
+  ```
 unlike coq, proofs in chalk must be readable by anyone who has a familiarity with
   a programming language and proofs in natural language
   ideally, it would be so intuitive that anyone with a familiarity with proofs
@@ -13,6 +104,10 @@ Transactional memory, even intra-thread? (on resources with multiple references
 should modifying `shared` variable be possible outside `shared` code? Ie. should
   every such manipulation become implicitly `shared`?
 copying streams?
+  ```
+  auto a = [ 1, 2, 3].stream();
+  auto b = a; // ?
+  ```
 binary format of values usable for both serialization and permanent storage
 do not create event loop unless a program uses it?
 `chalk gui/frontend 345` - creates a visual gui for the tool at a local port and prints
@@ -61,6 +156,8 @@ There should be no static/global state - no module-wide variables, static variab
 class is static if all contents are static vs if it has static keyword
   - the second. Static classes cannot be instantiated.
   - can empty classes be?
+standardize what a compiler must be able to prove, eg. when it's known at comptime
+  what branch is taken
 Instead of calling the main function, the first code should be instantiation of
   the `Main` class? Or either? Should it necesarily be in `main.chalk`?
 ```
@@ -73,6 +170,14 @@ pub class A {
     c = 4; // body of new executes after all members (except undefined-initialized) are initialized
   }
 }
+
+///
+If file.size > maxSize, returns, first maxSize bytes and a file descriptor to
+an open file at 'path'? Or returns null?
+///
+dir.readFile(path, maxSize);
+
+JSON json = dir.readFile(path, JSON); // ???
 
 A().a == 3
 A().b == 2
@@ -158,6 +263,9 @@ html library for gui, chalk to webasm
 generics with types as arguments? eg. `Array<class C> c = [ Int, Bool ]`
 division accepts maybe numbers and returns maybe number, can return a number if
   denominator is provably not null
+make REPL async (ie. it should be possible to `await` in REPL)
+propositions error if not proven true by default, can be made to only warn
+immutable: allow "eventually immutable"?
 optimizations should provably not change the program
 safe program should never enter an infinite loop (without consuming input)
 `[[ std-call ]] Int() { return 42 }` or `@std-call Int() { return 42 }`
@@ -167,6 +275,9 @@ focus on good debugger
    if there is more than one thread
 levels of concurrency: (process pool, process, thread pool, thread - on potentially
   different cores), (coroutines - on the same cpu)
+coroutines? stackless/stackfull, symmetric/assymetric
+`Object.pointers()` - if an instance stores some pointers not as pointers, this
+  function should return all such pointers
 capabilities? eg. load a module that has only a partial access to standard library?
   capabilities of eval?
 an allocator that uses pages reserved for inter-process communication
@@ -228,9 +339,37 @@ Nat a, b {
   distinct(a, b, 1);
 }
 ```
-terms that need to be defined: member, field (TODO rename field, because field is a mathematical structure), scope, variable, (symbol?)
-should const be transitive?
-ChalkDoc (or ChalkMark): \[\[this]] refers to a definition.
+terms that need to be defined: member, field (TODO rename field, because field is a mathematical structure), scope, variable, (symbol?) instance/member variable
+should const (and immut) be transitive?
+delayed initialization?
+  ```
+  immut Int i = undefined;
+  
+  
+  ```
+`Bool Arr<T>.all, Bool Arr<T>.any, T Arr<T>.some`
+should all member variables be read-only to other non-friend classes?
+  No, because some classes just store multiple vars. And there's `get` for that.
+`Collection.pop` - remove and return one element
+`Collection.dispense/drop` - (a)synchronously removes all its contents
+  maybe with some real-time guarantees?
+  ```
+  // Eg:
+  ?Promise Collection.dispense(Int i) {
+  for-inf {
+      for i {
+        this.pop() || break-inf;
+      }
+      
+      await;
+    }
+  }
+  ```
+`await` must always pause function's execution. Should there be `await?` that
+  only pauses when necessary?
+`await;` - pauses function's execution, returns `null`.
+`promise.then` must always fire after the code that called it finishes
+ChalkDoc (or ChalkMark): `[[abc]]` refers to a definition (of "abc").
   Each definition is associated with a header in an article.
   If the heading is in the current article, definition is underline dotted,
   else it is a link.
@@ -369,6 +508,8 @@ let library authors release codemods - eg. to rename an identifier, ...
 compile flag --provable-contracts: tries to prove things like reflexivity and
   transitivity of equals, etc
 stats about compiling performance
+class members are initialized in order in which they are defined, warning if
+  constructor member initialization list has a different order
 think about memory management, how out of memory should be handled and granularized,
   both intra and inter-thread-wise
 "nearly out of memory" event, prioritized to other events
@@ -377,6 +518,16 @@ synchronous `usedMemory(ThreadPool tp = ThreadPool.top)`, `avaiableMemory`
 stlib - permissions for things like playing sound, info about hardware, filesystem
   access...
   capability based permissions model
+This should (probably) compile:
+  ```
+  Int i = [ 1, 2, 3 ][1]; // No type error: expected Int but assigned ?Int
+  ```
+  the question is why.
+  1. It is comptime evaluable. This might not suffice because there is no comptime
+     keyword.
+  2. The compiler can prove it is not out of bounds. The standard library should
+     provide a proof that if index is less than array size, then the return type
+     is `T` and not `?T`.
 `mut` mutable, `const` immutable, no mmodifier only mutable using another reference?
 for each function, find out the max amount of stack it needs, before another
   function will chceck for avaiable stack space
@@ -442,6 +593,26 @@ what about coroutines?
   if closures are supported, should using a suspended coroutine as closure
   be supported?
 continuations? delimited/not
+  No. They can be simulated using a callback that is called once at the end of
+  the function, so they would be redundant.
+  Also, undelimited continuations are the same as named return expressions, which
+  are part of the language.
+fix generators - next() parameters, replacement for function.sent, ...
+type conversion between `(T)` and `T`?
+Error: missing function body - maybe with explanation that functions don't have
+  to, and can't be declared before being defined, and a mention of function
+  variables
+there should be no need for anything like /c?make/ or other build systems
+A function that returns `None` doesn't have to stop the program:
+  ```
+  Int foo() {
+    None bar() => return-foo 5;
+    
+    bar();
+  }
+  
+  console.log(foo()); // prints 5
+  ```
 could go's channels be replaced by thread-safe promises?
 go keyword? or other easy way to create threads/parallelism
 must main return `None`? Note this wouldn't prohibit actually calling it and
@@ -461,6 +632,11 @@ hooks in compiler that can run unit tests or do whathever, like npm scripts?
 mathematical proofs about invariants in the program? eg. assert param 'x' is a square number
 front call optimization? middle call optimization?
 no way to acquire locks sequentially?
+I want the chalk spec to mandate tail call elimination or equivalent in certain
+  situations. However, I do not want to mandate any specific implementation
+  of chalk (eg. no mention of call stack as an actual stack in memory), the spec
+  should be entirely about observable behaviours. How should I mandate that?
+  Maybe requiring certain bounds on memory consumption?
 type-safe unions
 use value types instead of rvalue refs
 const correctness
@@ -641,8 +817,100 @@ closures could work like this: a function that returns a function or a type
   could instead return an instance of an anonymous class with that function/type
   as a property
 tail call modulo cons
+maybe use this hashing function for identifiers?
+  ```
+  String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  
+  hash(String s) {
+    Int64 hash = 0;
+    
+    Int i : min(10, s.length) {
+      (hash *= 64) += alphabet.indexOf(i);
+    }
+    
+    s.length > 10 && {
+      // Compute rest of the hash
+      
+      // Set the first digit to 1.
+      hash.and(0x8000_0000_0000_0000);
+    }
+    
+    return hash;
+  }
+  ```
+  This hashing function has the property that if the identifier has length at
+  most 10, its hash has first digit 0, and if the hash has first digit zero,
+  then the identifier is unique and has length at most zero.
+`for 10 {}` as sugar for `Int _ : 10 {}`?
+how to specify tail call optimization without mentioning any concrete hardware
+  architecture, or things that should be transparent to the spec, such as stack?
 warn on `++var`, `var++`, offer to replace by `var += 1` and something appropriate
   for the later
+global state must be immutable and its initialization must not have any side effect
+compiler shouldn't be able to read files whose path relative to where compilation
+  started starts with `..`
+String and StringSlice, and ArraySlice?
+`trait TotalOrder : Comparable` - with proof?
+`Thread(foo, { maxMemory: 1024, priority: 5 })`
+optimization: if a function value is computed at the start of the program and
+  then never changed, change code of functions that call it to directly call the
+  function?
+  Also optimize reading of non-function objects.
+global immutable data that is computed once at runtime?
+optimizations - equivalence of certain arithmetic and bitwise operations, eg.
+  `if (a >= 0) a+= 2 ^ 63` and `a.or(2 ^ 63)`
+awaiting a promise always pauses execution, to potentially not do that, a function
+should return `A|Promise<A>`. non-promise values should be implicitly promisified
+  if waited on
+```
+class A = class B {}; // Should this semicolon be here?
+
+A.name == "A" // ?
+A.origName // "B"?
+
+type class {
+  Bool equals(*class A, *class B) => A.orig == b.orig // ?
+}
+```
+compiler option `--includeComments` to include comments in functions' code
+compile binary objects back to source code
+optimization?: in case a function is not recursive or called from multiple
+  coroutines at once, plate its stack call always at the same address in memory?
+  functions that are never called at the same time could even share this place
+  is this practical?
+`| File f, Error e | = File|Error()=>Error("asdf")()`
+```
+// A counterexample to that the scope of a declaration is the parent expression
+Weak<A> w;
+
+(?*A a(w)) is *A && {
+  a.foo();
+}
+```
+implicit conversion from `Stream<A>` to `[]A`?
+alternative to `package.json/(chalk)` - `.chalkdep` file that contains info about
+  where to download the dependency from? - would likely be impractical to have
+  one file for every dependency, if it can be all in one file
+version ranges are bad, don't support them
+package builds should be as reproducible as possible, ideally with 100% identical
+  behavior or at least a warning if not
+consider using unique and centrally managed dependency URLs
+compiler+package manager should always leave the repo synchronized
+  - if a new dependency appears in code, compiling the code should automatically
+    download it, (or ask for version and then download it)
+an IDE like Medium, not Vim? Ctrl + F in http://witheve.com/
+underscore in C identifiers should produce a warning
+error recovery when parsing - 
+```
+Foo f(undefined); // Should undefined be dropped?
+
+f(1); // Constructor call?
+```
+`class(Fields, Methods)` - class constructor
+  ```
+  class A([ (Relfect.public, Int, "a") ], []);
+  ```
+`foo.returnTypes`, union of `foo.returnType(Int, Int)` for any params
 warn on `for Int i; i < x; i += 1 {}`: can be replaced by `Int i : x {}`
 warn if for has parentheses, that's probably not what people intended
 global type reflection (eg. enumeration) is obviously bad (breaks encapsulation,
@@ -777,11 +1045,48 @@ a way to unresolve a promise if it is still just waiting in event loop? (later: 
 cancellable promises, can stop async functions, threads
 enforce order of keywords - pub static
 first-classish types?
+model checking in compiler
+eliminate impossible code paths
+if algebraic types (`data X = A Int | B Int Int`), then `A` and `B` must be types
+  so it is possible to write functions that only take `A` xor `B`
+GADT?
+functions like:
+  ```
+  function factorial (n) {
+    return n
+    ? n * factorial(n - 1)
+    : 1
+  }
+  ```
+  should be optimized to loops
+`map.entry(key).orInsert(0) += 1`
+optimize `h = h + 1 % n` to `h = h == n - 1 ? 0 : h + 1`
+proof that in the generated code, there are no double jumps and no jumps to the
+  next instruction, and no jumps can be removed by shuffling instructions or
+  negating conditional expressions
+should a class with private fields be serializable?
+private fields be accesible through reflection? I guess not - private field should
+  be inaccessible outside of friend classes
+For all classses `C`, `C` is a friend of `C`. A class `A` can access `B`'s private
+  members iff `A` is a friend of `B`.
+rename `friend` to `trusts`? that would better capture the asymmetry of the relation
 what about gpu programming?
+total independence from other programming languages is a goal, even from C's
+  standard library
 generate hidden classes that are return type of generator functions that use `yield`
 variables - replace trait type with class type if known at compile time
 function bind operator? `Function.bind((a, b, c) => a + b * c, 1, 2)(3) == 7`
-for-else?
+for-else
+what about loop with test in the middle? nope, `while` can be replaced by if-break
+  ```
+    for {
+      foo();
+      
+      while condition;
+      
+      bar();
+    }
+  ```
 ```
 immutable []Int a = [ 0, 1, 2 ];
 
@@ -882,6 +1187,7 @@ async functions and threads should be similar if possible and reasonable (?)
   would it be possible to have things like locks and memory fences only if
   interacting coroutines happen to be in different threads?
 no empty statement (`;`), use empty block `{}` instead
+user-defined canonical type conversions?
 no named parameter calls
 `T t = undefined` should not be unsafe code, it should just error if variable is
   - written to if not known whether defined
@@ -1238,7 +1544,34 @@ immutable keyword? (makes a value immutable as long as there are immutable
   - would still enable calling mutating methods on it, but they would create
     and return a new instance?
 `===` for `Object.same`? (ie. on the same memory address)
-rename constructor to `init`?
+rename constructor to `init`? or something that can be paired with a good
+  destructor name
+```
+class A {
+  class() { print("abc") } // Warning: constructor sohuldn't have side effects?
+}
+
+class B {
+  A a;
+  
+  class(A _a) {}
+}
+
+B b(A()); // This must print "abc" only once
+
+///
+TODO what if A's constructor was `class(A a) : a(a) {}` or `class(*A a) : a(a) {}`?
+
+I guess then "abc" should be printed twice, and unless the local `a` is used later,
+that should produce a warning suggesting the `A _a` parameter.
+
+Problem: `B b(A a());` would bind two non-pointer variables (`a` and `b.a`) to
+the same value. What about `B b(*A a())`?
+
+The above problem might be a good reason to ban variable declarations in function
+calls.
+///
+```
 optimization:
   ```
   x is A && foo();
@@ -1260,6 +1593,26 @@ optimization:
 warn on conditionals that are always true/false
 warn on `((x))` double parentheses, maybe all unnecessary parentheses?
 what about transactional memory?
+```
+// ???
+Ret(Args.slice(args.size)) apply(type Ret, []type Args, A(...Args) fn, Args...|U args = undefined) {
+  enum U { undefined };
+}
+```
+`call(fn, DefaultAllocator.alloc(fn.stackFrameSize), fnArgs, here)`?
+`call(fn, fn.StackFrame(), fnArgs, here)`?
+rename constructor from `new` to something else? `new` might be useful as a method?
+```
+class A { new(Int, Int) }
+
+Allocator.alloc(A, 1); // Todo how to make this throw the correct error?
+// An error could be thrown manually at comptime using reflection, but ideally, it
+// wouldn't require reflection and throw a type error, not a comptime exception.
+
+trait Allocator {
+  *A alloc(class A, []type Args, Args... args);
+}
+```
 should the main method be required to be in a certain path?
 should it be possible to have multiple functions named main?
   if yes, should it be possible to compile a program with a different starting
@@ -1524,6 +1877,27 @@ x.foo();
 [ T t, Int index ] : tArr {}
 ```
 
+
+```
+InfLanguage l = pow({ "a", "b" }) ++ pow({ "a", "b" }, Inf);
+
+Buchi b, !accepts(b, l);
+
+accepts(b, pow(pow("a", k) ++ "b", k + 1) ++ pow("a", Inf))
+
+!accepts(b, l)
+
+accepts(b, l) -> !accepts(b, l);
+
+b && x
+
+Proof All Buchi b: !accepts(b, l);
+Proof !Exists Buchi b: accepts(b, l);
+
+
+Proof all Buchi b: !accepts(b, l);
+Proof !exists Buchi b: accepts(b, l);
+```
 
 
 
