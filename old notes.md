@@ -329,8 +329,41 @@ Use case: `forEach(Null(T elem, Int index))` called with `Null(T)`
 
 Note: yes.
 
-#### Should a type template be a value?
-Note: yes
+##### Should a type template be a value?
+Note: yes.
+
+##### Other name for primitive types? kinds, basic types, ...
+Note: no. Kinds is especially not appropriate for `type`, which is a type of
+itself.
+
+##### What are modules?
+TODO What ARE modules? They aren't files, because I don't want this specification
+to dictate how they are stored, they could also be database entries or contents
+of HTML tags and the specification shouldn't care.
+
+Note: Modules are classes. problem solved.
+
+##### Should type templates be renamed
+... to something like "Higher-order types", "Parametrized
+types" or similar, and the name "type templates" be left to either instances of
+parametrized types or the expression that defines a parametrized type?
+
+Note: No.
+
+##### Should there be some restrictions on module location resulution?
+Yes, as mentioned in a TODO about 'path'.
+
+##### What is `class is class` (because of generics, eg. `Set<class>()`)
+Note: false, because `class.type == type` and `type` is not `class`
+
+##### Maybe rename the `is` relation to `extends`?
+Note: No.
+
+##### Standard library should contain complex numbers and quaternions
+Note: Yes, added to spec.
+
+
+
 
 
 

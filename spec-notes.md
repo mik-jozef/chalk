@@ -14,6 +14,25 @@ Think hard about doing away with pointers. First, in most cases, the performance
 it is an error if class members and class member initialization order is different?
 can function types have default parameters? or just function values?
 chalk diff - smart diffing recognize when variable is renamed
+`Foo()` vs `Foo.new()`?
+```
+trait A {}
+trait B : A {}
+
+Null foo(A) {}
+Null foo(B) {} // is this legal?
+```
+ChalkDoc: multiline code in asides (lines starting with \>) must be supported.
+should it be possible to hide classes supertypes from reflection?
+```
+// this should be well-formatted:
+Html html(
+  Head(),
+  
+  // This comment must be legal
+  Body(), // This comment should be illegal
+);
+```
 functions return `Null` by default?
 make a difference between propositions that must hold for a particular program
   vs propositions that must hold for a particular piece of code, no matter how
@@ -269,7 +288,14 @@ immutable: allow "eventually immutable"?
 optimizations should provably not change the program
 safe program should never enter an infinite loop (without consuming input)
 `[[ std-call ]] Int() { return 42 }` or `@std-call Int() { return 42 }`
-reflection of modules
+reflection of modules?
+things like syntax errors shouldn't be part of syntax definition, they should be
+  added somewhere else
+warning - local type exposed but not exported?
+should function types be type templates?
+a way to turn off standard proofs analogous to turning off the default import
+  if someone doesn't like the law of excluded middle or doesn't want to assume
+  the Ints, he can get rid of that
 focus on good debugger
  - ideally, debugger should be able to show out-of-order execution of instructions
    if there is more than one thread
@@ -280,6 +306,8 @@ coroutines? stackless/stackfull, symmetric/assymetric
   function should return all such pointers
 capabilities? eg. load a module that has only a partial access to standard library?
   capabilities of eval?
+warn if C macro is expanded in a way that changes the ast (eg. `a * add(a,b)`,
+  where add expands to `a + b`)
 an allocator that uses pages reserved for inter-process communication
 define well-formatted chalk program first, then define any chalk program as a string
   that differs from well-formatted
@@ -1236,13 +1264,11 @@ support calling an expression that is not a simple identifier, eg. `(a ? b : c)(
 optional - use same length as non-optional type if possible
 functions types can have default parameters?
 `Object(Object... o)` subtype of all functions?
-standard library should contain complex numbers and quaternions
 variable stack frame length: if some variables are only created in a later part
   of a function, preceding function calls can use part of the stack frame of
   current function
 replace `a?b:c` by `if a then b else c`?
 warn on compile-time known branches
-types A, B are identical if A is B and B is A
 warning for labels unused
 use `stlib` instead of `std` as abbreviation for standard library?
   motivation - std has multiple meanings
@@ -1285,21 +1311,16 @@ What about finite fields? Will they get some love from stl?
   FField<17> a = 3;
   a ** -1 // 6
   ```
-compiler should emit an error by default if it cannot prove program will terminate
+is it an error by default if it cannot prove program will terminate?
   (not exactly terminate, consuming infinite input is fine)
   (code can suppress this error?)
-what is `class is class` (because of generics, eg. `Set<class>()`)
-maybe rename the `is` relation to `extends`?
 module-wide destructuring
-tuples
-compiler should be able to export program to a single html file
   ```
   (Int, String) a = (2, "hello");
   
   (256:Int) fixedSizeIntArr;
-  (256:Int,String) 257Tuple;
+  (256:Int,String) a257Tuple;
   
-  (Int i, String str) = a; // tuple destructuring, pick one
   ( Int i, String str ) = a;
   
   ( i, str ) = (3, "world");

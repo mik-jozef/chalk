@@ -74,6 +74,7 @@ Also see: https://stackoverflow.com/questions/53452713/why-is-2-i-i-faster-than-
 
 
 
+compiler should be able to export program to a single html file
 
 
 

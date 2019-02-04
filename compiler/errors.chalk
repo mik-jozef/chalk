@@ -29,7 +29,7 @@ export class Errors : Enum {
     ///
     
     // Returns "Hello, world!"
-    export String hello() { return "Hello, world!" }
+    export String hello() => "Hello, world!"
     ```
     """,
   ),

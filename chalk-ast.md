@@ -33,16 +33,16 @@ Expr lhs
 Expr lhs
 
 ## Type
-AtomicType|TypeUnion|TypeIntersection|MemberAccess type
+AtomicType|UnionType|IntersectionType|MemberAccess type
 
 ## AtomicType
 Identifier name
 `[]Expr` params
 
-## TypeUnion
+## UnionType
 `[]Expr` types
 
-## TypeIntersection
+## IntersectionType
 `[]Expr` types
 
 ## ClassTemplate

@@ -38,7 +38,7 @@ export class Comment : Regex {
       ];
 }
 
-export class Module : Expr {
+export class ChalkModule : Expr {
   pub ?Comment moduleDoc;
   
   pub []Import imports;
