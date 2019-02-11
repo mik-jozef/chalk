@@ -40,12 +40,12 @@ A *[[[value]]]* is either a [[type]], a [[type template]], or an [[object]].
 
 > Informally, a [[value]] is anything that can be inside a [[variable]].
 
-Every value is an [[[instance]]] of a [[type]] and has an [[interface]]. A value
-has a [[[target address]]] when it is an [[instance]] of a [[pointer type]].
+Every value is an [[[instance]]] of a [[type]] and has an [[interface]] and
+an [[address]]. A value has a [[[target address]]] when it is an [[instance]]
+of a [[pointer type]].
 
-> TODO Does every value have an address? Or do only variables have them?
-
-> TODO Do objects have interface?
+> Intuitively, an address can be anything and serves to identify concrete values,
+> an interface is a set and a name is a string.
 
 ### Types
 A *[[[type]]]* is either a [[base type]] or a [[derived type]]. Every type is
@@ -60,16 +60,20 @@ and *[[[the type type|type]]]*) are the three (distinct) types that are defined
 in this specification, instead of being declared in the source code. They are
 [[instance]]s of [[the type `type`]].
 
-> TODO Interface of these three types. It contains `type`.
-
 ##### Class types
 A *[[[class type]]]* (or *class*) is an [[instance]] of [[the type `class`]].
+
+A [[class type]] can [[extend]] one or more [[trait types]]. Every [[class type]]
+extends [[`Object`]].
 
 ###### Modules
 A *[[[module]]]* is a [[class type]] that [[is]] [[Module]].
 
 ##### Trait types
 A *[[[trait type]]]* (or *trait*) is an [[instance]] of [[the type `trait`]].
+
+A [[trait type]] can [[extend]] one or more [[trait types]]. Every [[trait type]]
+extends [[`Object`]].
 
 #### Derived types
 A *[[[derived type]]]* is a type that is not a [[base type]]. [[Derived types]]
@@ -100,22 +104,18 @@ is either a [[base type]], a [[function type]] or a [[pointer type]].
 > ```
 > class C { Int a, b }
 >
-> C:Int i = a; // or C:a
+> C::Int i = C::a;
 > 
-> C():i // equals C().a
+> C()::i // equals C().a
 > ```
 
 ##### Union type constructor
 If `A` and `B` are [[type]]s, the *[[[union type]]]* of `A` and `B`, denoted by
 `A|B`, is a [[type]].
 
-> TODO Interface
-
 ##### Intersection type constructor
 If `A` and `B` are [[type]]s, the *[[[intersection type]]]* of `A` and `B`,
 denoted by `A&B`, is a [[type]].
-
-> TODO Interface
 
 ##### Function type constructor
 If `R` and `P0`, ..., `Pn-1` for a natural `n` are [[type]]s, the [[function type]]
@@ -129,15 +129,11 @@ created from these [[type]]s, denoted by `R(P0, P1, ..., Pn-1)`, is a [[type]].
 > of [[function]]s that accept a single `Int` [[parameter]] and return [[function]]s
 > that accept a single `Int` [[parameter]] and return an `Int`.
 
-> TODO Interface
-
 ##### Pointer type constructor
 If `A` is a [[type]], the *[[[pointer type]]]* to `A` is a [[type]].
 
 A [[pointer type]] to a [[function type]] `A(...)` is denoted by `A*(...)`,
 a [[pointer type]] to other [[type]]s is denoted by `*A`.
-
-The [[interface]] of [[pointer type]]s is [[empty interface|empty]].
 
 #### Type modifiers (Alternative name: Qualified types)
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
@@ -209,10 +205,7 @@ It is the smallest relation such that:
 > If not, should it be possible to import modules that are explicitly classes?
 
 ### Type templates
-A [[[type template]]] is a function (in a mathematical sense) from n [[value]]s
-to a [[type]].
-
-> TODO remove the "(in the mathematical sense)"?
+A [[[type template]]] is a function from n [[value]]s to a [[type]].
 
 A [[type template]] can be a [[[class template]]] or a [[[trait template]]],
 depending on whether it returns a [[class type]] or a [[trait type]], respectively.
@@ -220,7 +213,8 @@ depending on whether it returns a [[class type]] or a [[trait type]], respective
 All [[type]]s produced by distinct [[type templates]] are distinct. Distinct
 arguments to a [[type template]] produce distinct [[type]]s.
 
-> TODO interface
+The [[interface]] of a [[type]] produced by a [[type template]] `T` is the
+[[interface]] of `T` with parameters of `T` replaced by their respective arguments.
 
 ### Type conversions
 [[Instance]]s of certain [[types]] can be converted to instances of different
@@ -265,15 +259,33 @@ Empty array of type `[]None` can convert to an empty array of any type.
 An *object* is an instance of a [[type]] that is not a [[primitive type]].
 
 #### Functions
+A [[[function]]] is a sequence of expressions (?)
 
-### Interface (set of values accessible using member access moderator?)
-The [[[interface]]] of a
+> TODO Default arguments. Types cannot have them, just functions themselves.
+
+> A [[function]] is [[[pure]]] when it has no side effects, and its return value
+> depends only on its arguments and immutable [[local variable|nonlocal]]
+> [[variables]].
+
+### Interface (TODO or a better name?)
+An [[[interface]]] of a [[value]] is a set of [[name]]-[[value]] pairs. [[Values]]
+that belong to an [[interface]] of `A` are called [[[member values]]] of `A` or
+[[members]] of `A`.
+
+Every [[name]] in the same [[interface]] is unique.
+
+> TODO member variables, member types, member functions (methods)
+> Ideally, these terms doen't need to be defined, because they will coincide with
+> variables, types, functions, ... etc. That are also member values.
 
 #### Interface of primitive types
-Contains `type`. (Ie. for all values v, `v.type` is valid.)
+> TODO Interface of these three types. Could (should?) contain `type`, `name`
+> and `getMember(String)`.
 
-#### Interface of class types
-#### Interface of trait types
+#### Interface of class and types
+If a [[type]] `A` [[[extends]]] `B`, ...
+
+> TODO inheritance
 
 #### Interface of union and intersection types
 > This is a valid peice of code:
@@ -299,6 +311,11 @@ Contains `type`. (Ie. for all values v, `v.type` is valid.)
 >   C|D ret = var.foo(); // This must compile
 > }
 > ```
+
+#### Interface of function types
+
+#### Interface of pointer types
+The [[interface]] of [[pointer type]]s is empty.
 
 ## Syntax
 This section specifies how Chalk [[programs]] are represented in text form.
@@ -328,29 +345,27 @@ is accepted by the Chalk grammar.
 > that contain exactly a Chalk module defition and ChalkDoc module definition,
 > respectively.
 
-Every [[module definition]] has a corresponding [[path]] that is unique for
-that [[module definition]].
+Every [[module definition]] has a corresponding [[path]] that is unique for that
+[[module definition]].
 
 A [[[path]]] is a [[`String`]].
 
-> It is recommended that path corresponds to file path in case module definitions
-> are stored in files.
+> It is recommended that path corresponds to file path relative to project root
+> folder in case module definitions are stored in files.
 
 > TODO, path, path resolution, normalization, etc.
 
 [[Path]]s that start with `stlib/` are reserved for modules of the [[standard
 library]].
 
-> TODO `stlib` vs `stdlib`? The latter looks nicer, but the former is easier to say.
-
 #### Chalk modules
-Starts with an optional [[comment]], then continues with [[declaration]]s.
+Starts with an optional [[comment]], then continues with [[definitions]]s.
 
 > Every module should start with a comment that provides useful information about
 > the module. This information might be automatically extracted from the source
 > code by documentation generators.
 
-All [[declaration]]s directly in a [[module definition]] are implicitly [[immutable]].
+All [[definitions]]s directly in a [[module definition]] are implicitly [[immutable]].
 They are visible everywhere in the [[module definition|module]].
 
 {{{```
@@ -364,14 +379,14 @@ export []Expr chalkModule =
     , Repeat(
         [ StartSpace()
         , OneOf(
-            [ [ Match(ClassDeclaration, "declarations") ]
-            , [ Match(TraitDeclaration, "declarations") ]
-            , [ Match(FunctionDeclaration, "declarations") ]
-            , [ Match(VariableDeclaration, "declarations")
+            [ [ Match(ClassDefinition, "definitions") ]
+            , [ Match(TraitDefinition, "definitions") ]
+            , [ Match(FunctionDefinition, "definitions") ]
+            , [ Match(VariableDefinition, "definitions")
               , Space("")
               , Text(";")
               ]
-            , [ Match(ObjectDestructuring, "declarations",
+            , [ Match(ObjectDestructuring, "definitions",
                   { typed: Destructuring.Typed.never }
                 )
               , Space("")
@@ -475,18 +490,18 @@ the first [[import]] of that [[module definition|module]] will implicitly be
 
 > TODO should this section be here?
 
-### Expressions
-An [[[expression]]] is called a [[[terminating expression]]] when it returns [[`None`]].
+### Definitions
 
-### Declarations
-[[Type declaration]]s in all [[scope]]s and [[variable declarations]] in
+There are 5 types of [[definition]]s:
+
+[[class definition|Class]] and [[type definition]]s in all [[scope]]s and [[variable definitions]] in
 [[module scope|module]], [[class scope|class]] or [[trait scope]] are visible
-even before they are defined. [[Variable declaration]]s in [[function scope]] are
+even before they are defined. [[Variable definition]]s in [[function scope]] are
 only visible after they are defined.
 
 > TODO documentation comments
 
-> Documentation comments should provide useful information about the declarations.
+> Documentation comments should provide useful information about the definitions.
 > They might be automatically extracted from the source code by documentation
 > generators.
 
@@ -524,6 +539,9 @@ export []String keywords =
 #### Trait template definitions
 #### Function definitions
 #### Variable definitions
+
+### Expressions
+An [[[expression]]] is called a [[[terminating expression]]] when it returns [[`None`]].
 
 ### Literals
 Literals create new value each time they are evaluated.
@@ -607,7 +625,7 @@ Functions that don't return [[None]] or [[Null]] must return with a [[return sta
 
 > Should function values be mutable?
 
-#### Methods (TODO should this be part of Modules/Declarations/Classes?)
+#### Methods (TODO should this be part of Modules/Definitions/Classes?)
 #### Generator functions
 #### Async functions
 #### Lambda functions
@@ -618,7 +636,7 @@ Functions that don't return [[None]] or [[Null]] must return with a [[return sta
 
 ## Semantics (program initialization and execution) (should this be its own chapter?)
 ### Program initialization (This looks like it could be its own chapter)
-#### Order of evaluation (of declarations)
+#### Order of evaluation (of definitions)
 > What about limited support to recursively defined variables, like this:
 > ```
 > X a = X(b);

@@ -108,11 +108,11 @@ CodeBlock body
 
 ## Break
 ?Identifier name
-?Expression expr
+?Expr expr
 
 ## Continue
 ?Identifier name
-?Expression expr
+?Expr expr
 
 ## FunctionCall
 Expr function

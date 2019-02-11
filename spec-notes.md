@@ -1,20 +1,22 @@
-should type templates be values? what about:
-  ```
-  class A<type T, Bool b> {}
-  
-  class<type T> = A<T, false>; // Is this allowed?
-  class<type T> = foo(T); // Is this allowed? What are the semantics?
-  ```
+Possible additions:
+```
+class A<type T, Bool b> {}
+
+class<type T> = A<T, false>; // This must work?
+class<type T> = foo(T); // foo must be a pure function, but what if it isn't injective?
+```
+
+
+
+Other:
 Think hard about doing away with pointers. First, in most cases, the performance
   gain from tight control over what is where in memory is probably not worth it
   (performance usually depends on a small parf of code). Second, when such control
   is needed, maybe it should be used explicitly with something else.
   
   Maybe revert the notation? `T` is a pointer, and `*T`, or similar is a value type?
-it is an error if class members and class member initialization order is different?
-can function types have default parameters? or just function values?
-chalk diff - smart diffing recognize when variable is renamed
-`Foo()` vs `Foo.new()`?
+class members must be in the same order as in the class member initialization list
+chalk diff - smart diffing, recognize when variable is renamed
 ```
 trait A {}
 trait B : A {}
@@ -740,6 +742,10 @@ named lambdas? for one-liner function/method declarations
   `getSize() => size`
 preserve the `T t(constructor, params)` variable definition syntax
   and make `T(constructor, params)` an anonymous variable definition
+what is the role of traits in propositions?
+should algebraic structures like `Group`, `Field`, etc. be traits or classes?
+what is the type of type templates?
+spec should contain a proof that membership in Chalk is decidable
 should member initializer lists be part of chalk?
   yes. left out == initialized with default constructor
 how to handle `{}`, the empty object/set/code block/destructuring?
@@ -1194,9 +1200,8 @@ chalk should be low-level enough so that an os can be written in it
 unary ^ as bitwise negation?
 remember `X.Y a;` is variable declaration even though `X.Y` is a member access
   expression, not a type
-math assumption: all comptime functions terminate -- even better all comptime
-  functions should provably terminate, and all runtime functions should throw
-  a warning if they don't
+all comptime functions must provably terminate, and all runtime functions should
+  throw a warning if they don't
 should every value have an address and every variable a value, or should every
   variable have an address and a value, and value not have an address?
 should taking a pointer to a temporary object produce a warning, an error or nothing?
@@ -1270,9 +1275,6 @@ variable stack frame length: if some variables are only created in a later part
 replace `a?b:c` by `if a then b else c`?
 warn on compile-time known branches
 warning for labels unused
-use `stlib` instead of `std` as abbreviation for standard library?
-  motivation - std has multiple meanings
-Is `class|Int` allowed?
 classes and traits must have uppercase starting letter, other variables must have lowercase starting letter
 for statements - support all `for {}; for cond {}; for cond; inr {}; for init; cond; inr {}` 
 compiler - if a nullable `value` is unsafely used as non-null, assume it is non-null,
@@ -1474,19 +1476,15 @@ no as-if rule in spec - the need for explicit as-if rule means badly defined
   semantics, it should follow from them instead of having to be part of the spec
 should all variables be secretly pointers, as in Java?
 switch - `default:` vs `case _:`?
-returning local type returns `null`
+returning a local type is an error?
   ```
-  class A {}
-  
   class X() {
-    class B {}
+    class A {}
     
-    return randBool() ? A : B; // Error: cannot convert type class|Null to class.
+    return A; // Error
   }
   ```
 class can have `mut` members that are modifyable even if instance is `const`, must be private
-disallow module-wide (mutable) state in libraries? or totally?
-make void a class with just one instance so it can be used generically, eg `Promise<Void>`?
 if `Int(Int)` is `Function<Int, Int>`, what is `Int<Int i>()`?
 getters/setters? or unification of properties and functions without arguments?
 function overloading creates duplicate variables, what to do with it?

@@ -22,8 +22,6 @@ export trait Object {
     return [ Class.name, " {\n" ].join;
   }
   
-  get String name;
-  
   final ?*Object getField(*String name) {
     // Magic.
   }

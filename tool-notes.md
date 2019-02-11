@@ -3,7 +3,7 @@ TODO some (most?) warnings could be required by the spec.
 ### Warnings
 Unnecessary composite type (`??T`, `T&T`, `A|B` if `A is B`)
 
-The canonical zero/one/two-element enum is `None`/`Null`/`Bool`. (If someine
+The canonical zero/one/two-element enum is `None`/`Null`/`Bool`. (If someone
 defines their own zero/one/two-element enum)
 
 Empty class.

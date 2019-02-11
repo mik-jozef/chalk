@@ -362,6 +362,38 @@ Note: No.
 ##### Standard library should contain complex numbers and quaternions
 Note: Yes, added to spec.
 
+##### Disallow module-wide (mutable) state in libraries? or totally?
+Note: Totally. No global state can be mutable.
+
+##### Globaler variables are visible even before their declaration
+... but function can be only called after their definition
+```
+Null foo() {
+  Int bar() => a;
+
+  bar(); // error
+
+  Int a;
+
+  bar(); // ok
+}
+```
+
+Note: No. Just move the function definition down. Functions are visible even
+before being declared.
+
+##### Can function types have default parameters? or just function values?
+Note: they cannot.
+
+##### Does every value have an address? Or do only variables have them?
+Note: Every value must have an address. Some pointers point to values that aren't
+in a value-type variable.
+
+##### Do objects have interface?
+Note: Yes. Interface is where the member access operator gets values from.
+
+
+
 
 
 

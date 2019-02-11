@@ -5,7 +5,7 @@ trait Object {
   
   Field getField(String name);
   
-  Bool same(T a, T b, Int derefs = 0) { true if a and b have the same address in memory after each being dereferenced derefs times }
+  own Bool same(T a, T b, Int derefs = 0) { true if a and b have the same address in memory after each being dereferenced derefs times }
 }
 
 trait ErrCode {}
