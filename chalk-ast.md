@@ -1,7 +1,7 @@
 ## Module
 ?Comment moduleDoc
 `[]Import` imports
-`[]Declaration` declarations
+`[]Definition` definitions
 
 ## Comment
 ChalkDoc comment
@@ -10,9 +10,9 @@ ChalkDoc comment
 Identifier|ObjectDest import
 Expr From
 
-## Declaration = ClassTemplate|TraitTemplate|Function|Variable|Destructuring
+## Definition = ClassTemplate|TraitTemplate|Function|Variable|Destructuring
 
-## Expr = Literal|Identifier|Operator|Declaration|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
+## Expr = Literal|Identifier|Operator|Definition|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
 
 ## Identifier
 `?_(a-z|A-Z)*(a-z|A-Z|0-9) except keywords` name
@@ -49,7 +49,7 @@ Identifier name
 ?Comment doc
 ?Identifier name
 `[](Type, ?(Identifier, ?Expr))` params
-`[]Declaration` contents
+`[]Definition` contents
 
 ## TraitTemplate
 ?Comment doc

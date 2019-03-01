@@ -648,8 +648,10 @@ go keyword? or other easy way to create threads/parallelism
 must main return `None`? Note this wouldn't prohibit actually calling it and
   have it executed
 are pointers their own types, or are they type modifiers?
-Are classes types, or is there just a bijection between classes and class types?
 package manager
+for every non-static method of class `C`, every instance of `C` has a separate
+  own function in its interface, and `C` has a static method with an explicit
+  `this` parameter
 guaranteed copy elision in as many cases as possible
   eg. in `void f(Bool b) { b ? { shortCode } : { longCode } }` `f(true)` could be
   inlined and `f(false)` not.
@@ -660,18 +662,18 @@ if assignment has side effects, should they happen when assigning to blank ident
 documentation generator (like javadoc)
 hooks in compiler that can run unit tests or do whathever, like npm scripts?
 mathematical proofs about invariants in the program? eg. assert param 'x' is a square number
-front call optimization? middle call optimization?
+front call optimization? middle call optimization? is that possible?
 no way to acquire locks sequentially?
-I want the chalk spec to mandate tail call elimination or equivalent in certain
-  situations. However, I do not want to mandate any specific implementation
+I want the chalk spec to dictate tail call elimination or equivalent in certain
+  situations. However, I do not want to dictate any specific implementation
   of chalk (eg. no mention of call stack as an actual stack in memory), the spec
-  should be entirely about observable behaviours. How should I mandate that?
+  should be entirely about observable behaviours. How should I do that?
   Maybe requiring certain bounds on memory consumption?
 type-safe unions
 use value types instead of rvalue refs
 const correctness
-reflection of call stack
-array: no remove(), because its unclear whether all the elements after it should
+reflection of call stack?
+array: no `remove()`, because its unclear whether all the elements after it should
   be moved or just the last one. Solutions
   - shift(Int index = 0, Int length); // also unshift
   - arr[index] = arr.pop();
@@ -690,24 +692,119 @@ mark files/folders as resources (to be included in executable/compiled too)
   minus) or function- or module-wide setting; 2. be a runtime error
   There could be a type like TCInt (Two's Complement Int) such that `?TCInt` is
   wider than `TCInt`, ie. it behaves like Int in all other programming languages
+what is the type of the types like `class<class>` or `type<String>`?
+  Note: `class Set<type A> {...}` should be instantiable with `Set<X<Int>>`, right?
+  Also, should there be a top type?
+`stlib/.../Date` should NOT be formattable to `MM/DD/YYYY`. Big/Little Endian only,
+  no mixed variants
+Should `class`, `class<...>`, `trait`, `trait<...>`, `type` and `type<...>` be values?
 It must not be possible to do anything as crazy as javascripts turing complete
   subset from `[]()!+`. security-wise, it must be easy and not unntuitive to
   create a code sanitizer that works with chalk AST
-if 0 tuple is allowed, should `type Null = ();`? or should null be an enum?
+```
+// Should this be possible in module scope? I think so.
+
+{ export Int i } = { i = 3 };
+```
+```
+Null foo() {}
+
+Null bar() {
+  return Null foo(Int) {}
+}
+
+bar().type == Null()&Null(Int);
+```
+ChalkDoc lists:
+  `-` unordered list
+  `*` ordered list starting with 0, or unordered list?
+  `#.` ordered list starting with 0?
+  `2.` ordered list starting with 2, can be combined with `*`
+  `**` ordered list, continues numbering from previous list?
+higher order types?
+  ```
+  class C<class X<type T>> {
+    X<Int> x;
+  }
+  
+  *class C<class X<T>> = X<Int>; // ?
+  *class<class X<T>> C = X<Int>; // ?
+  ```
+```
+class C {
+  A a;
+  B b;
+  
+  new() : {} // Same as `new() : a(), b() {}`
+  
+  new() {} // Error: uninitialized member variable
+  
+  new() {
+    a(); // Possible alternatives: `A.new(a)`, `a = new()`, `a = A()`.
+    b();
+    
+    ///
+    All variables must be provably constructed before being used. `this` is
+    considered provably constructed when all member variables are provably
+    constructed.
+    ///
+  }
+}
+```
+warning: local trait is never extended
+in functions, `assume`s must come before all other expressions
+```
+{ expr; expr } // single line
+
+{
+  expr;
+  expr; // multiline, notice extra semicolon
+}
+```
+export, shared, final, get set pub, own static, mut const immut
+usable design: fs.accessNow - checks if process can access a fs entry, the 'Now'
+  part should remind users of races
+`import pic from "/path/to.jpg"`, imports an image to the binary at compile time?
+  maybe `import pic from "/path/to.jpg" using JpgDecoder`?
+variables without mut, const or immut could be const, but not transitively?
+all provably dead/side-effect-free code should produce a warning
+`--machineTranslate` - do not spend precious CPU cycles on warnings/potential
+  error messages, because output of stdout goes to /dev/null
+  Or something else if the compilation is just a part of an automated process
+  that is only interested in a successful compilation if possible
+`--noWarnings`?
+there must be two versions of `getMembers()` - one private that returns all members,
+  one public that returns get, set and pub members.
+  Should there also be two versions of `supertypes()`/`extends()`? I'm afraid that
+  leaking local, unexported types through reflection will be an unnecessary pain
+  in the ass.
+```
+// immut vs const: should only one be allowed?
+static immut class Namespace {
+  Float64 pi = 3.14159;
+}
+```
+should static member variables be disallowed, or live as if in the parent scope?
+if a function wants to potentially not terminate, it must be defined as:
+  ```
+  Int() partial {
+    for {} // Not an error;
+  }
+  ```
+rename `Promise` to `Wait`? and `Object` to `Any`
+if 0-tuple is allowed, should `type Null = ();`? or should null be an enum?
 hot deployment of code
-lazy loading? `Module m = import("path")`
-what about 3 possible path formats?
+returned values must be promisified if needed, eg. this is valid: `Promise<Int>() => 1`
+lazy loading? `Module m = await import("path")`
+3 possible path formats?
   1. `/absolute/path`
   2. `./relative/path`
-  3. `ugh/what`
-  Options:
-  - find some other "root" distinct from `/` (like current directory), use all 3
-  - disallow one of them (which?)
+  3. `library/path`
 unsafe `Pointer.to<Type>(Int address)`, `Pointer.add<T>(Ptr<T>, Int i)`
 no semicolon after function / class declaration
 function can specify assumptions about its inputs, if those assumptions are not
-  met, any resulting potential undefined behaviour must be proven safe at the
-  calling site
+  \<del\>met, any resulting potential undefined behaviour must be proven safe at the
+  calling site \</del\> proven for every invocation of the function, it is a comptime error
 varargs? both runtime and generic
 correct order of evaluation of module-wide and member variables that depend on each other
   cycles are error
@@ -746,6 +843,9 @@ what is the role of traits in propositions?
 should algebraic structures like `Group`, `Field`, etc. be traits or classes?
 what is the type of type templates?
 spec should contain a proof that membership in Chalk is decidable
+class `class C { foo(Int) {} foo(String) }` has a single member, a function
+  of type
+ability to create proof of correctness of safe code
 should member initializer lists be part of chalk?
   yes. left out == initialized with default constructor
 how to handle `{}`, the empty object/set/code block/destructuring?
@@ -1006,6 +1106,17 @@ same behaviour, they must specify the exact same function.
 ```
 compiler must comptime execute pure functions with all arguments known at comptime
 variables that are written to, but never read should be marked as unused
+is `class<Int> = class<Number> {}` valid? It should be.
+have a look at darcs before doing version control
+this is valid function:
+  ```
+  Int foo(String s) => switch {
+    case "": 0;
+    case "a": 1;
+    case _: 1;
+  }
+  ```
+maybe `123 .add` should be well-formatted, instead of `123.add`
 ffastmath should be default behaviour unless overriden by a compiler flag,
   or a module- or function-wide \[\[strictMath]] directive
 Behavior of a program must be completely specified by source code.
@@ -1077,6 +1188,10 @@ If every function self-invocation is the last executed expression, that function
 what about funcitonal programming? lazy evaluation?
 a way to unresolve a promise if it is still just waiting in event loop? (later: why?)
 cancellable promises, can stop async functions, threads
+ChalkDoc documents should have the option to be interactive, however, there should
+  be a setting that applets are turned off by default, runnable by clicking on them,
+  similarly to flash in browsers
+ChalkDoc: Navigation between documents without refresh?
 enforce order of keywords - pub static
 first-classish types?
 model checking in compiler
@@ -1173,13 +1288,21 @@ ASCII only, including proofs. No single-character greek variable names.
 website should require little internet connection (fast load times important),
   be single-page, reference should be interactive (eg. instant search of definitions)
 functions are const by default
+Should parameters of functions be in front of the return type? `Bool foo() {}.type == ()Bool`?
 ```
-class HashSet { /* ... */ }
+class HashSet {
+  Bool add() {...}
+  
+  Bool shared add() {...}
+}
 
 shared class HashSet { /* ... */ } // thread-safe version ?
 ```
 array of number should be a number?
+`chalk mv a.chalk b.chalk` - moves a file, renames imports, or fails if there
+  are potentially imports that cannot be easily renamed
 append operator `~`?
+rename `Object` to `Any`?
 `Object...` for variadic parameters, `T...` for variadic templates, `T[n]` and
   `T.length` supported
 code coverage analyzer as part of compiler
@@ -1194,12 +1317,20 @@ closures are shared between functions from the same scope
 reflection.createType? (or compiler.createType?)
 TODO concurrency, green threads?
 instanceof? is?
+string: view/slice/substring: - same memory, doesn't hold reference; same memory, holds;
+  new memory, holds; what about array?
+readme.md should be replaced with `main.chalk`
+the identifiers `class`, `trait`, `type` and `any` (and possibly `prop`) should
+  be implicitly defined in every scope
+  these are the only truly global variables
 think about deffered loading of code so the whole application doesn't have to be in memory
   when it starts
 chalk should be low-level enough so that an os can be written in it
 unary ^ as bitwise negation?
 remember `X.Y a;` is variable declaration even though `X.Y` is a member access
   expression, not a type
+`?All` and `?Exists` for statements that only warn when not proven (but maybe error
+  if disproven?)?
 all comptime functions must provably terminate, and all runtime functions should
   throw a warning if they don't
 should every value have an address and every variable a value, or should every
@@ -1221,6 +1352,8 @@ async functions and threads should be similar if possible and reasonable (?)
   interacting coroutines happen to be in different threads?
 no empty statement (`;`), use empty block `{}` instead
 user-defined canonical type conversions?
+can multiple immutable values in value-typed variables share the same address?
+function and type template overloading must work across scopes
 no named parameter calls
 `T t = undefined` should not be unsafe code, it should just error if variable is
   - written to if not known whether defined

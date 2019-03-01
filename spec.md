@@ -18,6 +18,7 @@ This is the specification of the [[[Chalk]]] programming language.
 > * [Haskell](https://www.haskell.org/)
 
 > TODO This spec is a work in progress.
+> 
 > That means it contains TODO notes, like this one. When the specification is
 > finished, the TODO notes must all be removed.
 > 
@@ -27,56 +28,53 @@ This is the specification of the [[[Chalk]]] programming language.
 This specification is a [[ChalkDoc]] document. You can view the source \<here\>.
 
 > TODO This specification isn't YET a ChalkDoc document, but it will be.
-> For now, markdown is a good approximation.
+> For now, Markdown is a good approximation.
 
 > TODO Link to the source.
 
-{{ToC}}
+{{{document.tableOfContents}}}
 
 > TODO Maybe ToC should be inserted automatically
 
 ## Values
-A *[[[value]]]* is either a [[type]], a [[type template]], or an [[object]].
+A *[[[value]]]* is either a [[type]], an [[object]], or a [[type template]].
 
 > Informally, a [[value]] is anything that can be inside a [[variable]].
 
-Every value is an [[[instance]]] of a [[type]] and has an [[interface]] and
-an [[address]]. A value has a [[[target address]]] when it is an [[instance]]
+Every [[value]] is an [[[instance]]] of a [[type]] and has an [[interface]] and
+an [[address]]. A [[value]] has a [[[target address]]] when it is an [[instance]]
 of a [[pointer type]].
 
-> Intuitively, an address can be anything and serves to identify concrete values,
-> an interface is a set and a name is a string.
-
 ### Types
-A *[[[type]]]* is either a [[base type]] or a [[derived type]]. Every type is
-a [[value]].
+A *[[[type]]]* is either a [[base type]], a [[derived type]] or [[waa]]. Every
+[[type]] is an [[instance]] of a [[primitive type]].
 
 #### Base types
-A *[[[base type]]]* is either a [[primitive type]], a [[class type]], or a [[trait type]].
+A *[[[base type]]]* is either a [[primitive type]], a [[class type]], or a [[trait
+type]].
 
 ##### Primitive types
-The [[[primitive types]]] (*[[[the type class|class]]]*, *[[[the type trait|trait]]]*
-and *[[[the type type|type]]]*) are the three (distinct) types that are defined
-in this specification, instead of being declared in the source code. They are
-[[instance]]s of [[the type `type`]].
+A [[[primitive type]]] is one of the four (distinct) types *[[[the type class|
+class]]]*, *[[[the type trait|trait]]]*, *[[[the type type|type]]]* and *[[[the
+type any|any]]]*. They are [[instance]]s of [[the type `any`]].
 
 ##### Class types
 A *[[[class type]]]* (or *class*) is an [[instance]] of [[the type `class`]].
 
-A [[class type]] can [[extend]] one or more [[trait types]]. Every [[class type]]
-extends [[`Object`]].
+A [[class type]] can [[extends|extend]] one or more [[trait types]]. Every [[class
+type]] [[extends]] the [[type]] [[`Any`]].
 
 ###### Modules
-A *[[[module]]]* is a [[class type]] that [[is]] [[Module]].
+A *[[[module]]]* is a [[class type]] that [[is]] [[`Module`]].
 
 ##### Trait types
 A *[[[trait type]]]* (or *trait*) is an [[instance]] of [[the type `trait`]].
 
-A [[trait type]] can [[extend]] one or more [[trait types]]. Every [[trait type]]
-extends [[`Object`]].
+A [[trait type]] can [[extend]] zero or more [[trait types]]. Every [[trait type]]
+[[extends]] the [[type]] [[`Any`]].
 
 #### Derived types
-A *[[[derived type]]]* is a type that is not a [[base type]]. [[Derived types]]
+A *[[[derived type]]]* is a [[type]] that is not a [[base type]]. [[Derived types]]
 are derived from one or more [[base types]].
 
 Every [[derived type]] can be created by a finite series of compositions of
@@ -96,10 +94,7 @@ is either a [[base type]], a [[function type]] or a [[pointer type]].
 
 [[Derived types]] are [[instance]]s of [[the type `type`]].
 
-> TODO Should the notion of a type constructor be scrapped in favor of just talking
-> about types themselves, not their constructors?
-
-> TODO What about first class fields?
+> TODO What about first class member variables?
 > 
 > ```
 > class C { Int a, b }
@@ -118,16 +113,16 @@ If `A` and `B` are [[type]]s, the *[[[intersection type]]]* of `A` and `B`,
 denoted by `A&B`, is a [[type]].
 
 ##### Function type constructor
-If `R` and `P0`, ..., `Pn-1` for a natural `n` are [[type]]s, the [[function type]]
-created from these [[type]]s, denoted by `R(P0, P1, ..., Pn-1)`, is a [[type]].
+If `R` and `P0`, ..., `Pn` for a natural `n` are [[type]]s, the [[function type]]
+created from these [[type]]s, denoted by `R(P0, ..., Pn-1)`, is a [[type]].
 
 > Zero is a natural number. `R()` is a [[type]].
 
 `R` is said to be the [[[return type]]] of [[instance]]s of `R(...)`.
 
-> `R()` can be a [[function type]]. For example, `Int(Int)(Int)` is the [[type]]
-> of [[function]]s that accept a single `Int` [[parameter]] and return [[function]]s
-> that accept a single `Int` [[parameter]] and return an `Int`.
+> The [[return type]] can be a [[function type]]. For example, `Int(Int)(Int)` is
+> the [[type]] of [[function]]s that accept a single `Int` [[parameter]] and
+> return [[function]]s that accept a single `Int` [[parameter]] and return an `Int`.
 
 ##### Pointer type constructor
 If `A` is a [[type]], the *[[[pointer type]]]* to `A` is a [[type]].
@@ -135,7 +130,18 @@ If `A` is a [[type]], the *[[[pointer type]]]* to `A` is a [[type]].
 A [[pointer type]] to a [[function type]] `A(...)` is denoted by `A*(...)`,
 a [[pointer type]] to other [[type]]s is denoted by `*A`.
 
-#### Type modifiers (Alternative name: Qualified types)
+#### Waa (TODO need better name: templated types, parametrized types?)
+A [[[waa]]] is a [[type]] whose [[instance]]s are [[type template]]s.
+
+If `T` is the type [[the type class|class]], [[the type trait|trait]] or [[the type
+type|type]], and `T0` to `Tn` is a list of n [[types]], `T<T0, ..., Tn>`
+is a [[waa]].
+
+Every [[waa]] is an [[instance]] of [[the type `any`]].
+
+#### Type modifiers (Alternative name: Type qualifiers/Qualified types)
+`const`/`mut`/both, `immut`, `export`, maybe `libexport`.
+
 > TODO What is `const ?mut Type`? More generally, what is `const A|mut B`?
 
 > TODO Type with or without a type modifier is a qualified type. (?)
@@ -150,8 +156,7 @@ It is the smallest relation such that:
    2. `A` is `B` and `B` is `C` implies `A` is `C` ('is' is transitive)
 
 1. For all types `A`, `B`, `C`, `D`:
-   0. `A` equals [[the type class|`class`]], [[the type trait|`trait`]] or [[the
-      type type|`type`]] implies `A` is [[the type type|`type`]]
+   0. `A` equals a primitive type implies `A` is [[the type type|`any`]]
    1. `A` [[extends]] `B` implies `A` is `B`
    2. `A` is `B` implies `*A` is `*B` // TODO This might be wrong
    3. `A|B` is `B|A` is `A|B`
@@ -166,7 +171,7 @@ It is the smallest relation such that:
    12. `B` is `A` or `B` is [[`Null`]] or `B` is [[`None`]] implies `D(..., A, ...)` is `D(..., B, ...)`
    13. `A(...)` is `A(..., B)`
    14. [[`None`]] is `A`
-   15. `A` is a [[class type]] and `A` does [[is]] not `B` implies `A&B` is [[`None`]]
+   15. `A` is a [[class type]] and `A` [[is]] not `B` implies `A&B` is [[`None`]]
    16. TODO, see TL;DR section
 
 > TL;DR for 1.:
@@ -205,7 +210,7 @@ It is the smallest relation such that:
 > If not, should it be possible to import modules that are explicitly classes?
 
 ### Type templates
-A [[[type template]]] is a function from n [[value]]s to a [[type]].
+A [[[type template]]] is a function from one or more [[value]]s to a [[type]].
 
 A [[type template]] can be a [[[class template]]] or a [[[trait template]]],
 depending on whether it returns a [[class type]] or a [[trait type]], respectively.
@@ -213,8 +218,20 @@ depending on whether it returns a [[class type]] or a [[trait type]], respective
 All [[type]]s produced by distinct [[type templates]] are distinct. Distinct
 arguments to a [[type template]] produce distinct [[type]]s.
 
-The [[interface]] of a [[type]] produced by a [[type template]] `T` is the
-[[interface]] of `T` with parameters of `T` replaced by their respective arguments.
+> TODO According to this, in
+> 
+> ```
+> Int a, b;
+> 
+> *class<Int> A = C<a>;
+> *class<Int> B = C<b>;
+> ```
+> 
+> `A` and `B` are distinct types. That's wrong. Should parameters be restricted
+> to enums, Ints, (floats, strings) and types?
+
+A [[class template|class]] ([[trait template|trait]]) template with parameters
+`P0` to `Pn` is an [[instance]] of `class<P0, ..., Pn-1>` (`trait<P0, ..., Pn-1>`).
 
 ### Type conversions
 [[Instance]]s of certain [[types]] can be converted to instances of different
@@ -228,10 +245,12 @@ types, according to rules specified in this section.
 > values are never modified, right? Just replaced by newer 'versions'.
 
 #### Pointer enreference
-Instances of type `T` can convert to instances of type `*T`.
+An [[instance]] of [[type]] `T` with [[address]] `adr` can convert to an [[instance]]
+of type `*T` with [[target address]] `adr`.
 
 #### Pointer dereference
-Instances of type `*T` can convert to instances of type `T`.
+An [[instance]] of [[type]] `*T` with [[target address]] `adr` can convert to
+an [[instance]] of type `T` TODO.
 
 > TODO Should I specify that only the shortest possible conversions happen,
 > or should I embrace the chaos of nondeterminism knowing that spurious type
@@ -244,45 +263,57 @@ Instances of type `*T` can convert to instances of type `T`.
 Instances of type `Int8` can convert to instances of type `Int16`, `Int16` to
 `Int32` and `Int32` to `Int64`.
 
+> TODO specify that `x` can only convert to `x`, not eg. `x + 1`.
+
 #### Integer narrowing
 Instances of type `Int64` can convert to instances of type `?Int32`, `Int32` to
 `?Int16` and `Int16` to `?Int8`.
 
+> TODO specify that `x` can only convert to `x`, or `null` `x` is too big, not
+> eg. `x + 1`.
+
 #### Null conversions
-If a type `T` is [[`Nullable`]], `T.null` and [[`null`]] can convert between each
-other.
+If a [[type]] `T` [[is]] [[`Nullable`]], `T.null` and [[`null`]] can convert between
+each other.
 
 #### Array type loosening (TODO better name, maybe?)
-Empty array of type `[]None` can convert to an empty array of any type.
+Empty [[array]] of [[type]] `[]None` can convert to an empty [[array]] of any
+[[type]].
 
 ### Objects
-An *object* is an instance of a [[type]] that is not a [[primitive type]].
+An *[[[object]]]* is a [[value]] that is not a [[type template]] and is an
+[[instance]] of a [[type]] that is not a [[primitive type]].
 
-#### Functions
-A [[[function]]] is a sequence of expressions (?)
+### Interface
+An [[[interface]]] of a [[value]] `v` is a function from a set of [[names]] to
+a set of [[value]]s, denoted `v.arg` for an argument `arg`.
 
-> TODO Default arguments. Types cannot have them, just functions themselves.
+> TODO to set of triples (modifiers, type, value)?
 
-> A [[function]] is [[[pure]]] when it has no side effects, and its return value
-> depends only on its arguments and immutable [[local variable|nonlocal]]
-> [[variables]].
+[[Values]] that belong to an [[interface]] of `v` are called [[[member values]]]
+of `v` or [[members]] of `v`.
 
-### Interface (TODO or a better name?)
-An [[[interface]]] of a [[value]] is a set of [[name]]-[[value]] pairs. [[Values]]
-that belong to an [[interface]] of `A` are called [[[member values]]] of `A` or
-[[members]] of `A`.
-
-Every [[name]] in the same [[interface]] is unique.
+For every [[value]] `v`, `v.type` equals the [[type]] `v` is an [[instance]] of.
 
 > TODO member variables, member types, member functions (methods)
 > Ideally, these terms doen't need to be defined, because they will coincide with
 > variables, types, functions, ... etc. That are also member values.
 
 #### Interface of primitive types
-> TODO Interface of these three types. Could (should?) contain `type`, `name`
-> and `getMember(String)`.
+Domain of [[interfaces]] of [[primitive type]]s contains exactly the [[name]]s
+`type` and `name`.
 
-#### Interface of class and types
+For the [[type]]s [[the type class|class]], [[the type trait|trait]], [[the type
+type|type]] and [[the type any|any]], `x.name` equals the [[`String`]] `"class"`,
+`"trait"`, `"type"` and `"any"`, respectively.
+
+#### Interface of class and trait types
+If the [[type]]s `A` [[extend]]s `B`, for every [[name]] `n` in the domain of `B`
+
+A [[trait type]] cannot have a [[member function]] [[name]]d `new`.
+
+> Can it have a member function variable `new`?
+
 If a [[type]] `A` [[[extends]]] `B`, ...
 
 > TODO inheritance
@@ -317,17 +348,64 @@ If a [[type]] `A` [[[extends]]] `B`, ...
 #### Interface of pointer types
 The [[interface]] of [[pointer type]]s is empty.
 
+#### Interface of type templates
+The [[interface]] of a [[type]] produced by a [[type template]] `T` is TODO.
+
+The [[interface]] of a [[type template]] is TODO.
+
+#### Interface of waa
+
+### Functions
+A [[[function]]] is a set of [[function overload]]s.
+
+A [[[function overload]]] is an [[expression]] with a [[scope]]/[[context]]? and a list of [[parameters]].
+
+Functions that don't return [[None]] or [[Null]] must return with a [[return statement]].
+
+> Should function values be mutable?
+
+#### Generator functions
+#### Async functions
+
+#### Expressions
+An [[[expression]]] is either an [[operator]], a [[variable]], a [[code block]],
+a [[function call]], or [[[void expression]]].
+
+##### Expression modifiers (or Qualified expressions?)
+`shared`, `const`?, `immut`?, `return`?, `await`, `yield`?
+
+#### Scope
+A [[[scope]]] is a set of [[expression]]s with a set of [[name]]s.
+
+> TODO Really?
+
+A [[scope]] has a [[parent scope]] when it is not a [[module scope]].
+
+[[Module scope]]
+> TODO Should modules be scopes?
+
+#### Parameters
+> TODO Default arguments. Types and declarations cannot have them, just functions
+> themselves.
+
+> TODO should this section exist? Or should default parameters just define multiple
+> functions?
+
+> A [[function]] is [[[pure]]] when it has no side effects, and its return value
+> depends only on its arguments and immutable [[local variable|nonlocal]]
+> [[variables]].
+
 ## Syntax
 This section specifies how Chalk [[programs]] are represented in text form.
 
-A [[[program]]] is a set of [[module definition]]s.
+A [[[program definition?/source code?]]] is a set of [[module definition]]s.
 
 > TODO a program is a set of [[module definition]]s with all variables resolved?
 
-A [[program]] is well-formatted when it matches exactly the grammar of the language.
-It is well-formed if it differs from a well-formatted [[program]] when TODO
+A [[program]] is [[[well-formatted]]] when it matches exactly the grammar of the
+language. TODO
 
-> Convention about syntax: All nonterminals start and end with a non-whitespace
+> Convention about the grammar: all nonterminals start and end with a non-whitespace
 > character, except for the starting one.
 
 ### Module definitions
@@ -355,7 +433,7 @@ A [[[path]]] is a [[`String`]].
 
 > TODO, path, path resolution, normalization, etc.
 
-[[Path]]s that start with `stlib/` are reserved for modules of the [[standard
+[[Path]]s that start with `stlib` are reserved for modules of the [[standard
 library]].
 
 #### Chalk modules
@@ -368,6 +446,7 @@ Starts with an optional [[comment]], then continues with [[definitions]]s.
 All [[definitions]]s directly in a [[module definition]] are implicitly [[immutable]].
 They are visible everywhere in the [[module definition|module]].
 
+##### Syntax
 {{{```
 export []Expr chalkModule =
     [ Maybe([ StartSpace(), Match(Comment, "moduleDoc"), Space("\n\n") ])
@@ -404,6 +483,7 @@ export []Expr chalkModule =
 #### ChalkDoc modules
 A [[[ChalkDoc module definition]]] is TODO
 
+##### Syntax
 {{{```
 export []Expr chalkDocModule = []; // TODO
 }}}```
@@ -439,6 +519,7 @@ Contents of comments are formatted in [[ChalkDoc]].
 > 
 > This isn't: `Int /// Illegal comment /// a = 0;`
 
+#### Syntax
 {{{```
 export []Expr comment =
     [ Text("//")
@@ -462,6 +543,7 @@ export []Expr comment =
 [[[Imports]]] make [[export]]ed TODO [[variable]]s/[[identifier]]s? from other [[module]]s visible in
 their [[module definition]].
 
+#### Syntax
 {{{```
 export []Expr import =
     [ Text("import")
@@ -477,7 +559,7 @@ export []Expr import =
     , Space(" ")
     , Text("from")
     , Space(" ")
-    , Match(Expression, "path", { type: "stlib/string.chalk/String" })
+    , Match(Expression, "path", { type: "stlib/global.chalk/String" })
     , Space("")
     , Text(";")
     ];
@@ -492,9 +574,11 @@ the first [[import]] of that [[module definition|module]] will implicitly be
 
 ### Definitions
 
-There are 5 types of [[definition]]s:
+There are 5 types of [[definition]]s: [[class template defition|Class]] and [[type
+template definition]]s, [[function definition]]s, [[variable definitions]] and
+[[destructuring]].
 
-[[class definition|Class]] and [[type definition]]s in all [[scope]]s and [[variable definitions]] in
+[[class template definition|Class]] and [[type definition]]s in all [[scope]]s and [[variable definitions]] in
 [[module scope|module]], [[class scope|class]] or [[trait scope]] are visible
 even before they are defined. [[Variable definition]]s in [[function scope]] are
 only visible after they are defined.
@@ -505,27 +589,81 @@ only visible after they are defined.
 > They might be automatically extracted from the source code by documentation
 > generators.
 
+#### Syntax
+{{{```
+export []Expr definition =
+    [ Or(
+        [ Match(ClassTemplateDefinition, "definition") ]
+        [ Match(TraitTemplateDefinition, "definition") ]
+        [ Match(FunctionDefinition, "definition") ]
+        [ Match(VariableDefinition, "definition") ]
+        [ Match(Destructuring, "definition") ]
+      ),
+    ];
+}}}```
+
 #### Identifiers (and scope?)
-Identifier is a string that matches `(a-z|A-Z)*(a-z|A-Z|0-9)` and is not a keyword.
+An [[[identifier]]] is a UTF-8 string that matches `(a-z|A-Z)*(a-z|A-Z|0-9)` and is
+not a [[keyword]].
 
 > TODO Regex grammar might change, but it should be readable to anyone who knows
 > regexes. Note like with types, modifiers (like the Kleene star) are on the left.
 
+An [[identifier]] represents a [[name]]. Distinct [[identifier]]s represent distinct [[name]]s.
+
+> TODO unless they are renamed in imports.
+
 Type identifiers must start with an uppercase, other lowercase.
 
-##### Keywords
-Keyword is a string that cannot be an identifier.
-
+##### Syntax
 {{{```
-export []String keywords =
-    [ "auto", "assume", "await", "break", "case", "catch", "class", "comptime"
-    , "const", "continue", "default", "enum", "export", "final", "for", "friend"
-    , "function", "get", "import", "is", "mut", "own", "pub", "return", "set"
-    , "shared", "static", "switch", "throw", "trait", "try", "type", "yield"
+export enum IdentifierType { upperCase, lowerCase, both }
+
+String abcLo = "abcdefghijklmnopqrstuvwxyz";
+String abcUp = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+String abcBoth = abcLo ++ abcUo;
+String abcNum = abcBoth ++ "0123456789";
+
+export []Expr identifierLowerCase =
+    [ And(
+        [ Not(Or(keywords.map(a => [ Text(a) ]))) ],
+        [ Or(abcLo), Repeat(Or(abcNum)) ]
+      )
+    ];
+
+export []Expr identifierUpperCase =
+    [ And(
+        [ Not(Or(keywords.map(a => [ Text(a) ]))) ],
+        [ Or(abcUp), Repeat(Or(abcNum)) ]
+      )
+    ];
+
+export []Expr identifierBoth =
+    [ And(
+        [ Not(Or(keywords.map(a => [ Text(a) ]))) ],
+        [ Or(abcBoth), Repeat(Or(abcNum)) ]
+      )
     ];
 }}}```
 
-> TODO Display code. ``keywords.map(a => "`" + a + "`").join(", ");``?
+##### Keywords
+A [[[keyword]]] is a UTF-8 string that cannot be an [[identifier]].
+
+{{{```
+export []String keywords =
+    [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
+    , "comptime", "const", "continue", "default", "enum", "Exists", "export"
+    , "final", "for", "friend", "function", "get", "immut", "import", "is", "mut"
+    , "own", "pub", "return", "set", "shared", "static", "switch", "throw", "trait"
+    , "try", "type", "yield"
+    ];
+
+document.write("List of keywords: " + keywords.map(a => "`" + a + "`").join(", "));
+}}}```
+
+> TODO Should "any", "class", "trait" and "type" be keywords?
+> If not, should it be possible to define classes if someone overwrites the "class"
+> identifier?
 
 #### Exports
 > TODO Keyword libexport? A way to distinguish internal and external exports
@@ -538,6 +676,7 @@ export []String keywords =
 
 #### Trait template definitions
 #### Function definitions
+##### Lambda functions
 #### Variable definitions
 
 ### Expressions
@@ -602,8 +741,12 @@ The first operand of [[conditional]], [[logical and]] and [[logical or]] operato
 must be `Bool`.
 
 #### Member access operator
-##### Methods
 #### The 'is' operator
+The [[expression]] `a is B` [[return]]s [[true]] when `a.type` [[is]] `B`.
+
+> Informally, `a is B` is true if it would make sense to assign [[value]] `a`
+> to a [[variable]] of [[type]] `B`.
+
 #### Assignment
 > `=` assigns value, `:=` assigns pointer, `::=` assigns pointer to pointer, etc.
 
@@ -619,16 +762,6 @@ must be `Bool`.
 #### Function calls
 #### Operators
 #### The return expression (TODO maybe this should be under Functions)
-
-### Functions
-Functions that don't return [[None]] or [[Null]] must return with a [[return statement]].
-
-> Should function values be mutable?
-
-#### Methods (TODO should this be part of Modules/Definitions/Classes?)
-#### Generator functions
-#### Async functions
-#### Lambda functions
 
 ## Reflection
 > TODO This should not be its own chapter. Reflection is partly stl, partly
@@ -665,7 +798,7 @@ Program is safe if every `unsafe` code is provably safe.
 ### Default import
 ### Well-known types
 #### None, Null and Bool
-The types `None`, `Null` and `Bool` must be defined in `stdlib/global.chalk` as
+The types `None`, `Null` and `Bool` must be defined in `stlib/global.chalk` as
 follows:
 
 ```
@@ -688,3 +821,6 @@ export enum Bool { false, true }
 > could be specified to use strict if needed, else something like ffastmath
 > would be used
 #### The import function
+
+## Definitions
+{{Definitions}}

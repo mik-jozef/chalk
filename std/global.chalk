@@ -9,6 +9,12 @@ import { isNull } from "std/compiler-magic.chalk";
 
 Module import() {}
 
+Bool equals(*Any a, b) {
+  comptime a !is b.type || b !is a.type && throw "TODO";
+  
+  return Ptr.equals(a, b) ? true : ;
+}
+
 export trait Object {
   get class Type;
   

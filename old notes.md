@@ -392,6 +392,32 @@ in a value-type variable.
 ##### Do objects have interface?
 Note: Yes. Interface is where the member access operator gets values from.
 
+##### Are classes types, or is there just a bijection between classes and class types?
+Note: classes are types. There's no redundancy. There's a bijection between class
+templates and class template definitions.
+
+##### Should `All` and `Exists` be keywords? And should they be uppercase?
+They are types, so I guess no and yes.
+```
+all RegularLanguage l, exists Nat n, all Nat m, Word w: m > n && w.length > m --> exists Word a, b, c: w = a ++ b ++ c && all Nat i: belongs(a ++ pow(b, i) ++ c, l);
+
+All RegularLanguage l, Exists Nat n, All Nat m, Word w: m > n && w.length > m --> Exists Word a, b, c: w = a ++ b ++ c && All Nat i: belongs(a ++ pow(b, i) ++ c, l);
+
+All RegularLanguage l, Exists Nat n, All Nat m, Word w:
+  m > n && w.length > m
+    --> Exists Word a, b, c:
+      w = a ++ b ++ c && All Nat i: belongs(a ++ pow(b, i) ++ c, l);
+```
+
+Note: Added as TODO to spec
+
+##### Should the notion of a type constructor be scrapped...
+...in favor of just talking about types themselves, not their constructors?
+
+Note: No. I didn't find an elegant way to rephrase the requirement that every
+type must be a result of finite series of compositions of type constructors.
+
+
 
 
 
