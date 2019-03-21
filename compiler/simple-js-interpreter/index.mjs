@@ -6,24 +6,26 @@ Value: { members: Map<String, { mod: Set<String>, val: Value } }, addr: Int>
 /*/
 
 import fs from "fs";
+import pathUtils from "path";
 
-import { keyMap } from "./keywords.mjs";
-import { stlibFake } from "./stlibFake.mjs";
+import { Parser, chalkGrammar, getImportPaths } from "./parser.mjs";
+import { StlibFake } from "./stlibFake.mjs";
 
-const getAddr = (function*() { let i = 0; while (true) yield i++; })();
+/*/
+const any = primitive("any", null );
+any.members.set("type", any);
 
-const primitive = (name, type) => (
+function primitive(name, type) {
+  return (
       { members: new Map(
-          [ [ "name": name ]
-          , [ "type": type ]
+          [ [ "name", name ]
+          , [ "type", type ]
           ]
         )
-      , addr: getAddr();
+      , addr: getAddr()
       }
-    );
-
-const any = primitive("any", null );
-any.members.get("type") = any;
+  );
+}
 
 const globals =
     { class: primitive("class", any)
@@ -33,14 +35,15 @@ const globals =
     };
 
 const implicitDefinitions =
-    [ [ "class", class ]
-    , [ "trait", trait ]
-    , [ "type", type ]
-    , [ "any", any ]
+    [ [ "class", globals.class ]
+    , [ "trait", globals.trait ]
+    , [ "type", globals.type ]
+    , [ "any", globals.any ]
     ];
+/*/
 
 function resolvePath(basePath, path) {
-  basePath = path.dirname(basePath) + "/";
+  basePath = pathUtils.dirname(basePath) + "/";
   
   switch (path[0]) {
     case "/": return "." + path;
@@ -49,82 +52,47 @@ function resolvePath(basePath, path) {
   }
 }
 
-function* tokens(str) {
-  for (let i = 0; i < str.length; i++) {
-    switch (true) {
-      case str[i] == "{": i++; yield token = "{"; break;
-      case str[i] == "}": i++; yield token = "}"; break;
-      case str[i] == "(": i++; yield token = ")"; break;
-      case str[i] == ")": i++; yield token = ")"; break;
-      case str[i] == "<": i++; yield token = "<"; break;
-      case str[i] == ">": i++; yield token = ">"; break;
-      case str[i].match(/\s/): i++ break;
-      case str[i].match(/[a-zA-Z]/): {
-        const upper = str[i] === str[i].toUpperCase();
-
-        let map = keyMap;
-        let start = i;
-
-        while (str[++i].match(/[a-zA-Z0-9]/)) map = map ? map.get(str[i]) : null;
-
-        yield map.get("end") || { type: "identifier", name: str.substring(start, i), upper };
-
-        break;
-      }
-    }
-  }
-}
-
-async function getModule(path) {
+async function getModule(parser, path) {
   if (path.match(/^stlib-fake\//)) return stlibFake;
   
-  const str = fs.promises.readFile(resolvePath(basePath, path), "utf8");
+  const str = await fs.promises.readFile(path, "utf8");
   
-  let token = null;
-  
-  
+  return parser.parse(str, path.match(/.chalkdoc$/));
 }
 
-(async () => {
-  const modules = new Map();
+class Program {
+  constructor(entryPoint) {
+    if (!entryPoint) throw new Error("No path to a .chalk file.");
+    
+    this.modules = new Map();
+    this.parser = new Parser(chalkGrammar, "Module");
+    
+    this.getAddr = (() => {
+      const gen = (function*() { let i = 0; while (true) yield i++; })();
+      
+      return gen.next.bind(gen);
+    })();
+    
+    this.exec("./" + entryPoint);
+  }
   
-  const entryPoint = await (async function getAllModules(basePath, path) {
+  async exec(entryPoint) {
+    const mainModule = await this.loadModule(".", entryPoint);
+    
+    mainModule.eval();
+  }
+  
+  async loadModule(basePath, path) {
     path = resolvePath(basePath, path);
     
-    const m = await getModule(path);
+    const module = await getModule(this.parser, path);
     
-    modules.add(path, m);
-
-    await Promise.all(m.imports.map(i => {
-      const promise = getAllModules(path, i.path);
-      
-      // TODO fix imported variables
-      m
-      
-      return promise;
-    }));
+    this.modules.add(path, module);
     
-    return m;
-  })(".", entryPoint);
-  
-  entryPoint.get("Main").get("new")
-      .call(modules, entryPoint.get("Main").createInstance());
-})();
-
-class Class {
-  constructor() {
-    this.members
-  }
-  
-  get(member) {
+    await Promise.all(getImportPaths(module).map(i => this.loadModule(path, i)));
     
+    return module;
   }
 }
 
-class Import {
-  constructor(path, ) {
-    this.path = path;
-  }
-}
-
-new Program(process.argv[1]);
+new Program(process.argv[2]);
