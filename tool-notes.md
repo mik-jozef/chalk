@@ -8,6 +8,8 @@ defines their own zero/one/two-element enum)
 
 Empty class.
 
+`??T` - unnecessary question mark. OR `A|A` and similar
+
 Class with just one member.
 
 Unused variable.

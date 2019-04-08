@@ -27,25 +27,35 @@ const simpleGrammar =
     ];
 
 // T a = 2 + q = 8 * b = c;
+// T a = 2 * 4 + q = 8 + b = c;
 // 2 + a = 4;
 // 2 + a = b = 2 + 4;
+// a ** b ** c;
+
+// T a = 2 * 4 + q = 8 + b = c;
+// a = await b = c
+// a + await b = c
 
 export const simplerGrammar =
-    [ [ "Operator", [ "Assign" ] ]
-    , [ "Assign", [ "AssignM" ] ]
-    , [ "Assign", [ "QmarkR" ] ]
-    , [ "AssignM", [ "Unary", "=", "Assign" ] ]
-    , [ "Unary", [ "unary" ] ]
-    , [ "QmarkL", [ "OrL", "?:", "QmarkL" ] ]
-    , [ "QmarkL", [ "OrL" ] ]
-    , [ "QmarkR", [ "OrL", "?:", "QmarkR" ] ]
-    , [ "QmarkR", [ "OrR" ] ]
-    , [ "OrL", [ "PowL" ] ]
-    , [ "OrR", [ "PowR" ] ]
-    , [ "PowL", [ "PowL", "**", "Unary" ] ]
-    , [ "PowL", [ "Unary" ] ]
-    , [ "PowR", [ "PowL", "**", "AssignR" ] ]
-    , [ "PowR", [ "AssignR" ] ]
+    [ [ "Module", [ "Defs" ] ]
+    , [ "IdList", [] ]
+    , [ "IdList", [ "IdListT" ] ]
+    , [ "IdListT", [ "Identifier" ] ]
+    , [ "IdListT", [ "Identifier", ",", "IdListT" ] ]
+    , [ "Identifier", [ "uIdentifier" ] ]
+    , [ "Identifier", [ "lIdentifier" ] ]
+    , [ "Defs", [] ]
+    , [ "Defs", [ "Def", "Defs" ] ]
+    , [ "Def", [ "VariableDef" ] ]
+    , [ "Type", [ "TypeMemAccess" ] ]
+    , [ "TypeMemAccess", [ "AtomicUIType" ] ]
+    , [ "AtomicUIType", [ "uIdentifier" ] ]
+    , [ "VariableDef", [ "Type", "VariableDefT" ] ]
+    , [ "VariableDefT", [ "Identifier" ] ]
+    , [ "VariableDefT", [ "Identifier", "=", "Operator" ] ]
+    , [ "VariableDefT", [ "Identifier", "Tuple" ] ]
+    , [ "Operator", [ "Def" ] ]
+    , [ "Operator", [ "Type" ] ]
     ];
 
 // Seems to work, but is quite slow
@@ -58,9 +68,11 @@ function testFirst() {
 }
 
 function testParser() {
-  const parser = new Parser(simplerGrammar, "Operator");
+  const parser = new Parser(chalkGrammar, "Module");
   
   log(parser.table);
+  log(parser.table.length);
+  log(parser.table.slice(0,31));
 }
 
 testParser();

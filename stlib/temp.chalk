@@ -293,7 +293,7 @@ trait Stream<T> {
   void forEach(Bool fn(*T elem));
   Self map<Val>(T fn(*T elem), Self newObject);
   Self filter(Bool fn(*Self elem));
-  T reduce<T>(T fn(*T elem, *T acc), *T start);
+  T reduce<T>(*T start, T fn(*T elem, *T acc));
   
   []T take(Int n);
   []T takeAll();

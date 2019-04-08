@@ -431,9 +431,19 @@ What is `*mut Int i = 1;`? Options:
     but unline type definitions
 `!is` operator
 maybe switch shouldn't have any continue or fallthrough expressions
-  did I ever use it?
 a way to call default implementation from a trait of a method, if it is overriden
   by the class?
+unary minus should not be an operator, but a part of number literal
+should objects in variables of type `?T` be convertible to `Bool`?
+Should `1 < 2 < 3 <= 3` be valid and evaluate to `true`?
+getters? I definitely don't want setters, but getters could be acceptable,
+  provided they are pure
+locality of errors: changing a piece of code should ideally produce error
+  at or close to the change.
+  This is why I'm worried about proofs in code - if there is semi-successful
+  (and it can never be totally successfull) autoproving, changing an invariant
+  could theoretically produce seemingly unrelated errors anywhere in code, if
+  it means the auto-prover is no longer able to prove what it needs to prove
 Compiler optimizations:
   Assuming `Set<T>.subsets(Set<T>)` constructs the set of all subsets, this code
   ```
@@ -448,12 +458,125 @@ replace trait Number with traits Additive|MultiplicativeGroup, Field, etc?
   Would there also be a way to force classes implementing A|MGroup to also
   implement Field? - not a good idea, since Int is none of these (overflow results in null)
 `permutationStream()`
+replace generic types with functions returning types?
+  ```
+  class Map(any Key, any Val) => class {
+    // ...
+  }
+  ```
+this should be error: (?)
+  ```
+  Int i = 3;
+  Float f = i;
+  ```
+`pub class {}`, also chceck all other keywords that might apply to the whole class
 if `stream is Stream<T>`, `[ a, ...stream, b ]` should create array of `T&a.type&b.type`
   if `stream.length` is known at compile time, `( a, ...stream, b )` should create
   a `stream.length + 2`-tuple of `T&a.type&b.type`
+warning: the y combinator is not suitable for an imperative language, please use ordinary recursion
+  if sth like `f => (x => f(()=>x(x)))(x => f(()=>x(x)))` appears in code
+  ... actually this would probably be a type error :(
+  But maybe infinite types should be supported. another use case: in the tokenizer
+  of the simple js interpreter, there is a map of type that is close to being
+  `T = Map<String, T|Bool>` (which should perhaps be rewritten to
+  `T = Map<String, (Bool, T)>`). In this specific case, the type is not actually
+  infinite, because there is only finite amount of self-reference. However, the
+  alternative , which is `Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, Bool>|Bool>|Bool>|Bool>|Bool>|Bool>`,
+  is bad for several reasons.
+  Also, streams are a hack replacement for `T = A -> (B, T)`
+  Should `Self` be allowed in the type parameters? eg. `Map<String, (Bool, Self)>`
+  That would also make `Self` a keyword
+do switch statements have to be exhaustive?
+should `All` accept zero parameters? it would be useful to state things about
+  existing variables
+  ```
+  Null foo() {
+    Int i = 9;
+    
+    All: i >= 3; // Should this apply to the whole lifetime of the variable, or just now?
+    
+    i = 1; // No problem???
+    
+    assume i >= 0;
+    
+    i = -1; // Should this be error, or should i now count as a new variable
+  }
+  ```
+target="android"?
+a nice error message for when an expression that evaluates to a type, but is not a type
+  (eg. a function call) is used instead of type, eg. in variable definitions
+what warning should expressions whose only side effects come from subexpressions produce?
+  eg.
+  ```
+  Int bar() { printf("Hello"); return 0; }
+  
+  Null() { 2 + bar(); }
+               ^^^^^
+  Warning: parent expression has no (side?) effects.
+  ```
+incremental compilation
+partial type specification? `Map<auto...> m`
+`Stream<T>.next` should return `T`, not `(T, Bool)`, as in JS.
+  if someone wants a 'done' flag, he can explicitly return it.
+  for some Streams, it is completely unnecessary, however (eg. fibonnacci),
+  for some there might be better ways to indicate end of stream (some default value)
+should generators return `Stream`, or `Stream.next`?
+stack thraces must be correct even across things like `await`, `setTimeout`, etc.
+cancellable promises?
+existential types? eg. `Set<?>`
+instead of `Self`, which is ambiguous
+  (what is `Set<?Self>`? `Set<?Set<?Set<?...>>>` or `Set<?????...>`),
+  use `T<...>`: `Set<?...>` means `Set<?????...>`, `Set<?Set<...>>`
+  PROBLEM: that is also ambiguous: `Set<Set<?...>>`
+error: x not defined, did you mean to import from y?
+`--debug` compiler flag lets modules import private identifiers using special syntax?
+what if concatenation operator would be the empty string?
+`Map<K, V>.get` should have an overload `V(K, V insertIfDoesntExist)`
+`array.pop(4)` pops 4 elements?
+`arr.indexOf(a)` should return `array.length` in case `a` is not an element of `arr` (?)
+runtime vs comptime import, of code, and of files - import() vs load()? or what
+  * `import pic from "./path.jpg" using PngOpener`
+  * `Png pic = import("./path.jpg", PngOpener)`
+  * `Png pic = load("./path.jpg", PngOpener)`
+optimizations - merge not only identical string, but identical objects of other
+  types as well, eg. this:
+  ```
+  Set<Symbol> first = grammarRules
+      .map(rule => rule.left == symbol ? first(rule.right) : new Set())
+      .reduce(new Set(), (acc, a) => acc.add(a))
+  ```
+  could be optimized to:
+  ```
+  auto tmp = new Set();
+  
+  Set<Symbol> first = grammarRules
+      .map(rule => rule.left == symbol ? first(rule.right) : tmp)
+      .reduce(new Set(), (acc, a) => acc.add(a))
+  ```
+one of the parameters of `Main.new` should be `Int64 random`? a random integer
+  or maybe `time`, the time the process was started.
+problem: what is `(Int, Int)` - `Tuple<Int, Int>`, or an instance of `Tuple<class, class>`?
+should multiplication be defined on functions?
+  ```
+  Int a(Int a, Int) => a;
+
+  (Int, Int) b(Bool b) => ( b ? 1 : 0, b ? 1 : 0 );
+
+  Int(Bool) c = a * b;
+  ```
+  also, should functions officially take tuples as parameters, and one-tuples would be
+  implicitly convertible to not-one-tuples?
+  ```
+  a (b true); // equal to `(a * b)(true)`
+  ```
+date and time api should greatly discourage from middle endian time format, or maybe
+  not support it at all.
+  Also, 12-hour clock should only be implemented after the whole world agrees on
+  the precise meaning of 12am/pm.
 Rational numbers in stlib? thay would have to have a big warning in documentation
   they are just for storing user input like `0.1`, not for computation
   maybe they shouldn't even implement Number
+  or maybe Chalk's equivalent of <input/> should just have a `toNumber` function...
 `class C = class<type A, type B> {}`? this should probably be an error
 `class<type A> C = class<type A, type B> {}<Int, A>`?
 `class<type> C = class<type A> {}`?
@@ -598,7 +721,8 @@ Error class, destructor throws if ignore() wasn't called
 prefer 'start - end' to 'start - length', because some types are orderable even
   if the difference is not measurable
 warning: function can be static (if this is not used either explicitly or implicitly)
-compile option: --aggresive-generics
+compile option `--aggresive-generics`?
+  - maybe this should be affected only by more goal-oriented flags like eg. `--space-req=none`
 optimize out object creation in argument instead of having emplace?
 warn on `x && Int a(0)` (ERRCODE: Variable declaration in implicit scope);
 small standard library, official packages in userland?
@@ -762,17 +886,70 @@ in functions, `assume`s must come before all other expressions
 }
 ```
 export, shared, final, get set pub, own static, mut const immut
-usable design: fs.accessNow - checks if process can access a fs entry, the 'Now'
-  part should remind users of races
+should cast from `immut T` to `mut T` be allowed, if proven that the data will
+  not be modified?
+all possible implicit type conversions must provably end with the same result?
+all distinct values *that are instances of the same type* must have distinct
+  addresses? this way, all integers could technically have a distinct address,
+  and wouldn't...
+  this might not be necessary - implementation doesn't have to place all integers
+  in the memory anyway
+if a class has a potentially null member and the default equality, then two
+  instances with a null member aren't equal - is this wrong?
+  should the default equality disrespect how null equality works? That seems
+  to be even more wrong.
+ideally it should be true that all objects that are once allocated must be provably
+  deallocated, however I'm concerned that might ask for too many proofs
+  Ideally, proofs should be something that is not required for most programming
+  tasks, only necessary when you're trying to be smart
+all pointers must provably be valid anytime they are dereferenced
+  must they also be valid if they are not? ie. does eg. this code produce an error?
+  ```
+  Null foo() {
+    *Int ptr;
+    
+    {
+      Int i;
+      
+      ptr = i;
+    }
+    
+    bar();
+  }
+  ```
+  I think this code should be correct
+  can this be used for optimizations? it basically gives the compiler a partial order
+  on variables such that `a < b` when a is deallocated sooner than b, I guess
+`All:` qualifies over all possible program states. Is it mandatory to have access
+  to local variables?
+regerex - there should be support for grammars that execute graph algorithms
+  like finding which functions are called by which functions
+a nice syntax for logical definitions of functions is needed. an attempt:
+  ```
+  class equals(Set a, b) = True <-> (All Set s: s in a <-> s in b);
+  
+  This is soooooooooo wrooong.
+  
+  But at least it's clear now what is needed.
+  ```
+should let be transitive?
+usable design: `fs.accessNow` - checks if process can access a fs entry, the 'Now'
+  part should remind users of races; or maybe `fs.accessThisInstant`
 `import pic from "/path/to.jpg"`, imports an image to the binary at compile time?
   maybe `import pic from "/path/to.jpg" using JpgDecoder`?
 variables without mut, const or immut could be const, but not transitively?
+Collection.some and Collection.every should have two versions - one returns Bool,
+  other returns an element/collection of elements
+argument for why local variables, maybe unless they are anonymous, should be on
+  the stack by default: guaranteed they won't need dynamic allocation
 all provably dead/side-effect-free code should produce a warning
 `--machineTranslate` - do not spend precious CPU cycles on warnings/potential
   error messages, because output of stdout goes to /dev/null
   Or something else if the compilation is just a part of an automated process
   that is only interested in a successful compilation if possible
 `--noWarnings`?
+warning: all side effects of this expression come from a subexpression
+warning: `a ? false : true` can be replaced by `!a`
 there must be two versions of `getMembers()` - one private that returns all members,
   one public that returns get, set and pub members.
   Should there also be two versions of `supertypes()`/`extends()`? I'm afraid that
@@ -1186,6 +1363,10 @@ function can prove invariants about itself, eg. that an optional type is not
 If every function self-invocation is the last executed expression, that function
   will be converted to a loop
 what about funcitonal programming? lazy evaluation?
+  could eg. the y combinator (if type system allows it) not cause infinite loop?
+  ```
+  Null foo() => foo(); // Should this terminate?
+  ```
 a way to unresolve a promise if it is still just waiting in event loop? (later: why?)
 cancellable promises, can stop async functions, threads
 ChalkDoc documents should have the option to be interactive, however, there should
@@ -1275,6 +1456,22 @@ should `==` always mean `Object.equals`? equality might not always be computable
 ufcs? member functions are accessible as `ClassType.memberFn`, not as `instance.memberFn`,
   `x.a(b, c)` is equivalent to either `a(x, b, c)` or `xType.a(x, b, c)`, the first
   form must not be used if ambiguous
+immutable classes - all instances must be immutable
+immutable classes can modify themselves, as a syntactic sugar for creating a new
+  version of themselves?
+temporaryli immutable - to take an immut reference to x, it must be proven it won't
+  change while the reference exists
+  ```
+  auto a = [ 0, 1, 2 ];
+  
+  *immut []Int p = a;
+  
+  // a.push(3); would be error
+  
+  p = [];
+  
+  a.push(3); // not an error
+  ```
 compiler can edit code, eg. rename variable
 what if a function returns a trait type that is backed by anonymous class? should
   that trait type be also treated as a class type? motivation - Stream:zipWith
@@ -1283,6 +1480,9 @@ documentation: allow notes that popup on underlined pieces of text, only use thi
   when someone who would not gain any info from reading it knows he doesn't have
   to read it (this pretty much restricts its use for definitions)
 inline assembly?
+array.last - last element or null
+only the first param has to have an explicit type, `Int(Int a, b) => a + b`?
+static member variables must be immutable
 `Ast a = { Int i; };`
 ASCII only, including proofs. No single-character greek variable names.
 website should require little internet connection (fast load times important),
@@ -1303,6 +1503,13 @@ array of number should be a number?
   are potentially imports that cannot be easily renamed
 append operator `~`?
 rename `Object` to `Any`?
+create a nice error for `case` branch of `switch` that contains multiple expresions,
+  with an autofix:
+  ```
+  switch {
+    case _: a++; b++; // Error: multiple expressions in a single `case`, use code block.
+  }
+  ```
 `Object...` for variadic parameters, `T...` for variadic templates, `T[n]` and
   `T.length` supported
 code coverage analyzer as part of compiler
@@ -1317,6 +1524,8 @@ closures are shared between functions from the same scope
 reflection.createType? (or compiler.createType?)
 TODO concurrency, green threads?
 instanceof? is?
+design goal - if something could be possible, but is hard to implement, it should
+  still be possible
 string: view/slice/substring: - same memory, doesn't hold reference; same memory, holds;
   new memory, holds; what about array?
 readme.md should be replaced with `main.chalk`
@@ -1333,9 +1542,44 @@ remember `X.Y a;` is variable declaration even though `X.Y` is a member access
   if disproven?)?
 all comptime functions must provably terminate, and all runtime functions should
   throw a warning if they don't
+for all types `T`, the one-tuple `(T)` equals `T` (or not? `t.length`)
+every expression should have a principal type
+`Main` class must be exported
+100% type soundness IS a design goal
+if a class `A` only contains one member of type `B`, should `*A a = b` and `*A a = b` work?
+  no, in one direction its easy (`b = a.member`), in the other it could violate class invariants
+user defined type conversions + function reflection/inspection =
+  ```
+  class Polynomial {
+    new(type T : Number, T p(T)) implicit {
+      // ...
+    }
+  }
+  
+  Polynomial = x => 3 * x ** 2 - 2 * x ** 3;
+  ```
+Number.parse(String str, ?Int base = 10, Bool allowBaseChange = ??) // base == null -> str must be prepended with 0x, 0b, ... ?
+should duplicate variables be a warning? eg.
+  ```
+  mut Int a;
+  let *Int p = a; // Will always point to a.
+  ```
 should every value have an address and every variable a value, or should every
   variable have an address and a value, and value not have an address?
 should taking a pointer to a temporary object produce a warning, an error or nothing?
+variable declaration: `?(mut|let|const|immut||default=let)?( Type||defaut=auto) VarName;`
+  * mut - mutable
+  * let - intransitive immutable with this reference
+  * const - transitive immutable with this reference
+  * immut - transitive immutable
+TODO tuple destructuring in lambdas
+compiler should be able to generate and visualize call graphs
+haskell-like function declarations?
+  mut fact(0) => 1;
+  mut fact(n) => n * fact(n - 1);
+should code block be followed by a semicolon anywhere? I thought '}' is never
+  followed by one, but my current grammar says otherwise
+`class A<T a, b> {}` - one type, multiple params
 reflection:
   is comptime
   ability to detect if trait method is overriden?
@@ -1550,6 +1794,10 @@ Namespace.new();
 
 Namespace n; // Error: cannot instantiate static class.
 ```
+`Null y(any T, Null f(, T t)) => (x => x(x))(x => f(x(x)));`
+an explicit goal of creating Chalk should be to make a statically typed
+  imperative language in which the y combinator is typeable and doesn't
+  cause stack overflow, simply because the y combinator is cool.
 non-exported types should not be acquirable to outside code? possible paths:
   through reflection (Type.getSupertype)
   returned from function
@@ -1564,6 +1812,8 @@ non-exported types should not be acquirable to outside code? possible paths:
   T.subtypes is []class;
   T.subtypes == [ A, B, C ];
   ```
+  only if a trait is final, a compiler is allowed to assume it is extended
+  by only those types it knows about
 ```
 ?A foo() { randBool() ? A() : null }
 
@@ -2433,7 +2683,17 @@ auto fn() {
   };
 }
 
+enum { a; b; c }
+
 enum { a, b, c }
+
+enum { a b c }
+
+enum {
+  anana;
+  cnonarrrna;
+  bnenana;
+}
 
 enum {
   anana,

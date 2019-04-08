@@ -19,7 +19,9 @@ export class HashSet {
 }
 
 export trait Map<class K, class V> {
+  get(K) immut;
   
+  get(K, V) mut;
 }
 
 export class HashMap<class K, class V> {

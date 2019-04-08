@@ -1,21 +1,27 @@
 ///
 A simple chalk program.
+
+Functions 'print' and 'scan*' for any * are not necessarily part of Chalk.
 ///
 
-class {}
+import RegLangParser from "reglang.chalk";
+
+class {};
+
+Float pi = 3.14159;
 
 Int factorial(Int i) {
   return i == 0 ? 1 : i * factorial(i);
-}
+};
 
 class Main {
   new() {
     String msg = "Enter a number: ";
     
-    print(msg); // Function 'print' is not necesarily part of Chalk.
+    print(msg);
     
-    Int i = scanInt(); // Function 'scanInt' is not necesarily part of Chalk.
+    Int i = scanInt();
     
     print("\n" ++ i ++ "! = " ++ factorial(i) ++ "\n");
-  }
-}
+  };
+};

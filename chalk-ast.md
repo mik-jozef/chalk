@@ -12,7 +12,7 @@ Expr From
 
 ## Definition = ClassTemplate|TraitTemplate|Function|Variable|Destructuring
 
-## Expr = Literal|Identifier|Operator|Definition|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
+## Expr = Literal|lIdentifier|Type|Operator|Definition|CodeBlock|Switch|ForLoop|Break|Continue|FunctionCall|Return
 
 ## Identifier
 `?_(a-z|A-Z)*(a-z|A-Z|0-9) except keywords` name
@@ -33,7 +33,12 @@ Expr lhs
 Expr lhs
 
 ## Type
-AtomicType|UnionType|IntersectionType|MemberAccess type
+AtomicType|UnionType|IntersectionType|TypeMemberAccess type
+
+## TypeMemberAccess
+Type
+Identifier
+// note see parser.mjs in simple interpreter
 
 ## AtomicType
 Identifier name
@@ -120,6 +125,9 @@ Expr function
 ?Expr spread (?)
 
 ## Return
+?Expr value
+
+## Await
 ?Expr value
 
 ## ChalkDoc

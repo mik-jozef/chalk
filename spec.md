@@ -574,11 +574,11 @@ the first [[import]] of that [[module definition|module]] will implicitly be
 
 ### Definitions
 
-There are 5 types of [[definition]]s: [[class template defition|Class]] and [[type
+There are 5 types of [[definition]]s: [[class template defition|Class]] and [[trait
 template definition]]s, [[function definition]]s, [[variable definitions]] and
 [[destructuring]].
 
-[[class template definition|Class]] and [[type definition]]s in all [[scope]]s and [[variable definitions]] in
+[[class template definition|Class]] and [[trait template definition]]s in all [[scope]]s and [[variable definitions]] in
 [[module scope|module]], [[class scope|class]] or [[trait scope]] are visible
 even before they are defined. [[Variable definition]]s in [[function scope]] are
 only visible after they are defined.
@@ -653,11 +653,12 @@ A [[[keyword]]] is a UTF-8 string that cannot be an [[identifier]].
 export []String keywords =
     [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
     , "comptime", "const", "continue", "default", "enum", "Exists", "export"
-    , "final", "for", "friend", "function", "get", "immut", "import", "is", "mut"
-    , "own", "pub", "return", "set", "shared", "static", "switch", "throw", "trait"
-    , "try", "type", "yield"
+    , "final", "for", "friend", "function", "get", "let", "immut", "import", "is"
+    , "mut", "own", "pub", "return", "Self", "set", "shared", "static", "switch"
+    , "throw", "trait" , "try", "type", "yield"
     ];
 
+// Or should the last expression be returned? Or something else?
 document.write("List of keywords: " + keywords.map(a => "`" + a + "`").join(", "));
 }}}```
 
@@ -727,6 +728,10 @@ Maybe, but probably not:
 | `a -% b`    | ??                     | (must be `Int`)
 | `a *% b`    | ??                     | (must be `Int`) // Wrapping operators
 
+Maybe, and maybe not syntactic sugar:
+| `a ||= b`   | ??                     |
+| `a &&= b`   | ??                     |
+
 Operators that are not syntactic sugar:
 
 | Example     | Operator      | Return type
@@ -736,9 +741,12 @@ Operators that are not syntactic sugar:
 | `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
 | `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
 | `a ? b : c` | Conditional   | Union of types of `b` and `c`
+| `a is T`    | Is operator   | `Bool`
 
 The first operand of [[conditional]], [[logical and]] and [[logical or]] operators
 must be `Bool`.
+
+> TODO the `is` operator.
 
 #### Member access operator
 #### The 'is' operator
@@ -749,6 +757,51 @@ The [[expression]] `a is B` [[return]]s [[true]] when `a.type` [[is]] `B`.
 
 #### Assignment
 > `=` assigns value, `:=` assigns pointer, `::=` assigns pointer to pointer, etc.
+
+#### Precedence
+> TODO Not sure if this should be defined or result from the grammar.
+
+> TODO How should this be parsed?
+>
+> ```
+> x && a = b + c = d * e;
+> 
+> x && (a = (b + (c = (d * e))));
+> ```
+
+unary: `.`, `?.`, `[]`, `!`
+
+assignRight: =, +=, -=, \*=, /=, %=, \*\*=, ||=, &&=
+
+await: `await`
+
+pow: **
+
+mul: \*, \*%, /
+
+add: +, -, +%, -%
+
+mod: %
+
+concat: ++
+
+compare: <=>
+
+relation: <, >, <=, >=, is
+
+equal: ==, !=
+
+and: &&
+
+or: ||
+
+qmark: ?:, ? :
+
+assignLeft: =, +=, -=, \*=, /=, %=, \*\*=
+
+word: const, immut, yield, yield*/yieldAll
+
+
 
 ### Code blocks/Expressions (and control flow?) (and scope?)
 [[Code block]] returns the last [[expression]].

@@ -19,12 +19,16 @@ I decided not to support destructuring, here are the unfinished rules of grammar
 
 import { tokenizer } from "./tokenizer.mjs";
 
-import util from "util"; // TODO remove
+import util from "util";
 
 /*/
 Simplified grammar of the Chalk programming language.
 
 Doesn't (yet?) support destructuring, function types, and `yield*`/`yieldAll`.
+
+At first, I tried to support nearly everything that is (will be) valid Chalk,
+but now, after fixing countless grammar conflicts I'll be fine with any working
+solution.
 
 Special terminals: uIdentifier, lIdentifier, number, string.
 /*/
@@ -37,65 +41,60 @@ export const chalkGrammar =
     , [ "IdList", [] ]
     , [ "IdList", [ "IdListT" ] ]
     , [ "IdListT", [ "Identifier" ] ]
+    , [ "IdListT", [ "Identifier", ",", "IdListT" ] ]
     , [ "Identifier", [ "uIdentifier" ] ]
     , [ "Identifier", [ "lIdentifier" ] ]
-    , [ "IdListT", [ "Identifier", ",", "IdListT" ] ]
     , [ "Defs", [] ]
-    , [ "Defs", [ "Def", "Defs" ] ]
+    , [ "Defs", [ "Def", ";", "Defs" ] ]
     , [ "Def", [ "ClassDef" ] ]
     , [ "Def", [ "TraitDef" ] ]
     , [ "Def", [ "FunctionDef" ] ]
     , [ "Def", [ "VariableDef" ] ]
     , [ "Def", [ "Destructuring" ] ]
-    , [ "Expr", [ "Operator" ] ]
-    , [ "RetName", [] ]
-    , [ "RetName", [ "-", "lIdentifier" ] ]
-    , [ "Expr", [ "FunctionCall" ] ]
-    , [ "Expr", [ "Return" ] ]
     , [ "Type", [ "TypeMemAccess" ] ]
     , [ "Type", [ "UnionType" ] ]
     , [ "Type", [ "IntersectionType" ] ]
-    , [ "Type", [ "auto" ] ]
-    , [ "TypeMemAccess", [ "AtomicType" ] ]
-    , [ "TypeMemAccess", [ "lIdentifier" ] ]
-    , [ "TypeMemAccess", [ "AtomicType", ".", "TypeMemAccess" ] ]
-    , [ "TypeMemAccess", [ "lIdentifier", ".", "TypeMemAccess" ] ]
-    , [ "AtomicType", [ "uIdentifier" ] ]
-    , [ "AtomicType", [ "uIdentifier", "<", "Expr", "ExprT", ">" ] ]
+    , [ "Type", [ "type" ] ]
+    , [ "Type", [ "any" ] ]
+    , [ "TypeT", [ "Type" ] ]
+    , [ "TypeT", [ "Type", ",", "TypeT" ] ]
+    , [ "TypeMemAccess", [ "AtomicUIType" ] ]
+    , [ "TypeMemAccess", [ "AtomicUIType", ".", "TypeMemAccess" ] ]
+    , [ "TypeMemAccess", [ "LMemAccess", ".", "AtomicUIType", ".", "TypeMemAccess" ] ]
+    , [ "TypeMemAccess", [ "LMemAccess", ".", "AtomicUIType" ] ]
+    , [ "LMemAccess", [ "lIdentifier" ] ]
+    , [ "LMemAccess", [ "LMemAccess", ".", "lIdentifier" ] ]
     , [ "AtomicType", [ "[", "]", "AtomicType" ] ]
-    , [ "AtomicType", [ "[", "]", "(", "Type", ")" ] ]
     , [ "AtomicType", [ "*", "AtomicType" ] ]
-    , [ "AtomicType", [ "*", "(", "Type", ")" ] ]
-    , [ "AtomicType", [ "(", "Type" ] ]
+    , [ "AtomicType", [ "(", "TypeT", ")" ] ]
+    , [ "AtomicType", [ "AtomicUIType" ] ]
+    , [ "AtomicUIType", [ "uIdentifier" ] ]
+    , [ "AtomicUIType", [ "uIdentifier", "<", "Operator", "OperatorT", ">" ] ]
     , [ "UnionType", [ "TypeMemAccess", "|", "Type" ] ]
     , [ "UnionType", [ "IntersectionType", "|", "Type" ] ]
     , [ "IntersectionType", [ "TypeMemAccess", "&", "TypeMemAccess" ] ]
-    , [ "IntersectionType", [ "TypeMemAccess", "&", "(", "UnionType", ")" ] ]
     , [ "IntersectionType", [ "TypeMemAccess", "&", "IntersectionType" ] ]
-    , [ "IntersectionType", [ "(", "UnionType", ")", "&", "TypeMemAccess" ] ]
-    , [ "IntersectionType", [ "(", "UnionType", ")", "&", "(", "UnionType", ")" ] ]
-    , [ "IntersectionType", [ "(", "UnionType", ")", "&", "IntersectionType" ] ]
-    , [ "ClassDef", [ "class", "Identifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
+    , [ "ClassDef", [ "class", "uIdentifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
+    , [ "ClassDef", [ "class", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
     , [ "TemplateParams", [] ]
-    , [ "TemplateParams", [ "<", "ParamsT", ">" ] ]
-    , [ "Params", [ "" ] ]
-    , [ "Params", [ "ParamsT" ] ]
-    , [ "ParamsT", [ "Type", "Identifier" ] ]
-    , [ "ParamsT", [ "Identifier", ",", "ParamsT" ] ]
-    , [ "ParamsT", [ "Type", "Identifier", ",", "ParamsT" ] ]
+    , [ "TemplateParams", [ "<", "Params", ">" ] ]
+    , [ "Params", [] ]
+    , [ "Params", [ "ParamsT", "Params" ] ]
+    , [ "ParamsT", [ "Type", "IdListT" ] ]
     , [ "Extends", [] ]
-    , [ "Extends", [ ":", "IdListT" ] ]
-    , [ "TraitDef", [ "trait", "Identifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
-    , [ "Function", [ "Type", "(", "Params", ")", "=>", "Expr" ] ]
-    , [ "Function", [ "Type", "(", "Params", ")", "Block" ] ]
-    , [ "Function", [ "Type", "(", "Params", ")", "{", "}" ] ]
-    , [ "Function", [ "Type", "(", "Params", ")", "{", "Expr", "}" ] ]
+    , [ "Extends", [ ":", "TypeT" ] ]
+    , [ "TraitDef", [ "trait", "uIdentifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
+    , [ "TraitDef", [ "trait", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "=>", "Operator" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "Block" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "}" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "Operator", "}" ] ]
+    , [ "VariableDef", [ "auto", "VariableDefT" ] ]
     , [ "VariableDef", [ "Type", "VariableDefT" ] ]
-    , [ "VariableDef", [ "Type", "VariableDefT", "VariableDefR" ] ]
     , [ "VariableDefT", [ "Identifier" ] ]
-    , [ "VariableDefT", [ "Identifier", "=", "Expr" ] ]
+    , [ "VariableDefT", [ "Identifier", "=", "Operator" ] ]
     , [ "VariableDefT", [ "Identifier", "Tuple" ] ]
-    , [ "VariableDefR", [ ",", "VariableDefT", "VariableDefR" ] ]
+    , [ "VariableDefT", [ "Tuple" ] ]
     , [ "Literal", [ "number" ] ]
     , [ "Literal", [ "string" ] ]
     , [ "Literal", [ "Array" ] ]
@@ -103,160 +102,158 @@ export const chalkGrammar =
     , [ "Literal", [ "Object" ] ]
     , [ "Literal", [ "Set" ] ]
     , [ "Array", [ "[", "]" ] ]
-    , [ "Array", [ "[", "Expr", "]" ] ]
-    , [ "Array", [ "[", "Expr", "ExprT", "]" ] ]
-    , [ "ExprT", [] ]
-    , [ "ExprT", [ ",", "Expr", "ExprT" ] ]
+    , [ "Array", [ "[", "Operator", "OperatorT", "]" ] ]
+    , [ "OperatorT", [] ]
+    , [ "OperatorT", [ ",", "Operator", "OperatorT" ] ]
     , [ "Tuple", [ "(", ")" ] ]
-    , [ "Tuple", [ "(", "Expr", ")" ] ]
-    , [ "Tuple", [ "(", "Expr", "ExprT", ")" ] ]
-    , [ "Object", [ "{", "Identifier", "ObjectT", "}" ] ]
-    , [ "Object", [ "{", "Type", "Identifier", "ObjectT", "}" ] ]
+    , [ "Tuple", [ "(", "Operator", "OperatorT", ")" ] ]
+    , [ "Object", [ "{", "&&", "Identifier", "ObjectT", "}" ] ] // Hack to resolve grammar conflict
+    , [ "Object", [ "{", "||", "auto", "Identifier", "ObjectT", "}" ] ]
+    , [ "Object", [ "{", "||", "Type", "Identifier", "ObjectT", "}" ] ]
     , [ "ObjectT", [] ]
-    , [ "ObjectT", [ ",", "Identifier", "Expr", "ObjectT" ] ]
-    , [ "ObjectT", [ ",", "Type", "Identifier", "Expr", "ObjectT" ] ]
-    , [ "Set", [ "{", "}" ] ]
-    , [ "Set", [ "{", "Expr", "}" ] ]
-    , [ "Set", [ "{", "Expr", "ExprT", "}" ] ]
-    , [ "Operator", [ "const", "Operator" ] ]
-    , [ "Operator", [ "immut", "Operator" ] ]
-    , [ "Operator", [ "yield", "Operator" ] ]
-    , [ "Operator", [ "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "+=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "-=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "*=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "/=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "%=", "AssignL" ] ]
-    , [ "AssignL", [ "Unary", "**=", "AssignL" ] ]
-    , [ "AssignL", [ "QmarkL" ] ]
-    , [ "AssignR", [ "Unary", "=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "+=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "-=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "*=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "/=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "%=", "AssignL" ] ]
-    , [ "AssignR", [ "Unary", "**=", "AssignL" ] ]
-    , [ "Unary", [ "Literal" ] ]
-    , [ "Unary", [ "Identifier" ] ]
-    , [ "Unary", [ "Def" ] ]
-    , [ "Unary", [ "Block" ] ]
-    , [ "Unary", [ "Switch" ] ]
-    , [ "Unary", [ "For" ] ]
-    , [ "Unary", [ "break", "RetName" ] ]
-    , [ "Unary", [ "break", "RetName", "Operator" ] ]
-    , [ "Unary", [ "continue", "RetName" ] ]
-    , [ "Unary", [ "Unary", ".", "Identifier" ] ]
-    , [ "Unary", [ "Unary", "?.", "Identifier" ] ]
-    , [ "Unary", [ "Unary", "[", "Operator", "]" ] ]
-    , [ "Unary", [ "!", "Unary" ] ]
-    , [ "QmarkL", [ "OrL", "?", "Expr", ":", "QmarkR" ] ]
-    , [ "QmarkL", [ "OrL", "?:", "QmarkR" ] ]
-    , [ "QmarkL", [ "OrL" ] ]
-    , [ "QmarkR", [ "OrL", "?", "Expr", ":", "QmarkR" ] ]
+    , [ "ObjectT", [ ",", ",", "Identifier", "Operator", "ObjectT" ] ]
+    , [ "ObjectT", [ ",", ",", "auto", "Identifier", "Operator", "ObjectT" ] ]
+    , [ "ObjectT", [ ",", "Type", "Identifier", "Operator", "ObjectT" ] ]
+    , [ "Set", [ "{", "Operator", ",", "Operator", "OperatorT", "}" ] ]
+    , [ "Operator", [ "return", "QmarkR" ] ]
+    , [ "Operator", [ "break", "QmarkR" ] ]
+    , [ "Operator", [ "continue", "QmarkR" ] ]
+    , [ "Operator", [ "Def" ] ]
+    , [ "Operator", [ "Type" ] ]
+    , [ "Operator", [ "QmarkR" ] ]
+    , [ "QmarkR", [ "OrL", "?", "Operator", ":", "QmarkR" ] ]
     , [ "QmarkR", [ "OrL", "?:", "QmarkR" ] ]
     , [ "QmarkR", [ "OrR" ] ]
-    , [ "OrL", [ "AndL", "||", "OrR" ] ]
-    , [ "OrL", [ "AndL" ] ]
+    , [ "QmarkL", [ "OrL", "?", "Operator", ":", "QmarkL" ] ]
+    , [ "QmarkL", [ "OrL", "?:", "QmarkL" ] ]
+    , [ "QmarkL", [ "OrL" ] ]
     , [ "OrR", [ "AndL", "||", "OrR" ] ]
     , [ "OrR", [ "AndR" ] ]
-    , [ "AndL", [ "EqualL", "&&", "AndR" ] ]
-    , [ "AndL", [ "EqualL" ] ]
+    , [ "OrL", [ "AndL", "||", "OrL" ] ]
+    , [ "OrL", [ "AndL" ] ]
     , [ "AndR", [ "EqualL", "&&", "AndR" ] ]
     , [ "AndR", [ "EqualR" ] ]
-    , [ "EqualL", [ "EqualL", "==", "RelationR" ] ]
-    , [ "EqualL", [ "EqualL", "!=", "RelationR" ] ]
-    , [ "EqualL", [ "RelationL" ] ]
+    , [ "AndL", [ "EqualL", "&&", "AndL" ] ]
+    , [ "AndL", [ "EqualL" ] ]
     , [ "EqualR", [ "EqualL", "==", "RelationR" ] ]
     , [ "EqualR", [ "EqualL", "!=", "RelationR" ] ]
     , [ "EqualR", [ "RelationR" ] ]
-    , [ "RelationL", [ "CompareL", "<", "CompareR" ] ]
-    , [ "RelationL", [ "CompareL", ">", "CompareR" ] ]
-    , [ "RelationL", [ "CompareL", "<=", "CompareR" ] ]
-    , [ "RelationL", [ "CompareL", ">=", "CompareR" ] ]
-    , [ "RelationL", [ "CompareL", "is", "CompareR" ] ]
-    , [ "RelationL", [ "CompareL" ] ]
+    , [ "EqualL", [ "EqualL", "==", "RelationL" ] ]
+    , [ "EqualL", [ "EqualL", "!=", "RelationL" ] ]
+    , [ "EqualL", [ "RelationL" ] ]
     , [ "RelationR", [ "CompareL", "<", "CompareR" ] ]
     , [ "RelationR", [ "CompareL", ">", "CompareR" ] ]
     , [ "RelationR", [ "CompareL", "<=", "CompareR" ] ]
-    , [ "RelationR", [ "CompareL", "<=", "CompareR" ] ]
+    , [ "RelationR", [ "CompareL", ">=", "CompareR" ] ]
     , [ "RelationR", [ "CompareL", "is", "CompareR" ] ]
     , [ "RelationR", [ "CompareR" ] ]
-    , [ "CompareL", [ "ConcatL", "<=>", "ConcatR" ] ]
-    , [ "CompareL", [ "ConcatL" ] ]
+    , [ "RelationL", [ "CompareL", "<", "CompareL" ] ]
+    , [ "RelationL", [ "CompareL", ">", "CompareL" ] ]
+    , [ "RelationL", [ "CompareL", "<=", "CompareL" ] ]
+    , [ "RelationL", [ "CompareL", ">=", "CompareL" ] ]
+    , [ "RelationL", [ "CompareL", "is", "CompareL" ] ]
+    , [ "RelationL", [ "CompareL" ] ]
     , [ "CompareR", [ "ConcatL", "<=>", "ConcatR" ] ]
     , [ "CompareR", [ "ConcatR" ] ]
-    , [ "ConcatL", [ "ConcatL", "++", "ModR" ] ]
-    , [ "ConcatL", [ "ModL" ] ]
+    , [ "CompareL", [ "ConcatL", "<=>", "ConcatL" ] ]
+    , [ "CompareL", [ "ConcatL" ] ]
     , [ "ConcatR", [ "ConcatL", "++", "ModR" ] ]
     , [ "ConcatR", [ "ModR" ] ]
-    , [ "ModL", [ "ModL", "%", "AddR" ] ]
-    , [ "ModL", [ "AddL" ] ]
+    , [ "ConcatL", [ "ConcatL", "++", "ModL" ] ]
+    , [ "ConcatL", [ "ModL" ] ]
     , [ "ModR", [ "ModL", "%", "AddR" ] ]
     , [ "ModR", [ "AddR" ] ]
-    , [ "AddL", [ "AddL", "+", "MulR" ] ]
-    , [ "AddL", [ "AddL", "-", "MulR" ] ]
-    , [ "AddL", [ "AddL", "+%", "MulR" ] ]
-    , [ "AddL", [ "AddL", "-%", "MulR" ] ]
-    , [ "AddL", [ "MulL" ] ]
+    , [ "ModL", [ "ModL", "%", "AddL" ] ]
+    , [ "ModL", [ "AddL" ] ]
     , [ "AddR", [ "AddL", "+", "MulR" ] ]
     , [ "AddR", [ "AddL", "-", "MulR" ] ]
     , [ "AddR", [ "AddL", "+%", "MulR" ] ]
     , [ "AddR", [ "AddL", "-%", "MulR" ] ]
     , [ "AddR", [ "MulR" ] ]
-    , [ "MulL", [ "MulL", "*", "PowR" ] ]
-    , [ "MulL", [ "MulL", "*%", "PowR" ] ]
-    , [ "MulL", [ "MulL", "/", "PowR" ] ]
-    , [ "MulL", [ "PowL" ] ]
+    , [ "AddL", [ "AddL", "+", "MulL" ] ]
+    , [ "AddL", [ "AddL", "-", "MulL" ] ]
+    , [ "AddL", [ "AddL", "+%", "MulL" ] ]
+    , [ "AddL", [ "AddL", "-%", "MulL" ] ]
+    , [ "AddL", [ "MulL" ] ]
     , [ "MulR", [ "MulL", "*", "PowR" ] ]
     , [ "MulR", [ "MulL", "*%", "PowR" ] ]
     , [ "MulR", [ "MulL", "/", "PowR" ] ]
     , [ "MulR", [ "PowR" ] ]
-    , [ "PowL", [ "PowL", "**", "AwaitR" ] ]
-    , [ "PowL", [ "AwaitL" ] ]
-    , [ "PowR", [ "PowL", "**", "AwaitR" ] ]
-    , [ "PowR", [ "AwaitR" ] ]
-    , [ "AwaitL", [ "await", "Unary" ] ]
-    , [ "AwaitL", [ "Unary" ] ]
-    , [ "AwaitR", [ "await", "AssignR" ] ]
-    , [ "AwaitR", [ "AssignR" ] ]
-    , [ "Block", [ "{", "Expr", ";", "ExprS", "}" ] ]
-    , [ "ExprS", [ "Expr", ";" ] ]
-    , [ "ExprS", [ "Expr", ";", "ExprS" ] ]
-    , [ "Switch", [ "switch", "{", "Cases", "}" ] ]
-    , [ "Switch", [ "switch", "Expr", "{", "Cases", "}" ] ]
+    , [ "MulL", [ "MulL", "*", "PowL" ] ]
+    , [ "MulL", [ "MulL", "*%", "PowL" ] ]
+    , [ "MulL", [ "MulL", "/", "PowL" ] ]
+    , [ "MulL", [ "PowL" ] ]
+    , [ "PowR", [ "Await", "**", "PowR" ] ]
+    , [ "PowR", [ "Await" ] ]
+    , [ "PowR", [ "Asign" ] ]
+    , [ "PowR", [ "Words", "Neg" ] ]
+    , [ "PowL", [ "Await", "**", "PowL" ] ]
+    , [ "PowL", [ "Await" ] ]
+    , [ "Await", [ "await", "Neg" ] ]
+    , [ "Await", [ "Neg" ] ]
+    , [ "Assign", [ "Neg", "=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "+=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "-=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "*=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "/=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "%=", "Operator" ] ]
+    , [ "Assign", [ "Neg", "**=", "Operator" ] ]
+    , [ "Neg", [ "!", "Neg" ] ]
+    , [ "Neg", [ "LMemUnary" ] ]
+    , [ "LMemUnary", [ "LMemAccess" ] ]
+    , [ "LMemUnary", [ "Unary" ] ]
+    , [ "Unary", [ "Unary", ".", "lIdentifier" ] ]
+    , [ "Unary", [ "Unary", "?.", "Identifier" ] ]
+    , [ "Unary", [ "Unary", "[", "Operator", "]" ] ]
+    , [ "Unary", [ "Literal" ] ]
+    , [ "Unary", [ "FunctionCall" ] ]
+    , [ "Unary", [ "Block" ] ]
+    , [ "Unary", [ "Switch" ] ]
+    , [ "Unary", [ "For" ] ]
+    , [ "Words", [ "comptime" ] ]
+    , [ "Words", [ "const" ] ]
+    , [ "Words", [ "immut" ] ]
+    , [ "Words", [ "mut" ] ]
+    , [ "Words", [ "comptime", "Words" ] ]
+    , [ "Words", [ "const", "Words" ] ]
+    , [ "Words", [ "immut", "Words" ] ]
+    , [ "Words", [ "mut", "Words" ] ]
+    , [ "Block", [ "{", "Operator", ";", "OperatorS", "}" ] ]
+    , [ "OperatorS", [ "Operator", ";" ] ]
+    , [ "OperatorS", [ "Operator", ";", "OperatorS" ] ]
+    // Conflict with the next rule, because '{}' can be derived from Operator and Cases can be empty.
+    //, [ "Switch", [ "switch", "{", "Cases", "}" ] ]
+    , [ "Switch", [ "switch", "Operator", "{", "Cases", "}" ] ]
     , [ "Cases", [ ] ]
-    , [ "Cases", [ "case", "Expr", ":", "Expr", "Cases" ] ]
-    , [ "Cases", [ "case", "_", ":", "Expr", "Cases" ] ]
-    , [ "For", [ "for", "RetName", "ForBody" ] ]
-    , [ "For", [ "for", "RetName", "Expr", "ForBody" ] ]
-    , [ "For", [ "for", "RetName", "Expr", ";", "Expr", "ForBody" ] ]
-    , [ "For", [ "for", "RetName", "Expr", ";", "Expr", ";", "Expr", "ForBody" ] ]
+      
+      // TODO this is wrong: there shouldn't be a semicolon if Operator is a code block.
+    , [ "Cases", [ "case", "Operator", ":", "Operator", ";", "Cases" ] ]
+    , [ "Cases", [ "case", "_", ":", "Operator", ";", "Cases" ] ]
+    //, [ "For", [ "for", "ForBody" ] ]
+    , [ "For", [ "for", "Operator", "ForBody" ] ]
+    , [ "For", [ "for", "Operator", ";", "Operator", "ForBody" ] ]
+    , [ "For", [ "for", "Operator", ";", "Operator", ";", "Operator", "ForBody" ] ]
     , [ "ForBody", [ "{", "}" ] ]
-    , [ "ForBody", [ "{", "ExprS", "}" ] ]
+    , [ "ForBody", [ "{", "OperatorS", "}" ] ]
     , [ "FunctionCall", [ "lIdentifier", "Tuple" ] ]
-    , [ "QualifExpr", [ "return", "RetName", "Expr" ] ]
-    , [ "QualifExpr", [ "await", "Expr" ] ]
-    , [ "QualifExpr", [ "const", "Expr" ] ]
-    , [ "QualifExpr", [ "immut", "Expr" ] ]
     ];
 
 function isTerminal(symbol) { return symbol[0].toLowerCase() == symbol[0] }
 
-export function first(grammar, symArr, follow = new Set([ "" ]), stack = []) {
-  if (symArr.length == 0) return follow;
+export function first(grammar, symArr, stack = []) {
+  if (symArr.length == 0) return new Set([ "" ]);
   
   if (isTerminal(symArr[0])) return new Set([ symArr[0] ]);
   
   if (stack.includes(symArr[0])) return new Set();
-  
+    
   const newStack = stack.slice();
   
   newStack.push(symArr[0]);
   
   return grammar.map(rule => {
     if (rule[0] == symArr[0]) {
-      return first(grammar, rule[1].concat(symArr.slice(1)), follow, newStack);
+      return first(grammar, rule[1].concat(symArr.slice(1)), newStack);
     }
     
     return new Set();
@@ -265,7 +262,8 @@ export function first(grammar, symArr, follow = new Set([ "" ]), stack = []) {
 }
 
 class ParserState {
-  constructor(grammar, rules) {
+  constructor(grammar, rules, index) {
+    this.index = index;
     this.rules = rules;
     this.transitions = new Map();
     
@@ -283,7 +281,7 @@ class ParserState {
           
           grammar.forEach(grammarRule => {
             grammarRule[0] == rules[i].rule[1][rules[i].dot]
-                && rules.every(rule => rule.rule != grammarRule)
+                && rules.every(rule => rule.rule != grammarRule || rule.dot !== 0)
                 && rules.push(
                   { rule: grammarRule
                   , dot: 0
@@ -294,7 +292,9 @@ class ParserState {
         }
       }
     };
-    console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}))
+    
+    //console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}));
+    
     // Populate 'transitions'.
     rules.forEach(rule => {
       (rule.dot == rule.rule[1].length ? rule.context : new Set([ rule.rule[1][rule.dot] ])).forEach(symbol => {
@@ -302,7 +302,8 @@ class ParserState {
           if (this.transitions.has(symbol)
               && this.transitions.get(symbol).ruleIndex !== grammar.indexOf(rule.rule)) {
             console.log("Grammar conflict: \"" + symbol + "\" in " + rule.rule, this.transitions, grammar.indexOf(rule.rule));
-            console.log(rules)
+            console.log(util.inspect(this.transitions.get(symbol), {colors:true,depth:null,showHidden:false}))
+            console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}))
             
             throw 0;
           }
@@ -316,12 +317,16 @@ class ParserState {
             || this.transitions.set(symbol, { read: true, state: null, rules: [] }).get(symbol);
         
         if (!transition.read) {
-          console.log(transition, rule);
+          console.log("Grammar conflict: \"" + symbol + "\" in " + rule.rule, grammar.indexOf(rule.rule));
+          console.log(util.inspect(this.transitions.get(symbol), {colors:true,depth:null,showHidden:false}))
+          console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}))
           
-          throw new Error("Grammar conflict");
+          console.log("\n\n\n\n\nHere - - - - - - - - - - - - |||\n\n", transition, rule, "asdf");
+          
+          throw 1;
         }
         
-        transition.rules.push({ rule: rule.rule, dot: rule.dot + 1, context: rule.context });
+        transition.rules.push({ rule: rule.rule, dot: rule.dot + 1, context: rule.context }); // Wrong: update context
       });
     });
     
@@ -363,7 +368,7 @@ export class Parser {
     Returns the new state's index.
     /*/
     function addState(rules) {
-      const newState = new ParserState(grammar, rules);
+      const newState = new ParserState(grammar, rules, table.length);
       
       let index = -1;
       
@@ -400,33 +405,43 @@ export class Parser {
     function getOptions() {
       const options = [];
       
-      getState().transitions.keys(k => options.push(k))
+      for (let k of getState().transitions.keys()) options.push(k);
       
       return ", expected one of [" + options + "].";
     }
     
+    let [ symbol, column, row ] = stream.next().value;
+    
     while (getState() !== undefined) {
       // TODO special cases for string, number and identifier
-      const symbol = stream.next().value;
       
       if (!symbol) symbol = "";
       
-      const next = getState().transitions.get(symbol);
+      const symbolName = symbol.type || symbol;
+      const next = getState().transitions.get(symbolName);
       
       if (!next) {
-        throw new Error("Cannot read \"" + symbol + "\"" + getOptions());
+        console.log("Cannot read \"" + symbolName + "\" at " + column + ":" + row + getOptions());
+        console.log("Last 4 stack elements:");
+        
+        const sslice = stack.length > 4 ? stack.slice(stack.length - 4) : stack;
+        console.log(util.inspect(sslice, {colors:true,depth:null,showHidden:false}));
+        
+        throw 2;
       }
       
       if (next.read) {
         stack.push({ symbol, state: this.table[next.state] });
+        
+        [ symbol, column, row ] = stream.next().value;
       } else {
-        const rule = grammar[next.ruleIndex];
+        const rule = this.grammar[next.ruleIndex];
         const symbols = stack.slice(stack.length - rule[1].length);
         
         stack.length -= rule[1].length;
         stack.push(
               { symbol: rule[0]
-              , state: getState().transitions.get(rule[0])
+              , state: this.table[getState().transitions.get(rule[0]).state]
               , children: symbols
               }
             );

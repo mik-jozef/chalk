@@ -7,12 +7,16 @@ import { Int, Int8, Int16, Int32, Int64 } from "std/int.chalk";
 
 import { isNull } from "std/compiler-magic.chalk";
 
-Module import() {}
+export Module import() {}
 
 Bool equals(*Any a, b) {
   comptime a !is b.type || b !is a.type && throw "TODO";
   
   return Ptr.equals(a, b) ? true : ;
+}
+
+export class Promise<any T = Null> {
+  
 }
 
 export trait Object {
