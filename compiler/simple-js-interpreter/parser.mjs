@@ -42,6 +42,10 @@ export const chalkGrammar =
     , [ "IdList", [ "IdListT" ] ]
     , [ "IdListT", [ "Identifier" ] ]
     , [ "IdListT", [ "Identifier", ",", "IdListT" ] ]
+    , [ "LIdListT", [ "lIdentifier" ] ]
+    , [ "LIdListT", [ "lIdentifier", ",", "LIdListT" ] ]
+    , [ "UIdListT", [ "uIdentifier" ] ]
+    , [ "UIdListT", [ "uIdentifier", ",", "UIdListT" ] ]
     , [ "Identifier", [ "uIdentifier" ] ]
     , [ "Identifier", [ "lIdentifier" ] ]
     , [ "Defs", [] ]
@@ -49,11 +53,12 @@ export const chalkGrammar =
     , [ "Def", [ "ClassDef" ] ]
     , [ "Def", [ "TraitDef" ] ]
     , [ "Def", [ "FunctionDef" ] ]
-    , [ "Def", [ "VariableDef" ] ]
-    , [ "Def", [ "Destructuring" ] ]
+    , [ "Def", [ "VariableDef" ] ] //, [ "Def", [ "Destructuring" ] ]
     , [ "Type", [ "TypeMemAccess" ] ]
     , [ "Type", [ "UnionType" ] ]
     , [ "Type", [ "IntersectionType" ] ]
+    , [ "Type", [ "class" ] ] // TODO what about []class
+    , [ "Type", [ "trait" ] ]
     , [ "Type", [ "type" ] ]
     , [ "Type", [ "any" ] ]
     , [ "TypeT", [ "Type" ] ]
@@ -64,12 +69,16 @@ export const chalkGrammar =
     , [ "TypeMemAccess", [ "LMemAccess", ".", "AtomicUIType" ] ]
     , [ "LMemAccess", [ "lIdentifier" ] ]
     , [ "LMemAccess", [ "LMemAccess", ".", "lIdentifier" ] ]
-    , [ "AtomicType", [ "[", "]", "AtomicType" ] ]
+    , [ "AtomicType", [ "[", "]", "AtomicType" ] ] // TODO these are not reachable
     , [ "AtomicType", [ "*", "AtomicType" ] ]
     , [ "AtomicType", [ "(", "TypeT", ")" ] ]
     , [ "AtomicType", [ "AtomicUIType" ] ]
     , [ "AtomicUIType", [ "uIdentifier" ] ]
-    , [ "AtomicUIType", [ "uIdentifier", "<", "Operator", "OperatorT", ">" ] ]
+    , [ "AtomicUIType", [ "uIdentifier", "<", "Type", "TypeLMemT", ">" ] ]
+    , [ "AtomicUIType", [ "uIdentifier", "<", "LMemAccess", "TypeLMemT", ">" ] ]
+    , [ "TypeLMemT", [] ]
+    , [ "TypeLMemT", [ ",", "Type", "TypeLMemT" ] ]
+    , [ "TypeLMemT", [ ",", "LMemAccess", "TypeLMemT" ] ]
     , [ "UnionType", [ "TypeMemAccess", "|", "Type" ] ]
     , [ "UnionType", [ "IntersectionType", "|", "Type" ] ]
     , [ "IntersectionType", [ "TypeMemAccess", "&", "TypeMemAccess" ] ]
@@ -77,23 +86,32 @@ export const chalkGrammar =
     , [ "ClassDef", [ "class", "uIdentifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
     , [ "ClassDef", [ "class", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
     , [ "TemplateParams", [] ]
-    , [ "TemplateParams", [ "<", "Params", ">" ] ]
+    , [ "TemplateParams", [ "<", "ParamsT", "Params", ">" ] ]
     , [ "Params", [] ]
     , [ "Params", [ "ParamsT", "Params" ] ]
-    , [ "ParamsT", [ "Type", "IdListT" ] ]
+    , [ "ParamsT", [ "Type", "LIdListT" ] ]
+    , [ "ParamsT", [ "class", "UIdListT" ] ]
+    , [ "ParamsT", [ "trait", "UIdListT" ] ]
+    , [ "ParamsT", [ "type", "UIdListT" ] ]
+    , [ "ParamsT", [ "any", "UIdListT" ] ]
     , [ "Extends", [] ]
     , [ "Extends", [ ":", "TypeT" ] ]
     , [ "TraitDef", [ "trait", "uIdentifier", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
     , [ "TraitDef", [ "trait", "TemplateParams", "Extends", "{", "Defs", "}" ] ]
-    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "=>", "Operator" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "=>", "OpOrDef" ] ]
     , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "Block" ] ]
     , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "}" ] ]
-    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "Operator", "}" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "OpOrDef", "}" ] ]
+    , [ "FunctionDef", [ "Type", "lIdentifier", "(", "Params", ")", "{", "OpOrDef", ";", "}" ] ]
     , [ "VariableDef", [ "auto", "VariableDefT" ] ]
+    , [ "VariableDef", [ "class", "uIdentifier", "=", "OpOrDef" ] ]
+    , [ "VariableDef", [ "trait", "uIdentifier", "=", "OpOrDef" ] ]
+    , [ "VariableDef", [ "type", "uIdentifier", "=", "OpOrDef" ] ]
+    , [ "VariableDef", [ "any", "uIdentifier", "=", "OpOrDef" ] ]
     , [ "VariableDef", [ "Type", "VariableDefT" ] ]
-    , [ "VariableDefT", [ "Identifier" ] ]
-    , [ "VariableDefT", [ "Identifier", "=", "Operator" ] ]
-    , [ "VariableDefT", [ "Identifier", "Tuple" ] ]
+    , [ "VariableDefT", [ "lIdentifier" ] ]
+    , [ "VariableDefT", [ "lIdentifier", "=", "OpOrDef" ] ]
+    , [ "VariableDefT", [ "lIdentifier", "Tuple" ] ]
     , [ "VariableDefT", [ "Tuple" ] ]
     , [ "Literal", [ "number" ] ]
     , [ "Literal", [ "string" ] ]
@@ -105,7 +123,6 @@ export const chalkGrammar =
     , [ "Array", [ "[", "Operator", "OperatorT", "]" ] ]
     , [ "OperatorT", [] ]
     , [ "OperatorT", [ ",", "Operator", "OperatorT" ] ]
-    , [ "Tuple", [ "(", ")" ] ]
     , [ "Tuple", [ "(", "Operator", "OperatorT", ")" ] ]
     , [ "Object", [ "{", "&&", "Identifier", "ObjectT", "}" ] ] // Hack to resolve grammar conflict
     , [ "Object", [ "{", "||", "auto", "Identifier", "ObjectT", "}" ] ]
@@ -115,10 +132,11 @@ export const chalkGrammar =
     , [ "ObjectT", [ ",", ",", "auto", "Identifier", "Operator", "ObjectT" ] ]
     , [ "ObjectT", [ ",", "Type", "Identifier", "Operator", "ObjectT" ] ]
     , [ "Set", [ "{", "Operator", ",", "Operator", "OperatorT", "}" ] ]
+    , [ "OpOrDef", [ "Operator" ] ]
+    , [ "OpOrDef", [ "Def" ] ]
     , [ "Operator", [ "return", "QmarkR" ] ]
     , [ "Operator", [ "break", "QmarkR" ] ]
-    , [ "Operator", [ "continue", "QmarkR" ] ]
-    , [ "Operator", [ "Def" ] ]
+    , [ "Operator", [ "continue" ] ] //, [ "Operator", [ "Def" ] ] // Causes conflicts
     , [ "Operator", [ "Type" ] ]
     , [ "Operator", [ "QmarkR" ] ]
     , [ "QmarkR", [ "OrL", "?", "Operator", ":", "QmarkR" ] ]
@@ -185,7 +203,7 @@ export const chalkGrammar =
     , [ "MulL", [ "PowL" ] ]
     , [ "PowR", [ "Await", "**", "PowR" ] ]
     , [ "PowR", [ "Await" ] ]
-    , [ "PowR", [ "Asign" ] ]
+    , [ "PowR", [ "Assign" ] ]
     , [ "PowR", [ "Words", "Neg" ] ]
     , [ "PowL", [ "Await", "**", "PowL" ] ]
     , [ "PowL", [ "Await" ] ]
@@ -218,23 +236,23 @@ export const chalkGrammar =
     , [ "Words", [ "const", "Words" ] ]
     , [ "Words", [ "immut", "Words" ] ]
     , [ "Words", [ "mut", "Words" ] ]
-    , [ "Block", [ "{", "Operator", ";", "OperatorS", "}" ] ]
-    , [ "OperatorS", [ "Operator", ";" ] ]
-    , [ "OperatorS", [ "Operator", ";", "OperatorS" ] ]
-    // Conflict with the next rule, because '{}' can be derived from Operator and Cases can be empty.
-    //, [ "Switch", [ "switch", "{", "Cases", "}" ] ]
+    , [ "Block", [ "{", "OpOrDef", ";", "OpOrDefS", "}" ] ]
+    , [ "OpOrDefS", [ "OpOrDef", ";" ] ]
+    , [ "OpOrDefS", [ "OpOrDef", ";", "OpOrDefS" ] ]
+   // Conflict with the next rule, because '{}' can be derived from Operator and Cases can be empty.
+  //, [ "Switch", [ "switch", "{", "Cases", "}" ] ]
     , [ "Switch", [ "switch", "Operator", "{", "Cases", "}" ] ]
     , [ "Cases", [ ] ]
       
-      // TODO this is wrong: there shouldn't be a semicolon if Operator is a code block.
+    // TODO this is wrong: there shouldn't be a semicolon if Operator is a code block.
     , [ "Cases", [ "case", "Operator", ":", "Operator", ";", "Cases" ] ]
     , [ "Cases", [ "case", "_", ":", "Operator", ";", "Cases" ] ]
-    //, [ "For", [ "for", "ForBody" ] ]
+  //, [ "For", [ "for", "ForBody" ] ]
     , [ "For", [ "for", "Operator", "ForBody" ] ]
     , [ "For", [ "for", "Operator", ";", "Operator", "ForBody" ] ]
     , [ "For", [ "for", "Operator", ";", "Operator", ";", "Operator", "ForBody" ] ]
     , [ "ForBody", [ "{", "}" ] ]
-    , [ "ForBody", [ "{", "OperatorS", "}" ] ]
+    , [ "ForBody", [ "{", "OpOrDefS", "}" ] ]
     , [ "FunctionCall", [ "lIdentifier", "Tuple" ] ]
     ];
 
@@ -279,9 +297,25 @@ class ParserState {
             rules[i].context.has("") || context.delete("");
           }
           
-          grammar.forEach(grammarRule => {
+          grammar.forEach(grammarRule => { // TODO sometimes the rule is there, but its context needs to be expanded
             grammarRule[0] == rules[i].rule[1][rules[i].dot]
-                && rules.every(rule => rule.rule != grammarRule || rule.dot !== 0)
+                && rules.every((rule, i) => rule.rule != grammarRule
+                      || rule.dot !== 0
+                      || (() => {
+                           let bool = false;
+                           
+                           context.forEach(c => rule.context.has(c) || (bool = true));
+                           
+                           if (bool) {
+                             rule.context.forEach(c => context.add(c));
+                             
+                             [ rule ] = rules.splice(i, 1);
+                             i--;
+                           }
+                           
+                           return bool;
+                         })()
+                    )
                 && rules.push(
                   { rule: grammarRule
                   , dot: 0
@@ -293,7 +327,7 @@ class ParserState {
       }
     };
     
-    //console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}));
+    console.log(util.inspect(rules, {colors:true,depth:null,showHidden:false}));
     
     // Populate 'transitions'.
     rules.forEach(rule => {
@@ -326,7 +360,7 @@ class ParserState {
           throw 1;
         }
         
-        transition.rules.push({ rule: rule.rule, dot: rule.dot + 1, context: rule.context }); // Wrong: update context
+        transition.rules.push({ rule: rule.rule, dot: rule.dot + 1, context: rule.context });
       });
     });
     
@@ -341,11 +375,11 @@ class ParserState {
             && a.dot == b.dot
             && a.context.size == b.context.size
             && (() => {
-          let bool = false;
+          let count = 0;
           
-          a.context.forEach(a => b.context.has(a) && (bool = true));
+          a.context.forEach(a => b.context.has(a) && count++);
           
-          return bool;
+          return count == a.context.size;
         })();
       });
     });
@@ -407,7 +441,7 @@ export class Parser {
       
       for (let k of getState().transitions.keys()) options.push(k);
       
-      return ", expected one of [" + options + "].";
+      return ", expected one of [ " + options.map(a => "'" + a + "'").join(", ") + " ].";
     }
     
     let [ symbol, column, row ] = stream.next().value;
@@ -422,10 +456,8 @@ export class Parser {
       
       if (!next) {
         console.log("Cannot read \"" + symbolName + "\" at " + column + ":" + row + getOptions());
-        console.log("Last 4 stack elements:");
         
-        const sslice = stack.length > 4 ? stack.slice(stack.length - 4) : stack;
-        console.log(util.inspect(sslice, {colors:true,depth:null,showHidden:false}));
+        console.log(util.inspect(stack.slice(stack.length - 4), {colors:true,depth:6,showHidden:false}));
         
         throw 2;
       }

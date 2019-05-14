@@ -856,7 +856,7 @@ follows:
 
 ```
 export enum None {}
-export enum Null { null }
+export enum Null { null; static equals(Null, Null) => false }
 export enum Bool { false, true }
 ```
 

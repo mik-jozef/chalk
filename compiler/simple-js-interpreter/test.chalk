@@ -6,16 +6,22 @@ Functions 'print' and 'scan*' for any * are not necessarily part of Chalk.
 
 import RegLangParser from "reglang.chalk";
 
+Float pi() {};
+
 class {};
+
+Null n() => Int i;
 
 Float pi = 3.14159;
 
 Int factorial(Int i) {
-  return i == 0 ? 1 : i * factorial(i);
+  Int fLess = i * factorial(i);
+  
+  return i == 0 ? 1 : fLess;
 };
 
 class Main {
-  new() {
+  Main new() {
     String msg = "Enter a number: ";
     
     print(msg);

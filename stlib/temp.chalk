@@ -32,6 +32,10 @@ export class Defer {
   }
 }
 
+trait Collection<T> {
+  merge(Self, Self, Null?(T, T) resolveConflict);
+}
+
 trait Number {
   Self from(Int64 i);
   
