@@ -1537,9 +1537,23 @@ what about funcitonal programming? lazy evaluation?
   ```
   Null foo() => foo(); // Should this terminate?
   ```
-a way to unresolve a promise if it is still just waiting in event loop? (later: why?)
+a way to unresolve (cancel) a promise if it is still just waiting in event loop? (later: why?)
 compiler should be able to remove not only variables/class members that are unused,
   but also those that are only used for proofs/at compile time
+this must be legal:
+  ```
+  type T = (Bool, ?T)
+  ```
+  should these be legal?
+  ```
+  type T<A> = (A, ?T)
+  
+  (Bool, ?Self) var;
+  ```
+  should `Self` refer to the outermost or innermost type in the declaration
+  (outermost makes more sense to me now)
+should pointer type be a class type template?
+rename the is relation to extends, and extends to implements?
 cancellable promises, can stop async functions, threads
 ChalkDoc documents should have the option to be interactive, however, there should
   be a setting that applets are turned off by default, runnable by clicking on them,
