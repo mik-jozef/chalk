@@ -1,6 +1,14 @@
 /**
- * Main file.
+ * Main file of Chalk compiler.
 **/
+
+export class Program {
+  run()
+  eval()
+  build()
+  fix()
+  error()
+}
 
 void printHelp() {
   
@@ -10,7 +18,7 @@ void printUnknown() {
   
 }
 
-void run(String file) {
+export void run(String file) {
   
 }
 

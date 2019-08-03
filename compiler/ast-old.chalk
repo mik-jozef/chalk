@@ -1,21 +1,19 @@
 ///
-This module defines the grammar and abstract syntax tree of the Chalk
-programming language.
-
-Hint for Notepadqq:
-  Indent is two spaces.
+  This module defines the grammar and abstract syntax tree of the Chalk
+  programming language.
 ///
 
-import { Regex } from "stl/regex.chalk";
+import { Regex } from "stlib/regex.chalk";
 
 { class Expr, class OneOf, class Space } = Regex;
 
 // Keyword is a string that cannot be an identifier.
 export []String keywords =
-    [ "auto", "assume", "await", "break", "case", "catch", "class", "comptime"
-    , "const", "continue", "default", "enum", "export", "final", "for", "friend"
-    , "function", "get", "import", "is", "mut", "own", "pub", "return", "set"
-    , "shared", "static", "switch", "throw", "trait", "try", "type", "yield"
+    [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
+    , "comptime", "const", "continue", "cst", "default", "enum", "Ex", "Exists"
+    , "export", "final", "for", "friend", "function", "let", "immut", "import"
+    , "is", "mut", "own", "pub", "return", "Self", "shared", "static", "switch"
+    , "throw", "trait" , "try", "type", "yield"
     ];
 
 export class Comment : Regex {
