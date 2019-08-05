@@ -1,0 +1,124 @@
+///
+  Entry point of Chalk Software Tools.
+///
+
+import { version: versionStr } from "stlib/version";
+
+import { compiler: { run, eval, build, fix, error } } from "/compiler/main.chalk"
+import { install, publish } from "/package-manager/main.chalk"
+import { ide } from "/ide/main.chalk";
+import { help } from "./help.chalk";
+
+Null compile(*Main m, String input) {
+  
+}
+
+Null run(*Main m, String input) {
+  
+}
+
+Null eval(*Main m, String input) {
+  
+}
+
+Null load(*Main m, String input) {
+  
+}
+
+Null repl(*Main m, String input) {
+  
+}
+
+Null fix(*Main m, String input) {
+  
+}
+
+Null error(*Main m, String input) {
+  
+}
+
+Null version(*Main m, String _) {
+  m.io.println("Version " ++ version ++ ".");
+}
+
+enum CompilerCommands {
+  out(compile),
+  run(run),
+  eval(eval),
+  load(load),
+  repl(repl),
+  fix(fix),
+  error(error),
+  ;
+  
+  Null(*Main, String) handler;
+}
+
+enum PackageManagerCommands {
+  install(install),
+  publish(publish),
+  ;
+  
+  Null(*Main, String) handler;
+}
+
+enum VersionControlCommands {
+  ;
+  
+  Null(*Main, String) handler;
+}
+
+enum OtherCommands {
+  help(help),
+  version(version),
+  gui(gui),
+  unknown(unknown),
+  ;
+  
+  Null(*Main, String) handler;
+}
+
+enum CmdGroup {
+  compiler(CompilerCommands),
+  packageManager(CompilerCommands),
+  versionControl(VersionControlCommands),
+  other(VersionControlCommands),
+  ;
+  
+  static Null(Main, String) getCommand(String command) {
+    for let value : CmdGroup.values {
+      value.getName(command) |a> return a.handler;
+    }
+    
+    return OtherCommands.unknown.handler;
+  }
+}
+
+pub class Main {
+  IOStream io;
+  Folder folder;
+  
+  new({ String inputString,
+        *IOStream _io,
+        *Folder _folder,
+      }) {
+    (inputString == "-v" || inputString == "--version") && {
+      io.println("Did you mean `chalk version`?");
+      
+      return;
+    }
+    
+    (inputString == "-h" || inputString == "--help") && {
+      io.println("Did you mean `chalk help`?");
+      
+      return;
+    }
+    
+    inputString == "" && inputString = "eval";
+    
+    let cmdStr = inputString.view(0, inputString.indexOf(" "));
+    let handler = CmdGroup.getCommand(cmdStr);
+    
+    handler(this, inputString);
+  }
+}

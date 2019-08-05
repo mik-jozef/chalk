@@ -31,7 +31,7 @@ Current status, as of 25. 11. 2018: still just a collection of ideas.
 - wrong methods called because of polymorphism
 - statements; everything is an expression
 - synchronous IO (but there is compile-time IO)
-- global variables (but there are module-wide ones)
+- global state and variables (but there are module-wide ones)
 - namespaces (but there are static classes)
 - duck typing, including in templates
 - (probably) exceptions

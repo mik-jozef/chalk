@@ -1,0 +1,15 @@
+// Defines the abstract syntax tree of the ChalkDoc language.
+
+import { Regex } from "stlib/regex.chalk";
+
+{ class Expr
+, class Or
+, class Match
+, class Space
+, class StartSpace
+, class Text
+} = Regex;
+
+export []Expr singleLineDoc = [];
+
+export []Expr multiLineDoc = [];

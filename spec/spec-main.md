@@ -1,3 +1,7 @@
+{{{
+  import AST from "./ast.chalk";
+}}}
+
 # Chalk programming language
 This is the specification of the [[[Chalk]]] programming language.
 
@@ -656,22 +660,22 @@ export []Expr identifierBoth =
 ##### Keywords
 A [[[keyword]]] is a UTF-8 string that cannot be an identifier.
 
-{{{```
-export []String keywords =
-    [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
-    , "comptime", "const", "continue", "default", "enum", "Exists", "export"
-    , "final", "for", "friend", "function", "get", "let", "immut", "import", "is"
-    , "mut", "own", "pub", "return", "Self", "set", "shared", "static", "switch"
-    , "throw", "trait" , "try", "type", "yield"
-    ];
-
-// Or should the last expression be returned? Or something else?
-document.write("List of keywords: " + keywords.map(a => "`" + a + "`").join(", "));
-}}}```
+{{{
+  // Or should the last expression be returned? Or something else? Just an idea.
+  document.write("List of keywords: " + AST.keywords.map(a => "`" + a + "`").join(", "));
+}}}
 
 > TODO Should "any", "class", "trait" and "type" be keywords?
 > If not, should it be possible to define classes if someone overwrites the "class"
 > identifier?
+
+> TODO After the language is finished, remove all unused keywords.
+
+> It is advisable for text editors and IDEs to display keywords using a differenct
+> col
+> 
+> Other parts of code that ought to be colored are:
+> 0. The word "from" from import/export declarations.
 
 #### Exports
 > TODO Keyword libexport? A way to distinguish internal and external exports
@@ -865,8 +869,8 @@ follows:
 
 ```
 export enum None {}
-export enum Null { null; static equals(Null, Null) => false }
-export enum Bool { false, true }
+export enum Null { null }
+export enum Bool { false, true } // What about tt/ff? Or something wit the same character length tru/fls, yea/nay true/nope
 ```
 
 #### Array

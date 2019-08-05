@@ -1,0 +1,314 @@
+///
+  This module defines the grammar and abstract syntax tree of the Chalk
+  programming language.
+  
+  Convention: expressions must have no leading or trailing whitespace. Two
+  exceptions are the root expression and the comment expression (which includes
+  one newline at the end).
+///
+
+import { Regex } from "stlib/regex.chalk";
+
+import { singleLineDoc, multiLinedoc } from "./ast-chalkdoc.chalk";
+
+{ class Expr,
+  class Or,
+  class Match,
+  class Space,
+  class StartSpace,
+  class Text,
+} = Regex;
+
+// Keyword is a string that cannot be an identifier.
+export []String keywords =
+  [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
+  , "comptime", "const", "continue", "cst", "default", "enum", "Ex", "Exists"
+  , "export", "final", "for", "friend", "fn", "let", "libexport", "ignore", "immut"
+  , "import", "is", "mut", "nowait", "own", "pub", "return", "Self", "shared"
+  , "static", "switch", "throw", "trait" , "try", "type", "yield"
+  ];
+
+export []Expr chalkModule =
+  [ Maybe([ Match(comment, "moduleDoc") ]),
+    Repeat(
+      [ Space(), Match(import, "imports") ],
+    ),
+    Space(),
+    Match(expressionList, "defs"),
+  ];
+
+export []Expr comment =
+  [ Or(
+      [ Match(singlelineComment, "comment") ],
+      [ Match(multilineComment, "comment") ],
+    ),
+  ];
+
+export []Expr singlelineComment =
+  [ Text("//")
+  , And(
+      [ Not(Text("/")) ],
+      [ Space(), Match(singleLineDoc, "chalkDoc") ],
+    )
+  , Space("\n")
+  ];
+
+export []Expr singlelineComment =
+  [ Text("///"),
+    Space(),
+    Match(multiLineDoc, "chalkDoc") ])
+    Space()
+    Text("///")
+  ];
+
+export []Expr import =
+  [ Text("import")
+  , Space()
+  , Or(
+      [ Match(identifier, "imports", { type: upperCase }) ],
+      [ Match(objectDestructuring, "imports",
+          { type: Destructuring.Typed.never }
+        )
+      ],
+    )
+  , Space()
+  , Text("from")
+  , Space()
+  , Match(stringLiteral, "path")
+  , Space()
+  , Text(";")
+  ];
+
+export []Expr expressionList =
+  [ Repeat([ [ Match(expressionSC, "expr") ] ], [ Space() ]) ];
+
+export []Expr definitions =
+  [ Repeat(
+      [ Or(
+          [ Match(objectDestructuring, "definitions"
+              { typed: Destructuring.Typed.never }
+            )
+          , Space("")
+          , Text(";")
+          ],
+          [ Match(variableDefinition, "definitions")
+          , Space("")
+          , Text(";")
+          ],
+          [ Match(classDefinition, "definitions", ) ],
+          [ Match(traitDefinition, "definitions", ) ],
+          [ Match(functionDefinition, "definitions") ],
+        )
+      ],
+      Space("\n"),
+      StartSpace(),
+      Space("\n"),
+    )
+  ];
+
+export []Expr variableDefinition =
+    [ Match(type, "type")
+    , Space(" ")
+    , Match(identifier, "name")
+    , Or(
+        [ [ Space(" "), Text("="), MSpace(" ", 4, [ Match(expression, "init") ]) ]
+        , [ Equals("init", null) ]
+        ]
+      );
+    ];
+}
+
+export []Expr classDefinition =
+    [ Text("class")
+    , Space(" ")
+    , Match(uIdentifier, "name")
+    , Maybe(
+        [ Space("")
+        , Text("<")
+        , Space("")
+        , Repeat(
+            [ Match(parameter, "params") ],
+            [ Text(","), MSpace(" ", 6) ]
+          )
+        , Text(">")
+        ]
+      )
+    , Maybe(
+        [ Space(" ")
+        , Text(":")
+        , Space(" ")
+        , Repeat([ Match(Identifier, "extends") ], [ Text(","), Space("\n") ])
+        ]
+      )
+    , Maybe(
+        [ Space(" ")
+        , Text("friend")
+        , Space(" ")
+        , Repeat([ Match(Identifier, "friends") ], [ Text(","), Space("\n") ])
+        ]
+      )
+    , Space(" ")
+    , Text("{")
+    , MSpace("\n", 2,
+        [ Repeat(
+            [ StartSpace()
+            , Or(
+                [ Match(classDefinition, "members") ],
+                [ Match(traitDefinition, "members") ],
+                [ Match(functionDefinition, "members") ],
+                [ Match(variableDefinition, "members") ],
+                [ Match(destructuringDefinition, "members") ],
+              )
+            ],
+            [ Space("\n"), StartSpace(), Space("\n") ],
+          )
+        ]
+      )
+    , Space("\n")
+    , StartSpace()
+    , Text("}"
+    ];
+}
+
+export []Expr traitDefinition =
+    [ Text("trait")
+    , Space(" ")
+    , Match(uIdentifier, "name")
+    , Maybe(
+        [ Space("")
+        , Text("<")
+        , Space("")
+        , Repeat(
+            [ Match(parameter, "params") ],
+            [ Text(","), MSpace(" ", 6) ]
+          )
+        , Text(">")
+        ]
+      )
+    , Maybe(
+        [ Space(" ")
+        , Text(":")
+        , Space(" ")
+        , Repeat([ Match(Identifier, "extends") ], [ Text(","), Space("\n") ])
+        ]
+      )
+    , Maybe(
+        [ Space(" ")
+        , Text("friend")
+        , Space(" ")
+        , Repeat([ Match(Identifier, "friends") ], [ Text(","), Space("\n") ])
+        ]
+      )
+    , Space(" ")
+    , Text("{")
+    , MSpace("\n", 2,
+        [ Repeat(
+            [ StartSpace()
+            , Or(
+                [ Match(classDefinition, "members") ],
+                [ Match(traitDefinition, "members") ],
+                [ Match(functionDefinition, "members") ],
+                [ Match(functionDeclaration, "declarations") ],
+              )
+            ],
+            [ Space("\n"), StartSpace(), Space("\n") ],
+          )
+        ]
+      )
+    , Space("\n")
+    , StartSpace()
+    , Text("}"
+    ];
+
+export []Expr functionSignature =
+    [ Match(type, "returnType")
+    , Text("(")
+    , Releat(
+        [ Match(parameter, "params") ],
+        [ Text(","), Space(" ") ],
+      )
+    , Text(")")
+    ];
+
+export []Expr functionDefinition =
+    [ Match(functionSignature)
+    , Or(
+        [ Text("=>"), Match(expression, "body") ],
+        [ Match(block, "body") ],
+      )
+    ];
+
+export []Expr functionDeclaration =
+    [ Match(functionSignature), Space(""), Text(";") ];
+
+export []Expr typeUnion = [ Match(typeUTerm), Text("|"), Match(typeUTerm) ];
+
+export []Expr typeUTerm =
+    [ Or(
+        
+      )
+    ];
+
+export []Expr typeIntersection =
+    [
+    ];
+
+export []Expr identifier =
+  Bool hasName;
+  Type type;
+  
+  enum Type { object, type, ctt };
+  
+  static const []Expr =
+      OneOf(
+        [ [ Equals(Identifier::iType, Type.ctt,
+              [ OneOf(
+                  [ [ Text("class") ], [ Text("trait") ], [ Text("type") ] ]
+                )
+              ],
+            )
+        , [ Equals( Identifier::iType, Type.type, [ OneOf("A-Z") ], [ OneOf("a-z") ] )
+          , Repeat( OneOf("a-zA-Z0-9") ) // That's right, NO UNDERSCORE. (Death to snake_case!)
+          ]
+        ]
+      );
+}
+
+export []Expr typedIdentifier =
+  Type type;
+  Identifier name;
+  
+  static const []Expr =
+      [ Field(TypedIdentifier::type, [ (Identifier::isType, true) ])
+      , Space(" ")
+      , Field(TypedIdentifier::type, [ (Identifier::isType, TODO) ])
+      ];
+}
+
+export []Expr type =
+    [
+    ];
+
+// Both generic and function parameter
+export []Expr parameter =
+    [
+    ];
+
+export []Expr objectDestructuring =
+    [
+    ];
+
+export []Expr arrayDestructuring =
+    [
+    ];
+
+export []Expr stringLiteral =
+
+// First part of variable declaration
+export []Expr type =
+    [
+    ];
+
+export []Expr todo =
+    [
+    ];

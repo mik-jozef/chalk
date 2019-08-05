@@ -81,7 +81,7 @@ export const grammar =
     [ "Expr", [ "break", "Expr" ] ],
     [ "Expr", [ "comptime", "Expr" ] ],
     [ "Expr", [ "ignore", "Expr" ] ],
-    [ "Expr", [ "mut", "Expr" ] ],
+    [ "Expr", [ "mutab", "Expr" ] ],
     [ "Expr", [ "immut", "Expr" ] ],
     [ "Expr", [ "const", "Expr" ] ],
     [ "Expr", [ "continue" ] ],

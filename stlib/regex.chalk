@@ -42,14 +42,11 @@ export class Maybe : Expr {
   new([]const Expr _expr) {}
 }
 
-// Rename to Or, add And?
+// Rename to Or, add And
 export class OneOf : Expr {
   pub const []const Expr alternatives;
   
-  pub const []const Expr except;
-  
-  new([]const Expr _alternatives,
-      []const Expr _except = Expr.noMatch) {}
+  new([]const Expr _alternatives) {}
   
   new(const String str) : new(str.map(char => Chars(char))) {}
 }

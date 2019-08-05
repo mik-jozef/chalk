@@ -32,6 +32,12 @@ export class Defer {
   }
 }
 
+Range range(...);
+
+trait Hashable<any Hash> {
+  Hash hash() pure;
+}
+
 trait Collection<T> {
   merge(Self, Self, Null?(T, T) resolveConflict);
 }
@@ -366,7 +372,9 @@ trait AsyncIterable<I: AsyncIterator> {
 }
 
 // Should this class be split for UTF-8 strings and strings with finite alphabet?
-class String<Alphabet alphabet = Utf8> : Viewable, Buffer {}
+class String<Alphabet alphabet = Utf8> : Viewable, Buffer {
+  Stream substrings();
+}
 
 class BigInt : Number {}
 class StringBuilder {}

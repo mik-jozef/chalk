@@ -160,7 +160,7 @@ Note: yes.
 Note: yes.
 
 ##### String should implement Buffer
-Node: I'm not sure, left a comment in temp.chalk
+Note: I'm not sure, left a comment in temp.chalk
 
 ##### Questions about types:
 0. Is there a one-to-one correspondence between type constructors (eg. `A|B`)

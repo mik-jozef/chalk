@@ -68,7 +68,16 @@ C c();
 c.b = -1; // This must throw an error because of the `assume`.
 c.b = bar(); // if 'bar' is sufficiently complicated, this must require a proof that it returns positive numbers only
 ```
-named propositions: `prop P = All C c: c.a > 0`? TODO `prop` vs `class`
+named propositions which alternative?
+  or `prop P = All C c: c.a > 0`
+  or `P: All C c: c.a > 0`
+  or `P = All C c: c.a > 0`
+  or `let P = All C c: c.a > 0`
+  TODO `prop` vs `class`
+  Insert this as a note to the spec: "The only reason `prop` and `class` are
+  distinct types is that, if they were the same, it would confuse programmers."
+++ for tuple concatenation
+`fn foo(A a, B, b) Ret namedReturn { fnBody() }`?
 Chalk is a programming language, and a collection of tools, including a compiler,
   package manager, and version control system.
 convert return and yield to function if they are not the top-level expression?
@@ -165,6 +174,7 @@ issue tracking - let developers customize issue creation form, eg. to include
 if an expression ends with `}`, it shouldn't end with a semicolon
 either have all values on heap by default, or warn if a reference to a local
   variable could potentially outlive the variable
+type correctness means that all valid programs are type safe (or vice versa?)
 should comptime type creation be allowed? if so, should it be possible
   to use interfaces of comptime-created types? I do not like the idea of
   type correctness depending on results of provably terminationg (or even general)
@@ -396,6 +406,17 @@ Nat a, b {
   distinct(a, b, 1);
 }
 ```
+`value.getName(command) |a> return a;`
+some proposition will probably work like types in that they will be guaranteed
+  to hold for the variable during its entire life, in the same way mutability
+  qualifiers work. Should there be a way to circumvent the usual rules for
+  manipulating these (eg. only assign immutable data to immutable variables)
+  if it provably satisfies the propositions?
+`ignore x` returns `null` if `x is Error`, else returns `x` 
+default destructuring parameters
+`export X from "x";`
+`a == b == c` should be true if `a == b` and `b == c`? how many operators should
+  work this way? all comparison operators, at least
 terms that need to be defined: member, field (TODO rename field, because field is a mathematical structure), scope, variable, (symbol?) instance/member variable
 should const (and immut) be transitive?
 delayed initialization?
@@ -465,12 +486,18 @@ should objects in variables of type `?T` be convertible to `Bool`?
 Should `1 < 2 < 3 <= 3` be valid and evaluate to `true`?
 getters? I definitely don't want setters, but getters could be acceptable,
   provided they are pure
+compiler should support something like console.log that only works during
+  debugging and doesn't need a reference to io stream to print to console
+  every use of it should also produce a warning
 locality of errors: changing a piece of code should ideally produce error
   at or close to the change.
   This is why I'm worried about proofs in code - if there is semi-successful
   (and it can never be totally successfull) autoproving, changing an invariant
   could theoretically produce seemingly unrelated errors anywhere in code, if
   it means the auto-prover is no longer able to prove what it needs to prove
+in every switch, at least one catch must provably always execute
+use --- for switching to code in comments? {{{}}} Could be a Set of a Set of
+  the empty set.
 Compiler optimizations:
   Assuming `Set<T>.subsets(Set<T>)` constructs the set of all subsets, this code
   ```
@@ -656,16 +683,86 @@ optimizations - merge not only identical string, but identical objects of other
       .map(rule => rule.left == symbol ? first(rule.right) : tmp)
       .reduce(new Set(), (acc, a) => acc.add(a))
   ```
+`Collection<T>.map(Null insert(T))`
+`{ ?Bool a, Bool b(true) } == foo` compares `foo.b` with true, if it equals,
+  assigns `foo.a` to `a`, else assigns null. If this is inside the logical
+  and operator, the type of `a` doesn't have to be optional (unless `foo.a`
+  can be), because the variable is guaranteed to exist
+  variable, if it will be used, will be
+do function variables have to be marked partial to be partial?
+  or can they be partial implicitly, and have the keyword total?
+  I can imagine people will not bother with marking fn variables
+  as partial even if they could be
+  on the other hand, making them total by default would give
+  library authors the guarantee that calling them won't result in
+  execution being taken away from them with eg. named return statement
+`foo(a) is None` in proofs means that foo doesn't return a value with
+  a as an argument.
+require abstract keyword from function declarations in traits
+copy constructor and equals must be side-effect free, and maybe pure?
 one of the parameters of `Main.new` should be `Int64 random`? a random integer
   or maybe `time`, the time the process was started.
+should union types have their own values? Should union types be secretly
+  pointers like all types are in Java? Should it be possible to
+  assign a value to a variable with a different runtype type?
+  Could tracking of properties like "this pointer points to a value",
+  "the value of this variable is of this type" be extended to arbitrary
+  propositions? I'm sure it would be useful for functions to be able
+  to ask that their parameters not only have certain properties at when it is called,
+  but during the whole execution of it. Some examples: this value will not be
+  changed as long as this reference is used (ie. `immut`); this value will not be
+  changed by other functions during the execution of this function, this pointer
+  will be valid;
+chalk compiler - ability to install only parts of CST, like only compiler and package
+  manager, and only for certain languages/platform targets
+What's the relation between `Null(Int)&Null(String)` and `Null(Int|String)`?
+  I guess they are the same type.
+  What about `Int(Int)&String(String)` and `(Int|String)(Int|String)`? I guess
+  they aren't, are they? From the first type, it is possible to infer the return
+  type from the argument type, they shouldn't be the same type.
+Two approaches to propositions:
+  0. Propositions only apply to a certain point in time, most likely where they
+     are defined. Eg. variable `i` is a multiple of 4.
+  1. Propositions apply to variables as long as those variables will exist.
+     Examples: immut, type of a variable (when refining the type)
+Are they usable, useful, or even practical? Is one
+  a special case of the other, or are they incomparable? What about their expressive
+  strength? Which aproach is the correct one, or are they both (in)correct?
+make all mutability qualifiers the same length?
+? a syntax sugar converting sth like haskell's `data X = A Int | B String Int` to
+  ```
+  final trait X {
+    ?pub? class A : X { Int m; }
+    ?pub? class B : X { (String, Int) m; }
+  }
+  ```
+TODO define - initcall time, maincall time, endcall time?
+  runtime != call time of the main function, because of async functions
+  and the event loop.
 problem: what is `(Int, Int)` - `Tuple<Int, Int>`, or an instance of `Tuple<class, class>`?
-should multiplication be defined on functions?
+stlib: File should mean a random-access ByteStream
+array comprehension? (and it solves the semicolon vs comma debate)
+  ```
+  for i : 4 [
+    let b = i % 2 == 0;
+
+    ...(b ? [ 0 ] : []),
+    i,
+  ]; // Returns [ 0, 0, 1, 0, 2, 3 ]
+  ```
+higher kinded polymorphism?
+  ```
+  trait Monad {
+    Self<B> bind(Self<A>, Self<B>(A));
+  }
+  ```
+functions should be monoids
   ```
   Int a(Int a, Int) => a;
 
-  (Int, Int) b(Bool b) => ( b ? 1 : 0, b ? 1 : 0 );
+  (Int, Int) b(Bool b) => b ? ( 1, 1 ) : ( 0, 0 );
 
-  Int(Bool) c = a * b;
+  Int(Bool) c = a ++ b;
   ```
   also, should functions officially take tuples as parameters, and one-tuples would be
   implicitly convertible to not-one-tuples?
@@ -856,7 +953,86 @@ warn on `x && Int a(0)` (ERRCODE: Variable declaration in implicit scope);
 small standard library, official packages in userland?
 ability to inspect (and/or redirect) stdout? perhaps a compile time option that
   allows it?
+compiler should be able to optimize `fib(i) => i == 0 ? 0 : fib(i - 1) + fib(i - 2)`
+  into something with linear time complexity and constant space complexity
+error - none of the Chalk grammars I created so far support destructuring of parameters
+should `{ a } => a` be legal? (destructuring in lambdas without parentheses) I think so,
+  because even the parentheses themselves are destructuring
+```
+Null foo(Int i, true) => i;
+Null foo(Int i, false) => -i;
+```
+  what about:
+  `Int sum[ Int a, ...rest ] => a + sum(rest);`? Or
+  `Int sum[ Int a, ...rest ] => a + sum rest;`?
+  And `double a => 2 * a`.
+stack traces in errors must work correctly even with async await
+should this work?
+  ```
+  class C {
+    Bool bool;
+    
+    Int a = bool ? 1 : 0;
+    
+    new(_bool) {}
+  }
+  ```
+  I think it should.
+should arrays and tuple values be separated by semicolons for consistency with
+  code blocks (or code blocks separated with commas?)
+  Also:
+  ```
+  for Int i : 10 [
+    i * 2;
+  ];
+  
+  // Or in one line:
+  for Int i : 10 [ i * 2 ];
+  ```
+  could return `[ 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 ]`. Same with tuples.
+  That would be a nice syntax for `array.map`. But what about `collection.map`
+  in general?
+  What about the semicolon at the end?
+should this work? and what should be the result?
+  ```
+  class C {
+    Int a, b;
+    
+    new(C c, Bool bool) {
+      bool ? { a = 1; b = c.b } : { a = c.a; b = 1 }
+    }
+  }
+  
+  C a(b, true);
+  C b(a, false);
+  ```
+  I think it should.
+ChalkDoc - code inside \`\`\`  \`\`\` should be syntax highlighted
 function splitting optimization
+Is this too much black magic?
+  ```
+  Set<Int> s;
+
+  s[4] = true;
+
+  ///
+    Set could be Indexable, and set.get could return
+  ///
+  class PseudoBoolean<type T> : Assign<Bool> {
+    new(Set<T> s, *T t) {
+
+    }
+
+    assign(Bool b) {
+      switch b {
+        true: s.set(t);
+        fals: s.del(t);
+      }
+    }
+  }
+  ```
+only those options which are all permissible should be specifiable by command line
+some types will require proofs of termination for the default equality operator
 `Object.shrink()`?
   shrinks all members, eg. unused memory in dynamic arrays, NOP for most objects
 rust-like guarantees about object lifetime/mutability?
@@ -879,11 +1055,16 @@ continuations? delimited/not
   the function, so they would be redundant.
   Also, undelimited continuations are the same as named return expressions, which
   are part of the language.
+placement new
 fix generators - next() parameters, replacement for function.sent, ...
 type conversion between `(T)` and `T`?
 Error: missing function body - maybe with explanation that functions don't have
   to, and can't be declared before being defined, and a mention of function
   variables
+all io is async
+should comptime io be allowed? only in root, ofc
+compiling should only ever touch files and folders inside the folder that is being
+  compiled
 there should be no need for anything like /c?make/ or other build systems
 A function that returns `None` doesn't have to stop the program:
   ```
@@ -1532,11 +1713,431 @@ function can prove invariants about itself, eg. that an optional type is not
   null if certain conditions are met
 If every function self-invocation is the last executed expression, that function
   will be converted to a loop
+Variable address is not the same as address of a value in memory, but server
+  the same purpose - to uniquely identify a value. There's at least one difference:
+  every value has unique address in the spec, whereas a class instance can have
+  the same address as its zeroth member variable in memory.
+  Address (as used in the spec) is not meant to represent addresses in memory
+  on real-world hardware.
+  Or maybe the above should be irrelevant because of an implicit as-if rule?
+probably my biggest issue with CoQ is that it's unreadable, and someone who
+  knows proofs in natural language cannot understand Coq proofs without learning
+  the language. Proofs in Chalk must be easily readable to any mathematician,
+  whether or not he has seen Chalk before or not.
+  The other issue is that Coq requires the reader to hold too much information
+  in his head (the current goals), information which isn't even explicitly part
+  of the code. Proofs in Chalk should be more explicit.
+`class A<type A, B, A : type C : B> {}` C must be a supertype of A and a subtype of B
+`atomic` keyword for atomic operations that can be reordered, `shared` for non-reordeable
+  statements?
+  `shared;` acts as a memory fence?
+All parts of language that require proofs to make a program potentially compile
+  must be explicitly required by the programmer.
+  Eg. assigning an immutable reference to a mutable variable or vice versa
+  could require a keyword `mut` (or `immut`, respectively).
+  The first advantage is that compiler errors will be more understandable
+  if the programmer doesn't wanna use proofs, and less brittle (less prone
+  to appear in unrelated parts of program or after seemingly unrelated changes).
+  Another one is that it will be easier to learn Chalk, since the more advanced
+  concepts (proofs) could be delayed.
+maybe compiler should be able to use some propositions to decrease a type's
+  instances' size in memory
+  ```
+  class A {
+    Int a;
+    Int b;
+    
+    All: a == b;
+  }
+  
+  class B {
+    Int a;
+  }
+  
+  Reflect.size(a) == Reflect.size(b);
+  ```
+instead of:
+  ```
+  type<class> NonemptyArray = class<any T> {
+    pub []T arr;
+
+    assume Prop = ...;
+    
+    implicit new(_arr) {}
+  }
+  ```
+  have a syntactic sugar like this?
+  ```
+  type<class> NonemptyArray = [] where Prop = ...;
+  
+  type<class> NonemptyArray = [] where {
+    PropA = ...;
+    PropB = ...;
+  }
+  ```
+  so that dependent types have a nice syntax
+  or:
+  ```
+  class A {
+    Int a;
+    
+    new(_a) :: {}
+  }
+  
+  class B : A {
+    assume a % 2 == 0;
+  }
+  
+  B b0 = A(2);
+  B b1 = A(3); // Error
+  
+  A a0 = b0;
+  A a1 = A(3);
+  ```
+`auto (head, tail) = array.ht()`
+  `array.head` and `array.tail`?
+what about array views/slices and expansions?
+  if you'll support array views, it will mean that two value type variables
+  will be able to point to the same memory
+allow explicit non-determinism?
+  eg. a function that sorts array can return equal elements in any order
+  EDIT:wft whas i thinking about?
+it should be easy to look up how much memory is used/free
+operator (perhaps `a |> b`) that behaves like `(a, b) => a is Null || b(a)`
+  or maybe `A|B var = foo(); var |> (A a) => callThisifVarIsA(a)`?
+```
+switch expr {
+  is Car:
+  is Wheel:
+}
+```
+have a tutorial for non-programmers
+repace `get` and `set` keywords with something else, these would conflict
+  with method names
+  `get` could be `cst`? Is `set` even needed? I don't think so
+`Ex` vs `Exists`? keep both temporarily and let users decide?
+  the less popular could be dropped and the compiler could replace it with the
+  more popular one
+The ~80 chars per line limit should not count leading space
+even empty lines should contain the leading whitespace
+```
+// Haskell has joined the chat
+switch a {
+  case [ 0, ...b ]: foo(b);
+  case [ 1, ...b ]: bar(b);
+  case _: baz();
+}
+```
+If variable initialization contains a pointer that is provably never dereferenced,
+  that pointer does not count as a dependency on that variable?
+  eg. this is fine
+  ```
+  class A {
+    *A a;
+    
+    new(_a) {}
+  }
+  
+  A a(b);
+  A b(a); // This variable, officer
+  ```
+  That would mean pointers can exist before the values they reference
+once the spec is more or less complete, look at everything ever written
+  in this repo (read all commits) to see if all you agree with is actually true
+have a short summary of the language for programmers
+do not depend on the C standard library, replace it
+should there be the possibility to micromanage stuff like function decay,
+  memory layout, etc?
+  My guess: if it proves necessary for something really crazy, but used
+  in specific real-world environments, I guess it should be doable.
+try-catch with the following semantics?
+  if a method that is directly called in a try-catch block (and possibly in lambdas)
+  defined there? returns an instance of Error, a catch block (which must exist
+  and must (provably?) catch all error types that are possibly thrown) is executed.
+  To propagate the error, it must be returned.
+  ```
+  ?Error foo() {
+    try {
+      bar();
+      
+      baz();
+    } catch (SpecificError e) { // Ignore
+    } catch (Error e) {
+      return e;
+    }
+  }
+  ```
+  desugars into
+  ```
+  ?Error foo() {
+    _catch(e) => switch e {
+      is SpecificError: null;
+      is Error: return-foo e;
+    }
+    
+    _catch(bar());
+    
+    _catch(baz());
+  }
+  ```
+`ignore` keyword if a method can return an error is called without the error being
+  used later
+  ```
+  ignore File.write("this might fail, but I don't care");
+  ```
+run-time generics?
+  or should generics support parametrization by value at all? optimizations can
+  use comptime known values even if they are regular constructor arguments
+`new(...) :: {}` initializes all members, `new(...) : memberA(...) {}` initializes
+  some members, `new(..) {}` initializes none?
+  Or should all members be initialized by default? I guess many will forget the double colon
+  After the constructor finishes, all members must be initialized
+  Better syntax: `new(...) : {}` initializes none, `new(...) : a() {}` some, `new() {}` all
+  Or, to comply with 'no proofs required unless advanced Chalk features requested':
+  `new(...) {}` and `new(...) : a() {}` all, or error if some are without default constructors
+  `new(...) :: {}` and `new(...) :: a() {}` some, or in the body
+should `Set<Int>` be a subtype of `immut Set<Any>`?
+`class`, `trait`, `type` and `any` should be called "primitive kinds",
+  other kinds should be "composite kinds"?
+Should `*` be a type template and an instance of `type<type>`? Or should type constructors
+  defined in the spec not be templates? Same with eg. `Function<any Ret, any ArgsTuple>`
+there should be implicit type conversion between `A` and `(A)`
+transactions that deal with situations that temporarily break invariants?
+some way to avoid reference counting pointers?
+  0. Unsafe pointers that have to be proven correct, that either were created from
+     a safe pointer, or that point to an object that isn't pointed to with a safe pointer
+     and have to be deallocated manually
+should it be possible to turn off proofs/bound checking, etc?
+  if someone doesn't care about 100% correctness, it's not my problem
+  sometimes, producing proofs might be too costly to be worth the effort
+TODO if I want to ensure that all pointer dereferences are valid, I have to ensure that
+  there is an order on variables that are 
+  However, with this order, it seems to me I may get a proof that there will be
+  no memory leaks resulting from circular references, is that right?
+  Imagine two objects, each holding a reference to the other. The reference must
+  become invalid strictly before the objects. Therefore they cannot exist eternally.
+study ada seriously (every feature, if possible)
+the more I think about imposing `a == b -> All f: f(a) == f(b)`, the more I like it.
+  0. The default constructor satisfies it
+  1. That's what equality should be about
+  2. Do you want some objects to be equal even if some of their bembers aren't?
+     No problem, just make them private and make sure their differences do not
+     'leak'.
+  What about the other direction?
+performance: it should be possible to get rid of reference counting entirely
+  what's the best way to do it?
+if a compiler detects that a certain assumption is false, could it generate code
+  that demonstrates the fault?
+```
+> chalk ide           // Uses `.` as path, `8080` as port
+> chalk ide ./path/   // Uses `8080` as port
+> chalk ide :8081     // Uses `.` as path, colon necessary
+> chalk ide ./optional/path/ 8081   // Colon unnecessary
+Repo found in the parent directory `...`, continue? y/n: y
+You can now access the IDE at http://localhost:8081/.
+```
+should this be legal?
+  ```
+  class A<any T> {}
+  
+  type B = A<C>;
+  type C = A<B>;
+  ```
+  Would this enable new types? Or are all such types expressible without
+Collection.get(key, ?defVal)
+do switch options have to be exhaustive and/or provably distinct?
+destructuring returns a boolean true if matched?
+  ```
+  ( a, b ) = ( 0, 1 ); // Returns `true`.
+  ( a, 5 ) = ( 2, 3 ); // Returns `false`, doesn't update variable a
+  
+  { a: 3, b } = x;
+  ```
+chalk should have an easy API for creating a wifi server
+debounce function/object
+the return statement of a function that returns Null can accept any type
+pick something other than new as constructor name? cons,destr...
+enum None {};
+  None is T; // true for any type T
+  None is the new noreturn
+  what about user defined 0-enums?
+  for all types/classes? T, `None is-rel T`
+chalk tutorial - include homework?
+two types of weak pointers - one guarantees it points to a valid address, but isn't refcounted
+haskel like switch unification?
+```
+class {
+  foo() nullable {} // callable even if this might be null
+}
+```
+compiler verbosity levels: by default only print what error is where (?),
+  with the option to print details of an error with a specific command (?)
+should the compiler be interactive by default?
+functions that take params (A, []A), and recursively call themselves
+  with a view of the array should be appropriately optimized
+chalk format source.chalk
+chalk stateCheck ..conditions - tries to find a state of a program that satisfies
+  given conditions, valid inputs that can cause such state, and a call stack/call
+  tree tha represents a computation from these inputs to the state
+it probably shouldn't be possible to get AST of modules or functions from libraries
+```
+chalk build .path/to/main.chalk, or
+chalk build .path/to/main.chalk/MainClassName
+```
+`type Real = Stream<Bool>; // ?`
+if string length < c for a reasonable c, store the string in the pointer instead of in allocated memory
+/a/path/with\/just_3_folders/
+what is `Bool b = 2 is Int8`?
+a way to make compilation output other files than just the binary? eg. to precompute hard
+  calculations only once for multiple compilations, to make documentation generation
+  a special case of more general functonality, ...
+Trait types are like composite types in that their values can have more than one type.
+  TODO common name? (Non-leaf types? no, traits can be leafs).
+  Assigning values of different types should have the same semantics for them.
+  Later EDIT: wtf did I mean by this
+should `class<x>` be Object? or should there be some other common type for type templates?
+Who sacrisfices program reliability to performance deserves neither performance nor reliability.
+  - George Washington
+warning: unnecessary pointer/heap allocation
+revisit the decision to have pointers and value types
+`ATrait subtypes C0ofAT|...|CNofAT` if AT is final
+async-for
+lazy loading like vue's reactivity that only updates those things that need updating?
+compile code for multiple platforms (OSes)?
+routines that can run in the same thread or different threads, local synchronization
+should pointer type conversion after another conversion be a warning/error? otherwise, this would be valid, but probably unintuitive:
+  ```
+  Int i = 1;
+  *Real r = i;
+  r = 2; // 'i' is still 1
+  ```
+```
+Null main(?IStream in, ?OStream out, ?OStream err);
+Null main(?IOstream io, ?OStream err);
+```
+warn on unused files and folders
+repo should have `config` folder containing all the garbage that IDEs and various
+  tools usually place to the root folder
+  `config/local` should be ignored by version control
+Should the chalk compiler warn about proofs that take to long?
+  It should be at least able to measure how muh time is spent
+  on what parts of compilation.
+what is the semantics of `T a() => a()`? an out-of-thin-air (spurious) value?
+is it ok to have a reference to invalid memory if it is provably never used?
+  memory is considered invalid after destructor is called. Can it be called
+  explicitly?
+prolog-like programming of logical statements?
+Propositions that only warn if unproven
+native syntax for db queries?
+function declarations cannot have default arguments, but they can have default
+  pseudo args thhat specify they declare multiple function overloafs?
+syntax for definitions of noncomputable functions?
+require explicit this parameter?
+```
+All Grammar g: used(g, s) == intersection(all({ g }, String), (g, used) => {&
+  "String" in used;
+  
+  All (name, symbols) in g:
+    name in used -> All symbol in symbols:
+      symbol in used;
+});
+
+///
+  Compiler emits a warning if there exists a grammar that does
+  not provably only contain used symbols
+///
+warn All (name, symbols) in Grammar g: used(name, g);
+```
+alternative syntax for `n0 && ... && nn`: `{& n0; ... nn }`
+  same for `||` and xor
+  usable in long chains of ands that will probably occur in proofs,
+  makes them naturally multiline
+if an invariant is broken, print it snd its comment in error message
+relection on functions should be opt-in per function (definition?)
+import syntax under comptime conditionals?
+shared blocks - atomic execution
+fn.innerTypes? class of types declared inside function body
+Compiler.parse(String code, Context context)
+```
+switch {
+  case (Int i = foo()) != 4: print(i);
+}
+```
+parralelism use case - sparse interaction
+optimization: if a local value is never changed, make it global
+Some X x: prop; //for lts checker
+allow immutable global variables
+IWannaLoseMyJob keyword that will let you use unsafe parts of the language
+standard types All, Exists (or Ex)
+```
+chalk fix rename path.chalk/Foo Bar
+chalk fix toCamelCase --unsafeAll
+chalk fix toCamelCase // renames variables, including reflextion args, unless it cannot prove such renaming is correct
+```
+console.in|out?
+syntax sugar:
+  ```
+  All Integer a Exists Integer b: a + b = 0
+  All<Integer, Symbol(?) a, Exists<Integer, Symbol b, And<Plus<a, b, Symbol t>, Equals<t, 0>>>
+  ```
+chalk shuld be able to count lines of code of a function, module, wole project, proof, recursively or not
+chalk: add note(s) explaining reasoning behind both chosen and rejected blocking models - async await/blocking calls/promises
+  also all major design decisions, including all ways of concurrency handling/communication
+what about transactional memory (what about that issue (see wikipedia, infinite loop where it shouldn't be)
+should null equal null?
+  imagine `class LinkedListNode<any Val> { ?LinkedList next; Val v; }`
+  if `null != null`, the default implementation of equals will judge two
+  empty Linked lists aren't equal
+custom translation packages - ability to define new languages, add target
+  architectures or change how standard software is compiled
+  eg. changing memory layout of some or all classes and local variables of
+  some or all functions so that they are represented by a linear code of
+  their standard representation in memory to offer redundancy
+stack frame of a function f should contain space for stack frames of all functions
+  called by f. If a recursice function cannot be optimized into a loop,
+  it has to allocate space for (some of) its local variables on the heap
+  The size of the stack should be >= size of stack frame of `Main.new`.
+  This way, stack overflow will never happen.
+Problem: `==` as defined in `Any` should be total and computable, but for
+  some classes (eg. `Function`, `TuringMachine`), this isn't the case.
+  What to do with it? Compromise on the total computability everywhere?
+  Or let some classes/(other user-defined types) be not subtypes of `Any`,
+  which would enforce total computability, but only `Equals`, which woudn't?
+if `a` and `b` are function overloads of the same function and there exist such
+  arguments `arg` that `(a|b) ...arg` is type correct, `a` and `b` are
+  conflicting - this is an error. (Equivalently, if the types of the parameters
+  of `a|b` are all non-`None`)
+  `A(B)|C(D)` == `(A|B)(B&D)`
+If comptime type creation is allowed, use this syntax: `class(members)`,
+  `trait(members)`
+`++` for function concatenation
+should `A(a) == a` be provably true? and should `equals() => false` be legal?
+  should `a == b -> f(a) == f(b)` be provably true? 
+`\/` operator for xor that is true when exactly one its argument is true
+  regular xor (true if odd number of arguments are true)
+  1. seems unuseful
+  2. already exists: != \/
+  `a \/ b \/ c` sugar for `xor(a, b, c)`
+this must obviously be possible: `class<class<class> A> {}`
+don't forget `export { a: b } from "./anotherModule.chalk";`
+  this should also create a variable `b`
+should `Int` always be serialized to `Int64`, even on 32 bit platforms? I guess so
+for all `T`, should `Set<T>` be an instance of `Set`?
+should there be a distinction between `A` and `A<>`?
+it mustn't be possible to `assume` a contradiction
 what about funcitonal programming? lazy evaluation?
   could eg. the y combinator (if type system allows it) not cause infinite loop?
   ```
   Null foo() => foo(); // Should this terminate?
   ```
+  EDIT later: a type system that doesn't allow the y combinator is not a proper
+  type system. It must typecheck. Whether it should also not enter an infinite
+  loop is a different matter.
+  EDIT later - what about:
+  An empty function is a function that only calls empty functions.
+  Empty functions terminate in O(0).
+  This doesn't solve the y combinator issue, but any lazy evaluation strategy
+  that I could consider should cover all empty functions
 a way to unresolve (cancel) a promise if it is still just waiting in event loop? (later: why?)
 compiler should be able to remove not only variables/class members that are unused,
   but also those that are only used for proofs/at compile time
@@ -1553,6 +2154,8 @@ this must be legal:
   should `Self` refer to the outermost or innermost type in the declaration
   (outermost makes more sense to me now)
 should pointer type be a class type template?
+if an imported file doesn't exist, but the path lacks an extension, try
+  looking for a few file extensions, and suggest them in the error message
 rename the is relation to extends, and extends to implements?
 cancellable promises, can stop async functions, threads
 ChalkDoc documents should have the option to be interactive, however, there should
@@ -1768,7 +2371,7 @@ the identifiers `class`, `trait`, `type` and `any` (and possibly `prop`) should
 think about deffered loading of code so the whole application doesn't have to be in memory
   when it starts
 chalk should be low-level enough so that an os can be written in it
-unary ^ as bitwise negation?
+unary `^` as bitwise negation?
 remember `X.Y a;` is variable declaration even though `X.Y` is a member access
   expression, not a type
 `?All` and `?Exists` for statements that only warn when not proven (but maybe error
@@ -1791,6 +2394,7 @@ user defined type conversions + function reflection/inspection =
   
   Polynomial = x => 3 * x ** 2 - 2 * x ** 3;
   ```
+friend classes and friend functions
 Number.parse(String str, ?Int base = 10, Bool allowBaseChange = ??) // base == null -> str must be prepended with 0x, 0b, ... ?
 should duplicate variables be a warning? eg.
   ```
@@ -1832,6 +2436,7 @@ user-defined canonical type conversions?
 can multiple immutable values in value-typed variables share the same address?
 function and type template overloading must work across scopes
 no named parameter calls
+discard `unsafe` keyword, anything potentially unsafe must be provably safe
 `T t = undefined` should not be unsafe code, it should just error if variable is
   - written to if not known whether defined
   - read if possibly still undefined
@@ -1989,7 +2594,8 @@ comptime variables? (accessible by comptime code)
   ```
 some (all?) errors and warnings should not be part of AST definition, but the
   transformation rules. Errors should be able to back-propagate to a position
-  in sourcce code
+  in source code
+runtime vs dynamic, and comptime vs runtime type? I prefer dynamic and static.
 class cannot be instantiated if it has no fields
 ```
 // Pointers to fields?
@@ -2002,9 +2608,16 @@ class B {
   C c;
 }
 
+class C {
+  Int foo;
+}
+
 A::B::C foo = c;
 *A::B::C pA = A(); // ?
 A::B::*C pF = foo; // ?
+
+pA == 6;
+C().pF == 6;
 ```
 pointers:
   ```
@@ -2012,7 +2625,9 @@ pointers:
   := assign to a pointer
   ::= etc. or maybe in reverse?
   ```
-compiler must warn if it cannot prove comptime code terminates
+compiler must warn/error if it cannot prove comptime code terminates
+  and maybe an indicator of progress (eg. in CLI) could be automatically
+  derived from the proof of termination
 auto-convert `struct snake_case` from C to `class SnakeCase` in Chalk
 ```
 static class Namespace {
@@ -2063,6 +2678,7 @@ Null bar() {
 type Empty == |;
 type Object == &;
 ```
+`(3.5).fraction == 0.5`, `(3.5).whole == 3`, `(-1.2).frac == 0.8`?
 starting stack shouldn't be any special from other stacks (of other threads,
   coroutines maybe)?
 pools as hierarchical collections of threads
@@ -2071,7 +2687,9 @@ pools as hierarchical collections of threads
 promise/coroutine cancellation
 why does async have to be explicit (`Promise<T>` instead of just `T`)?
   because otherwise every function invocation would possibly block,
-  which opens too much problems with race conditions
+  which opens too much problems with race conditions.
+  and it would remove the difference between calling and waiting,
+  and just calling.
 spec: known types - enforces restriction on some types in std
 https://github.com/Kotlin/kotlinx.coroutines/blob/master/coroutines-guide.md
 http://cr.openjdk.java.net/~rpressler/loom/Loom-Proposal.html
@@ -2278,6 +2896,17 @@ A a(); // equals `A a = A()`;
 A(Int) a = Int i => A();
 ```
 `Prop true = a || !a; Prop false = a && !a`
+```
+> chalk
+Version `0.5.16`. Try `chalk.help()`. // ?Version is colored, `chalk.help()` is underlined and clickable
+// Blinking cursor of REPL
+```
+should global REPL variables be allowed to be mutable? upside: easier hacking,
+  downside: the code, after being saved, might not be valid chalk
+  Or the save() function will have to make these globals members of Main,
+  which might not be a bad idea.
+  Or have a flag for this, `--mutableGlobals`.
+Every flag must have a help page.
 custom implicit type conversions? would have to be opt-in, not opt-out like in C++
 proofs should, or at least should be able to, display the theorem to be proven
   at the start?
