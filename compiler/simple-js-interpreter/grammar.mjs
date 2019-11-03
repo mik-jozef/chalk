@@ -155,6 +155,7 @@ export const grammar =
     [ "Neg", [ "!", "Neg" ] ],
     [ "Neg", [ "await", "Neg" ] ],
     [ "Neg", [ "nowait", "Neg" ] ],
+    [ "Neg", [ "ignore", "Neg" ] ],
     [ "Neg", [ "Unary" ] ],
     [ "Unary", [ "Unary", ".", "lIdentifier" ] ],
     [ "Unary", [ "Unary", "[", "Expr", "]" ] ],

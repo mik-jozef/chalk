@@ -41,16 +41,36 @@ This specification is a ChalkDoc document. You can view the source [here](TODO).
 > TODO Maybe ToC should be inserted automatically
 
 ## Values
-A *[[[value]]]* is either a type, an object, or a type template.
+A *[[[value]]]* is either a type, a kind, an object, or a type template.
 
 > Informally, a value is anything that can be inside a variable.
+
+> TODO Should kinds be types?
 
 Every value is an [[[instance]]] of a type and has an interface. A value
 has a [[[target address]]] when it is an instance of a pointer type.
 
+> TODO make a nice picture of types
+
+{{{
+  final trait Value {
+    Type instanceof;
+    Interface interface;
+    ?Address target;
+    
+    All: target == null <-> this is Ptr<?>;
+  }
+}}}
+
 ### Types
 A *[[[type]]]* is either a base type, a derived type or type template type. Every
 type is an instance of a primitive type.
+
+{{{
+  final trait Type {
+    
+  }
+}}}
 
 #### Base types
 A *[[[base type]]]* is either a primitive type, a class type, or a trait
@@ -751,8 +771,8 @@ Operators that are not syntactic sugar:
 | -------     | --------      | -----------
 | `a.b`       | Member access | Type of `b`
 | `a?.b`      | Member access | Type of `b` or `Null`
-| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
-| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `false`?
+| `a && b`    | Logical and   | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `null`?
+| `a \|\| b`  | Logical or    | `Bool` if `b` is `Bool`, else `Null`. // Why not type of `b` or `null`?
 | `a ? b : c` | Conditional   | Union of types of `b` and `c`
 | `a is T`    | Is operator   | `Bool`
 
@@ -808,11 +828,13 @@ and: &&
 
 or: ||
 
-qmark: ?:, ? :
+qmark: ?: or ??, ? : // incomparable
 
 assignLeft: =, +=, -=, \*=, /=, %=, \*\*=
 
-word: const, immut, yield, yield*/yieldAll
+word: const, immut, yield, yield*/yieldAll, return, break
+
+TODO comptime?
 
 
 
