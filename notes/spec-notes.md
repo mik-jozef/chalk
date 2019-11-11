@@ -1384,8 +1384,183 @@ all pointers must provably be valid anytime they are dereferenced
   on variables such that `a < b` when a is deallocated sooner than b, I guess
 `All:` qualifies over all possible program states. Is it mandatory to have access
   to local variables?
+a way to compose types that breaks recursive types? eg:
+  ```
+  type UntypedSet = Set<Self>
+  type USetToo = Set<UntypedSet> // equals UntypedSet
+  type SetOfUSet = Set<Stop(UntypedSet)>
+  ```
+  Let's call `SetOfUSet` a "rank/size/what omega + 1" type.
+IDE: enter confirms (whole?) autosuggestion, tab just part, and keeps suggesting
+IDE: don't use Ctrl + S for "save file", save files automatically?
+IDE: pageDown or pageUp followed by the other should result in the same view
+  I am surprised this needs to be noted, but Atom managed to get this simple thing wrong
+  should also scroll past file end, and remember offset before file start for some time
+IDE: evaluate expressions in tooltips
+replace export keyword with pub?
+Repl should not enable implicit overwriting declarations by new declarations, but
+  should enable their explicit de-binding from the repl namespace
+class types starting with lowercase letter must be keywords, else `class() => ...` is ambiguous
+`{ a }` should be read as object literal, unless at a place where a block is required
+huge problem:
+  ```
+  // I just made up the syntax, that is not the important part
+  type Even = Int(i) { i % 2 === 0 }
+  type Odd = Int(i) { i % 2 === 1 }
+  
+  Int i = 3;
+  
+  if (i is Odd) {
+    Odd o = i; // Error?
+    
+    i += 1; // Error?
+    
+    i =< 2; // Error?
+  }
+  ```
+  this is very related to whether generics should be co/contra/invariant
+should this be allowed?
+  ```
+  { a } => a;
+  
+  class {
+    foo a => a + 1;
+  }
+  
+  foo a => (a + 1, a - 1) 5; // Equal to (6, 4)
+  
+  bar(a, b) => b;
+  
+  bar foo 5; // Equal to 4
+  ```
+  I think I should only forbid `foo a => (a + 1, a - 1) 5`, because it's hard to
+  see where the function body ends and function call begins. The definition should
+  be in parentheses.
+`for` loop should take four expressions as arguments?
+  ```
+  for let x = 0; x < 10; x += 1; foo();
+  ```
+`Null foo({ Int a } = { a: 8 }) {}` should not compile(?). If a value is destructured,
+  set the defaults inside, like this: `Null foo({ Int a = 8 }) {}`
+```
+type Args = foo();
+
+A f(...Args args) = bar(); // Type of a function with any arguments is A(type[] T, ...T args)
+(...Args) g(B) = baz();
+
+A composition(B) = f ++ g;
+```
+should only top-level functions have mandatory return types?
+  I think here inside a class counts as top-level
+  All (and maybe exactly the?) top-level exported functions, public class functions
+  and public nested functions should have explicit return types
+these should all be valid functions:
+  ```
+  Null reverseSign(true, Int i) => -i;
+  Null reverseSign(false, Int i) => i;
+  
+  2 => 3;
+  ```
+  and switch should use this:
+  ```
+  switch a {
+    2 => foo();
+    Odd o => o * 2;
+    () => print("A is even and not equal 2");
+  }
+  ```
+should underscore be a character that can be placed anywhere between tokens and
+  will be ignored? that would be good for horizontally aligning lines.
+`...` in object, set, tuple and array
+should anonymous classes be public by default? I think so. You want private types?
+  Just name your class.
+for loop only requires a semicolon if it returns something other than the default boolean?
 regerex - there should be support for grammars that execute graph algorithms
   like finding which functions are called by which functions
+inside a class, typing function name and then space should autoreplace the space
+  with `(` and gray `)`
+`class C<Sub : type T : Super> {}`
+  or `class C<type Sub :< T :< Super> {}`
+  or `class C<type Sub : T : Super> {}`
+```
+Null foo() {
+  export class C {}
+}
+
+foo.C c();
+```
+  what about public variables, for things like generators?
+chalk - let code treat disk as memory? eg. every write gets written to the disk.
+  Or have an API for that in stlib
+```
+chalk : verb args # linux-like commands for a few simple tasks
+chalk [code] - runs the code
+```
+could pure function access outer scope if it leaves it provably pure? eg for caching
+version control for databases, images/media
+compiler should be able to create examples of how an error can occur, including
+  objects in memory that demonstrate the bug when a piece of code is run, or
+  generating code that demonstrates the bug
+```
+prop In(Int min, max)(Int x) => min <= x < max
+
+Int [ a, b ] = [ 0, 5 ];
+
+In(a, b) c = 3; // Or `In<a, b>`.
+
+c = 5; // Error
+a = 4; // Error
+
+c = 4; // Ok
+a = 4; // Ok
+```
+private optional params of public functions, finer types of public params
+media queries as part of html components/a nice declarative way to specify different
+  content based on component size/other props perhaps
+debugger should be able to create visual representation of objects in memoty?
+inspecting memory of a program should be easy
+have a separate type for possibly denormalized floats?
+  or have a separate type for IEEE compliant floats, and something saner for normal floats
+what about "imperative" propositions like the function will be called at most
+  twice (using this reference)?
+should it be expressible that an int can be only divided by two if even, else only
+  multiplied by 3 and incremented?
+  If so, given a proof of collatz, should 1 be directly assignable to such an integer?
+warning: comment doesn't end with one of .!?,
+  maybe only if the comment is the last one in module, or the next one doesn't
+  start with ... (or a lowercase letter?)
+`(x)` transforms the operator `x` to a function, eg: `array.reduce((++))`
+  are the double parentheses required?
+only let modules import from up to the same directory depth?
+index.ch - provides exports for a folder, main.ch can contain an entry point
+  for the application
+parameters that might have a default argument depending on previouss arguments
+  `Tree(any T, Order(T) o = T is Ordered ? T.order : undefined)`
+don't forget that `type T : A` has interface of A
+can Self be generic in traits? Should it refer to the class or class template?
+destructuring - enable assigning to a finer type, destructuring fails if value doesnt typecheck
+IDE setting: open files in a new browser tab vs in a pseudo-tab rendered by the IDE by default
+  right click should offer both options
+virtual variables: those that are not part of runtime, but are used in proofs?
+optimization: remove all parts of program that are not used during runtime
+  this is strictly stronger that "remove all unused parts of the program",
+  because some parts might be only used during comptime or in proofs
+require four dots to rewrite properties (object literals)
+a problem of type transformations:
+  a function foo takes param `A|B`, and returns C if arg is A, D id arg is B.
+  what is the type of this function? the relationship between arg and ret must be preserved in its type.
+  `C(A)&&D(B)`
+`module extends X`
+allow access to private members if the code could provably have the same effects?
+  Use case - moving objects in memory
+? `class C<...> { .. }` sugar for `class C(...) => class C{ .. }`
+imagive a stack of boxes with close buttons. mouseover on the close button should
+  highlight all close buttons of boxes to the right. How could this be done using
+  only a declarative, css like language
+foo?.(arg)
+ide: save project online, save to localStorage (with a warning about deleting
+  history/browser autodelete), download to zip
+matching parentheses should have red color
 a nice syntax for logical definitions of functions is needed. an attempt:
   ```
   class equals(Set a, b) = True <-> (All Set s: s in a <-> s in b);
@@ -1394,7 +1569,19 @@ a nice syntax for logical definitions of functions is needed. an attempt:
   
   But at least it's clear now what is needed.
   ```
+  Later: what did I mean by this?
+  `prop equals(Set a, b) = All Set s { s in a <-> s in b };`
+  `Bool equals(Set a, b) => All Set s { s in a <-> s in b };`
+  `Bool equals(Set a, b) = All Set s { s in a <-> s in b } => tt, _ => ff`
+  
+  ```
+  Bool equals(Set a, b) => switch TT {
+    All Set s { s in a <-> s in b } => tt;
+    _ => ff;
+  };
+  ```
 should let be transitive?
+`=<` assignment operator, `=<<` move operator?
 usable design: `fs.accessNow` - checks if process can access a fs entry, the 'Now'
   part should remind users of races; or maybe `fs.accessThisInstant`
 `import pic from "/path/to.jpg"`, imports an image to the binary at compile time?
@@ -1473,6 +1660,19 @@ delayed instantiation: (ie. `new(...) :: {...}`)
   // What about:
   type T = {{ Int a, Int c }};
   ```
+`debugger.log` should be part of the language, in debug mode these would
+  be turned off by default, a programmer could turn individual logs on if needed?
+IDE: align scroll position with line start
+pressing and holding Ctrl should display all shortcuts, with text "press Ctrl"
+  twice to keep this window open
+onmouseover animation should be faster than default, maybe 100 ms?
+do sizes of boxes have to add up to 100% of size of their parent?
+  with infinite precision?
+Saving a file should solidify gray text (ie. autoinserted closing braces)
+IDE typing `class Name(Enter)` should insert braces
+import automomplete tooptil should suggest names exported from other files at the bottom,
+  below a thick line and gray text "from \[path.ch]"
+  choosing them should insert a new import
 destructor name? out of random 3 letter combinations, I picked (ie. didn't)
   completely dislike: nyn, pap, rie
 enum grammar: either all commas and no body, or all semicolons and body.

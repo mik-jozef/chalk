@@ -680,6 +680,15 @@ export []Expr identifierBoth =
 ##### Keywords
 A [[[keyword]]] is a UTF-8 string that cannot be an identifier.
 
+> ```
+>   [ "All", "any", "auto", "assume", "await", "break", "case", "catch", "class"
+>   , "comptime", "const", "continue", "default", "enum", "Exists", "export"
+>   , "final", "for", "friend", "function", "get", "immut", "import", "is", "mut"
+>   , "own", "pub", "return", "set", "shared", "static", "switch", "throw", "trait"
+>   , "try", "type", "yield"
+>   ];
+> ```
+
 {{{
   // Or should the last expression be returned? Or something else? Just an idea.
   document.write("List of keywords: " + AST.keywords.map(a => "`" + a + "`").join(", "));
