@@ -22,8 +22,33 @@ trait A {}
 trait B : A {}
 
 Null foo(A) {}
-Null foo(B) {} // is this legal?
+Null foo(B) {} // is this legal? If multiple function overloads have overlapping signature, they all must have the same effects and return the same value
 ```
+IDE: multiple people should be able to collaborate on the same project in real-time
+  also, all things (IDE, version control, package manager) should be able to
+  work together, client and server should be the same app, and the central
+  repo should be just an ordinary instance of the Chalk Development Suite
+ChalkScript `Object.observe(observer)` - should be powerfull enough to allow
+  a library like Vue.js. Probably shouldn't allow changing the meaning
+  of the code like getters and setters. Maybe it should dispatch
+  an event (like `async { await now(); observer(object, member) }`)
+  either that, or the reactivity should be build into Chalk somehow
+  else
+pair of ints - `(Int, Int)` -  should be the type of `(0, 0)`
+  `{ a: Int }` should be the type of `{ a: 0 }`
+does `(Int, Int)` equal the set of pairs of integers? yes
+  if not, what is the type of all pairs of integers? `(Int, Int)` or `{ (a, b) | a, b of Int }`?
+`chalk publish` should monitor (at least optionally, and if turned off, the
+  package about page should state this) whether semver standards are upheld?
+  Ie whether every expression evaluates to a value of the same type if it's just
+  a minor version change?
+cli: typing `chalk eval {` should not immediately eval, it should let the user finish the expression
+optional lenient type system - allowing type casting
+  maybe this should be even the default
+async block? `async { await foo(); print("a") }; print("b")`
+  prints `ba`
+`(<) &= (Int a, Int b) => divides(a, b)`
+what about linear type systems?
 ChalkDoc: multiline code in asides (lines starting with \>) must be supported.
 should it be possible to hide classes supertypes from reflection?
 ```
@@ -218,6 +243,20 @@ block is an operator - operators are syntactical forms which evaluate their
   subexpressions and return a value
 memory idea: pointer args cannnot outlive fn invocation, caller must guarantee
   the arg will live as long as function runs
+version control - everything should be syncable. If someone renames a branch and
+  then syncs with other repos, the branch should be renamed upstream as well.
+can comments appear before function params?
+are own members inherited by traits?
+```
+Null foo(String s, ...Int ints, String t) {}
+
+foo("", "");
+foo("", 0, 1, 2, "");
+
+class C {
+  foo(...() this) {} // asdf
+}
+```
 pure and functional version of Chalk? (with a different file extension)
 binary format of values usable for both serialization and permanent storage
 do not create event loop unless a program uses it?
@@ -233,6 +272,21 @@ should comptime type creation be allowed? if so, should it be possible
   to use interfaces of comptime-created types? I do not like the idea of
   type correctness depending on results of general computation, possibly with
   the restriction that it provably terminates.
+warning if a module imports itself?
+unary versions of associative, and associative and symmetric operators?
+  `(++)([ [ 0, 1, 2], [ 3, 4 ] ]) == [ 0, 1, 2, 3, 4 ]`
+  `(+)({ 0, 1, 2, 3 }) == 6`
+should there be a way to compare pointers for equality (`====`, four equals)?
+  there should definitely be an optimization that detects axiom `a == b -> a ==== b`
+  and replaces the equals call with pointer comparison
+graphics effects like windows callendar in the taskbar - how to create/describe them?
+  components affect multiple layers of color, those layers have separate filters
+version control - also track directories
+version control: if someone renames a variable in one branch, and someone uses that
+  variable with its original name in another branch, merge should rename that new mention
+  too.
+  Moving files and folders should work, too.
+should anonymous classes be allowed to have private members?
 destructuring anonymous object that has extraneous members should be a warning
 a subset of chalk with its own file extension that could be used instead of
   json? Only those parts that do not cause computation/only pure computation
@@ -247,6 +301,15 @@ expression has no observable effect warning should be also produced when an
 function literals should produce only one value per program run?
 If spec becomes too long, maybe support only displaying some parts?
   ChalkMark could support this in general
+json support, comptime json import, or a subset of chalk maybe.
+remove `set` keyword, rename `get` to `read` / `rol` / `rdo`, rename `pub` to `publ`?
+syntax for quotient types?
+even in imerative flavor of Chalk, it should be possible to call an effectful
+  method on a new, duplicated object instead of the original one
+functional array literal `[ a, b, c ]` should actually encode one of: ?
+  `( a, ( b, ( c, null ) ) )`
+  `( a, ( b, c ) )`
+  or should array have multiple implementations, line in JS?
 nested forEach?
   ```
   // Prints 235
@@ -1364,6 +1427,42 @@ ideally it should be true that all objects that are once allocated must be prova
   deallocated, however I'm concerned that might ask for too many proofs
   Ideally, proofs should be something that is not required for most programming
   tasks, only necessary when you're trying to be smart
+`if x { y }` and `if x: y` that mean `x == null || y`?
+`collection.take(Int)`
+should `All class C, (...T) tuple: C(...tuple) == C(...tuple)`?
+  And `All class C, C c: c == C(c)`?
+value types:
+  ```
+  ///
+    Or _T, &T, or #T, there's enough characters...
+    
+    One of !T and ~T should be the negation type though.
+  ///
+  foo(!T arg) {
+    t ==== arg; // can they have the same address?
+  }
+  
+  foo(T t());
+  ```
+binary chalk files, binary library files
+grammar amiguity: `(a = 2) <= 3` - is that a tuple with a default argument?
+should Enum.size be Int or on of Int32, Int64?
+function type `A -> B`, relation type `A => B`, `A --> B`, `A ->> B` or `A -- B`
+  `A -> B`, `A <- B`, `A <-> B` - functions (for all A exists exactly one B)
+  `A -= B`, `A =- B`, `A =-= B` - relations (for all A exists at least one B)? or:
+  `A => B`, `A <= B`, `A <=> B` - relations (for all A exists at least one B) (with lamba notation replaced by )
+  `A -- B`                      - relations (no restriction), duplicate of `(A, B)`?
+  also notation for for all A exists at most one B (partial functions, and partial relations)
+  should all functions be tuples?
+delcare parameters inside other parameters' type annotations:
+  `foo(Set(type T) s, S -> bool)` shorthand for `foo(type T, Set(T) s, S -> bool)`
+when designing standard library, make sure to include things like
+  `OrderedTree(type Tree(type X), (X, Y) -> Bool order = X is Ordered ? X.order : undefined)`
+  and use that so that people can specify their own orders/so that the same type
+  can be used with multiple orders
+rename `x is X` to `x of X` of `x in X`?
+  The second might be more convenient in props: `All x of X` instead of `All x is X`;
+  `in` would be most appropriate if types equal Sets
 all pointers must provably be valid anytime they are dereferenced
   must they also be valid if they are not? ie. does eg. this code produce an error?
   ```
@@ -1384,6 +1483,18 @@ all pointers must provably be valid anytime they are dereferenced
   on variables such that `a < b` when a is deallocated sooner than b, I guess
 `All:` qualifies over all possible program states. Is it mandatory to have access
   to local variables?
+`[]T` is the type of arrays of `T`, `{}T` could be type of sets of T (ie. the powerset of T)
+if possible, I'd like to avoid having types `Tt` (or `True`) and `Ff` (or `False`)
+  used for proving, they seem redundant because there is `Bool`
+  yes if `Tt == { tt }` and `Ff == { ff }`, `Ff` is inhabited, and
+  if `Tt == tt` and `Ff == ff`, neither are, but why should I stick to conventions
+  if I manage to find a better way?
+should traits be allowed to have `own` new? that would return an instance of an
+  arbitrary class that implements that trait?
+  Eg. `s = Set()` looks nice, but there could be HashSet, TreeSet, ArraySet,
+  DefaultSet that is returned by `Set()` and can switch its internal representation
+  based on usage
+`fn truePropSet({}Prop props, Valuation val) -> All prop in props: val(prop)`
 a way to compose types that breaks recursive types? eg:
   ```
   type UntypedSet = Set<Self>
@@ -1438,7 +1549,11 @@ should this be allowed?
   be in parentheses.
 `for` loop should take four expressions as arguments?
   ```
+  // This would produce unexpected behavior if one expression was omitted.
   for let x = 0; x < 10; x += 1; foo();
+  
+  // Or maybe
+  for let x = 0; x < 10; x += 1; => foo();
   ```
 `Null foo({ Int a } = { a: 8 }) {}` should not compile(?). If a value is destructured,
   set the defaults inside, like this: `Null foo({ Int a = 8 }) {}`
@@ -1685,12 +1800,11 @@ debugger:
   step out backward,  Ctrl + Up?
   step over forward,  Down
   step over backward, Up
-  goto forward,
-  goto backward,
-  |          step back
-  | step out           step forward
-  |          step over
-  Step over: should it record changes that will become irrelevant?
+  run forward,
+  run backward,
+  step over: should it record changes that will become irrelevant?
+  step over: if the current expression is a function call, step to next subexpression,
+  else step to next expression of the block
 if traits will one day contain fields, they must not require being assigned,
   because that responsibility can be left to classes that implement it.
 cannot find path/library path cannot contain "x", did you mean "y"?
@@ -2264,6 +2378,61 @@ switch a {
   case _: baz();
 }
 ```
+```
+// ???
+foo() {
+  Bool b = false;
+  mut i = 3;
+  
+  // typeof i = { 3 };
+  
+  bar(Bool b -> !b) -> !b, i -> i + 1 {
+    i += 1;
+    
+    return !b;
+  }
+  
+  bar(b);
+  
+  // typeof b = { true };
+  // typeof i = { 4 };
+}
+```
+`Reflect.getKey(obj, key)` vs `obj[key]`?
+IDE: the currently opened files and currently displayed file should be
+  colored in the tree view
+async constructors? `await File(folder, "path/to/file.png")`
+different compiler methods for outputting a binary vs just producing warnings and errors
+  the latter should be optimized to produce errors near edited source fast
+how to solve this: a class with a member variable of function type that can return
+  any value
+number formatting? `"$#+03.2{foo}"` -> "+007.53rd" if foo equals 7.53
+should all multiline strings be in chalkDoc?
+for a while, maybe support both `let Type foo` and `let foo: Type`, and the use
+  one for ChalkScript and one for Chalk++?
+  `foo: Type` is not usable in object literals, another syntax needed?
+modules can have a default export, but then they cannot have any other exports?
+  ```
+  // File `a.chs`.
+  let i = 3;
+  
+  export i * 3;
+  
+  // `export let x = 4;` would be an error.
+  
+  // File `b.chs`.
+  import nine from a.chs;
+  import { isPositive } from a.chs; // Ok and equal to true;
+  
+  // `import { a } from a.chs` Error: value 9 cannot be destructured to `{ a }`, 9 doesn't have the proberty `a`/ `9.a` is undefined.
+  ```
+return values:
+  `foo() -> String x => ...` named return value that is **not** a variable, useful for `where` clauses
+  `foo() -> String x() => ...` named return value that **is** a variable return (doesn't have to/musn't?) take expressions
+`git init --separate-git-dir=./local .`
+  also initialize the local/ folder with a .gitignore
+stlib `type Char = String x where x.length == 1`;
+`{ a: 3, b: this.a, c() => This.a(this) }`
 If variable initialization contains a pointer that is provably never dereferenced,
   that pointer does not count as a dependency on that variable?
   eg. this is fine
@@ -2278,14 +2447,416 @@ If variable initialization contains a pointer that is provably never dereference
   A b(a); // This variable, officer
   ```
   That would mean pointers can exist before the values they reference
+debugging for type inference, or all other nontrivial parts of comptime
+  evaluation of code
 once the spec is more or less complete, look at everything ever written
   in this repo (read all commits) to see if all you agree with is actually true
+pull requests should be tied to a commit, not to a branch
+by default, suppress all but first x warnings (and errors?) if there are too many
+  (and inform about it in output)
+hotkey profiles that are easily changed (eg. separate set of hotkeys for debugging)?
+IDE: go to next error, go to next warning (in this file/all opened files/all files)
+git merge is badly named - merging sounds symmetric, but it is not one branch is modified, the other is not
+  your vc should name it better, maybe `chalk pull branch` (and `chalk pull remote`
+  for pulling from upstream, and error message for `chalk pull`?)
+the intersection of two object literal classes is an object literal class with all their properties
 have a short summary of the language for programmers
 do not depend on the C standard library, replace it
-should there be the possibility to micromanage stuff like function decay,
+IDE should be able to open images and videos, too.
+@ path variables? (webpack)
+values of constants should be easily viewable in IDE
+rename `get` keyword to `vis` (visible)?
+Function objects can hold closure state, `()Null a =< b` copies the closure,
+  `()Null a(b, memPtr)` enables placing the closure at a particular memory location
+`T t = e` syntax only available if T's copy constructor is pure?
+  or require copy constructor followed by destructor to be pure?
+vc: also sync 'personal' branches that are just local in git, sync all branches automatically
+Visualization of call stack should be divided between library and non-library functions
+EventEmitter
+comments above return should be part of documentation of functions
+  ```
+    Null(T arg, U b) {
+      if (!arg.foo()) {
+        // @default Return the default option
+        return b;
+      }
+
+      bar();
+
+      if (arg.foo()) {
+        // @newU Return new U.
+        return U(arg);
+      }
+
+      // @default
+      return b;
+    }
+  ```
+  Docs:
+  Return cases:
+  @newU: ...
+  @default: ...
+trololol
+  ```
+  mut type T = foo();
+
+  T a = T();
+
+  if (a is S) T = S; // Have fun with designing type checking for that
+  ```
+IDE: pressing Enter in a comment should replace it with a multiline comment.
+  If suggestion tooltip offers a longer piece of code, Ctrl + Enter should complete
+  the whole suggestion, Tab should complete just one token.
+  
+  A check mark at the bottom to disable smart typing (autoformatting, autocompleting
+  parentheses, etc).
+Version control: If I move a function to the front of another function, and then make
+  a small change to its body, diff should recognize the code just moved and was changed
+  slightly.
+when defining a variable, use suggestions from used, but undefined variable names
+version control: things like renaming a variable should produce a merge conflict
+  if and only if the same variable was renamed to two diferent names
+  and solving the conflict (choosing the right name) should not require the programmer
+  to do it manualy everywhere the variable is used
+no quotes in imports?
+  `import X from libraryName;`
+  `Import X from libraryName.`
+  `Import X from "asdfNamnam".`
+  `import X from ./path`
+rename Object.type to Object.class? a value has many types, but only one class
+  also, `type` will definitely be a keyword, class might not
+significant whitespace: if there is an empty line between a comment and a definition,
+  they are considered unrelated
+`[a, b, ..., n]`? Syntactic sugar for `[ ( a, c, ..., n ) ]`?
+  `a[...]` syntactic sugar for pure function call?
+should condition in && and || be pure?
+`set.has(set.get())`
+IDE auto-refactor: walk through functions to mark them pure if possible
+  if that could enable significant optimizations
+array.push must return something more useful than the number of elements
+  probably the array
+IDE: closing parentheses should be inserted grayed out
+IDE: readonly views (like commit overview) of code should be on a (blueish?)
+  background, and should become editable after doubleclick, readonly after defocus
+`Int -> Even` same as `Int x -> Even y` same as `All Int x: Exists Even y`?
+  ?Functions have implicitly universally qualified (single) parameter (which might
+  be a tuple) and existentially qualified return type. Parameter can also be
+  existentially qualified (existential types). Can the return type be universally
+  qualified as well?
+  Note: try developing Propositional language before exploring the bijection between
+  Types and Propositions
+  syntax: `All Int x: Exists Even y` vs `All Int x => Exists Even y`?
+  lambda syntax: `x => x + 2` vs `x: x + 2`
+Non-unary types? Ie. make types the same as relations?
+  ```
+  {
+    Int ( min, max ) = foo();
+
+    Number x = 5 between min and max;
+  }
+  {
+    Int [ a, b, c ] = bar();
+    Number a between min and max; // Type assertion
+    Number a between min and max. // What about making it a sentence? :D
+    Number a is less than min and greater than max. // A step further
+
+    ///
+      Could all/most of chalk be doable using plain english, readable and not tedious
+      to type?
+
+      Mathematicians might appreciate it (or it will result in more confusion because
+      of apparent familiarity).
+    ///
+  }
+  ```
+specifying a variable's type should make the compiler forget everything
+  it previously knew about that variable.
+  This is to prevent the compiler from inferring implementation details.
+  If a programmer doesn't want this, they can not specify the type
+  Specifying the type T of variable var with previous type P amounts to saying:
+  hey, you might now know P about var, but that is just a coincidence,
+  I might decide to refactor this piece of code and change the variable's
+  type to Q. So I'm telling you: all you are allowed to know about var
+  is that its type is T, because it's enough for my purposes.
+dlang's `inout`
+`All Context c, v: C { foo(); } == V { foo(); } <-> Pure foo`
+`foo(Even x -> Odd) => x++;`
+zeroth, there must be a distinction of the type values of a variable are allowed
+  to have (static type), type the value of a variable is known to have at a certain
+  point in space (code) (dynamic type), and the type the value of a variable
+  has at a certain point in time (runtime type, which it always `{ v }` for value `v`)
+  Multiple variables must be only allowed to refer to the same value (at the same
+  address) if their types are equal.
+  One might think it should be possible to, for example, assign a variable of type
+  T to a variable of type S if T extends S (TODO what about traits?).
+  If a variable `a` has a static type `T`, it intuitively means that it will never
+  contain a value whose dynamic and runtime types are not subtypes of T. Imagine
+  that `a` is assigned to a variable `b` with type `S`, a subtype of `T`.
+  This can only be valid if `a` can never hold a value that is not a subtype of `S`
+  while the variable `b` exists. In other words, if `a` is `S` WRONG: `a` can be
+  a supertype of S because it can have a longer lifetime.
+  
+  TODO is `Even` actually a subtype of `Int`? `Int` can be incremented by one,
+  `Even` can't. Circle and ellipse problem - maybe they are two separate types,
+  and are only subtypes if constant.
+named return variables
+  `foo(A a, B b) -> R r { ..., r = bar(); ... }`
+  `bar A a -> B b -> R r { ..., r = bar(); ... }`
+  or:
+  `fn foo(A a, B b) -> R r { ..., r = bar(); ... }`
+  `fn bar A a -> B b -> R r { ..., r = bar(); ... }`
+  
+  `foo(A(), B())`
+  `bar(A())(B())` or `bar A() B()`
+  
+  normal functions
+  `foo(A a, B b) -> R { ..., return bar() }`
+  `foo(A a, B b) -> R { ..., return bar() }`
+  `fn foo(A a, B b) -> R { ..., return bar() }`
+Rename type qualifier keywords to start with upercase letters?
+  ```
+    Let x = 3.
+
+    Odd x.
+  ```
+  What about:
+  ```
+    class C {
+      pub let x;
+
+      pub Let x; // Meh.
+
+      Pub let x; // Ugly.
+
+      Pub Let x; // Ugly. Too much typing.
+
+      Let pub x; // Weird
+
+      Let Pub x; // This is the grossest.
+    }
+
+    // I mean both of the last comments.
+  ```
+Does `type X -> Int` mean X is a subtype of Int?
+Should `Let Int a` always refer to an integer with a new address?
+  Or can specifying variables using props result in a variable that
+  that is strongly equal (`====`) to another variable?
+<del>In Chalk</del>, as in many programming languages, types have two distinct,
+  but related, roles:
+  Zeroth, they act as a blueprint for how their values look like, ...
+  First, they determine which values a variable can hold. In this sense,
+  types can be said to act like sets of values. Chalk takes this idea
+  further - types simply are sets. There is no `class Set<type T> { ... }`.
+  Computation with sets is done using the same values that tell variables
+  what kind of values they can hold.
+`{: a, b, c }` syntax for objects? otherwise that would be a set
+  or maybe
+`{ a - 2 * b | Int a > 3, Int b }` syntax for `(Int, Int).filter((a, b) => a > 3).map((a, b) => a - 2 * b)`
+  or maybe switch the sides so that definitions are first and expression later?
+  basically set comprehensions. If this, what about array (and tuple?) comprehensions?
+  `[ x * 2 | x in arr & x < 3 ]`
+classes and functions can trust all values, not only other classes/functions?
+network: support both event and promise form of communication?
+  ```
+  http.on("google.com", res => ...);
+  
+  http.get("google.com");
+  ```
+  ```
+  let Req = http.add(class Resp {
+    Notifications getNotifications(...) trusts http => ...
+    
+    
+  });
+  
+  Notifications n = await Req.getNotifications(...);
+  ```
+  ```
+  await http.get("google.com");
+  ```
+all io is async
+no global namespace, no global state, no global anything
+  no module-wide (mutable) state either
+proper namespaces - ie
+  ```
+  Null foo(Int) {}
+  
+  { Null foo(String) {} // Here foo is `(String -> Null) && (Int -> Null)`
+  };
+  
+  // Here foo is just `String -> Null`
+  ```
+should classes be sets? ie. no static methods?
+  or maybe
+  ```
+  class T {
+    static foo() {}
+  }
+  
+  T.foo; // Ok
+  t.foo; // Error
+  
+  T.forEach // Error
+  t.forEach // Ok
+  ```
+`Collection` stlib trait
+  every collection (Set, Map, Array, Tuple, etc, maybe AnonymousClass/Object)
+  is morally required to implement this trait, even though the individual
+  types do not have to actually implement it because they are too different
+  to have identical method signatures, etc
+Solve the equality vs isomorphism problem.
+  Is there 'the integers'?
+  Is there 'the' cyclic group of size 3?
+  The answer to these questions should be the same.
+  And I think I'd prefer the answer to be yes, but I'm not sure.
+Rename `class {}` to `type {}` and `trait {}` to `abstract type {}`? or just
+  `abstract {}`? or just rename `class`? Or rename `class` to `Set`?
+version control: in GUI, have buttons go to next/previous commit
+comment with no whitespace after `//` is considered code?
+`Map<K, V, D>({}, D defaultValue())`, `map.setDefault(defaultValue)`
+  return type of map.get is V|D
+the empty string (which markdown idiotically does not let me write using backticks)
+  `All x {}` and `Ex x {}` should be valid formulas
+`{ A, B }` and `A|B` are distinct types (obviously)
+  I meant, there is a difference between `foo(A|B arg)` and `foo<{ A, B } T>(T arg)`.
+  The latter cannot change the type of arg from A to B.
+if you decide to make multiple variants of Chalk (eg with and without side effects,
+  value types), the grammar should be different for each so that
+  seeing a piece of code would immediately tell the programmer which flavor
+  the code is written in and won't cause confusion that having the same
+  grammar with different semantics would
+good syntax for testing whether partial functions return for given arguments
+  `(...args) in foo && foo(...args)`
+  `All f, g: (f, x) in lim & (g, x) in lim -> (f + g, x) in lim`
+  ```
+  All f, g {
+    (f, x) in lim & (g, x) in lim ->
+      lim(f + g, x) == lim(f, x) + lim(g, x);
+  }
+  ```
+render `sum` with a big plus, not sigma
+  and use it for both discrete and continuous summation (which is usually called integration)
+just like you unified types with sets, unify functions with maps?
+`map.domain` should return a set of all keys
+should `&` and `|` work on Booleans? (as ordinary operators, ie. without short-circuiting)
+  yes, they should be called "logical and" (or "conjunction") and "logical or" (or "disjunction")
+  operators (together "logical operators").
+  `&&`,  `||` and `? :` should be called "conditional operators": "conditional and", "- or" and
+  "ternary conditional"
+should proofs be first-class?
+  ```
+  foo<type T>(prop f(T x)) => All T x: f(x)
+  
+  foo(x => x > 3) -> False
+  ```
+should `{}` be the powerset operator?
+  `{}0 == { 0 }` (not `{ {} }`, because `All x: x is {}x`)?
+  `{}{ 0 } == { { 0 }, 0 }` (or `{ { 0 }, {} }`)
+  `{}{ 0, 1 } == { { 0, 1 }, { 0 }, { 1 }, 0, 1 }` (or `{ { 0, 1 }, { 0 }, { 1 }, {} }`)
+generic functions whose generic/comptime params must be inferable from runtime params?
+  `foo<{}Int t>(T a, b) -> []T;`
+    a function of this type can only return array of 'a's and 'b's?
+    or can it return array of any integers since `Int` is an element of `{}Int`?
+  `foo<{}Int t>(T a, b) -> []T => [ b, a ]`
+should all types be a subtype of `Collection`?
+block-local operator overloading (still has to provenly satisfy operator criteria):
+  `(>=) = (String a, b) => grammar.translateRelation(a, b)`
+`All X x: P(X)` syntax sugar for `True _ = All X x: P(X)`?, where `True = { tt }`
+```
+  class Topology<type X> {
+    Set<Set<X>> openSets;
+    
+    // or:
+    Set<type : X> openSets;
+    
+    // or?
+    type : (type : X) openSets;
+  }
+  
+  class Topology = Topology<?>;
+```
+if `a != b`, should `T<a> == T<b>`?
+  if `a == b && a !!== b`, should `T<a> == T<b>`?
+value types and type unions (note the actual characer for might change):
+  there has to be different notation for "pointer to A or B" and "pointer to A or pointer to B"
+  
+  maybe:
+  type in Chalk: value it holds
+  `A|B`: (pointer to A) or (pointer to B)
+  `*A|B`: A or (pointer to B)
+  `A|*B`: (pointer to A) or B
+  `*A|*B`: A or B
+  `A*|B`: pointer to (A or B)
+  
+  `*a|*b` vs `*(a|b)` TODO this needs some thinking
+variable definition should have the most specific type it can have:
+  ```
+  let a = 3;
+
+  Int is a.type == false; // *
+  Int is typeof a == false;
+
+  ///
+    * Or should 3.type always be Integer, because it's a property of a value,
+    not a variable? I think it should.
+    
+    Or maybe foo.class should be property of foo, and foo.type should be language magic?
+    
+    
+    TODO use set notation exclusively for sets, types, or both?
+
+    Or should types *be* sets?
+  ///
+  a.type == { 3 };
+
+  mut b = 4; // Warning mutable variable whose type is a unit type.
+  ```
+language-level support of vue's reactivity / data flow architecture
+compiler should be able to optimize `pos.reduce((a, c) => a + c ** 2, 0)` to
+  `{ mut int s = 0; for int i : pos => s += i; s }`
+IDE: automatically manage spaces and newlines in comments
+collapse types `class`, `trait` and `type` into just `type`?
+put this into chalk spec where Regex is defined: Regexes are NOT regular expressions!
+  Stop calling them that. True regular expressions are something else, and have
+  way less expressing power.
+```
+Null foo() transparent (or open, or ast) {
+  bar();
+}
+
+foo.ast // not null
+
+bool bar() lazy { ... (no side effects allowed?) };
+```
+chalk: redeclare variable to change its type:
+  ```
+  Int a = 4;
+
+  Even a;
+
+  Odd a += 1; // ?
+
+  Int|String a;
+
+  a = "abc";
+
+  String a;
+  ```
+  maybe require the redefinition to be in parentheses/make it syntactically diferent?
+keep your garbage in your bin
+  ie. don't clutter up root folders with files that belong to another specific place
+warn if a function name matches `/^is[A-Z]/` - it should start with get. Properties
+  should be called `isX`
+all `<h0>` - `<h5>` should be allowed to only appear inside `<article>`, article should have prop. outline/contents
+double click/ctrl+click/ctrl+dcl on a variable jumps to its definition?
+version control and package manager - multiple packages inside one repo?
+version control - the folder `/local/` should be the only fs entry that
+  is "gitignored"
+should there be the possibility to micromanage stuff like function decay (/decomposition),
   memory layout, etc?
   My guess: if it proves necessary for something really crazy, but used
   in specific real-world environments, I guess it should be doable.
+automatic type conversion between `T(...args0)(...args0)` and `T(...args0, ...args1)`
 try-catch with the following semantics?
   if a method that is directly called in a try-catch block (and possibly in lambdas)
   defined there? returns an instance of Error, a catch block (which must exist
@@ -2316,11 +2887,15 @@ try-catch with the following semantics?
     _catch(baz());
   }
   ```
+style: tuple has one space next to partentheses iff it is not a one-tuple
 `ignore` keyword if a method can return an error is called without the error being
   used later
   ```
   ignore File.write("this might fail, but I don't care");
   ```
+`[ a.b ] <= c`? (destructuring assignment into a general expression)
+  or `[ a.b =< ] <= c` and  `[ a.b =<< ] <= c`
+  or `[ =< a.b ] <= c` and  `[ =<< a.b ] <= c`
 run-time generics?
   or should generics support parametrization by value at all? optimizations can
   use comptime known values even if they are regular constructor arguments
@@ -2873,6 +3448,13 @@ allow array indices with number literals in types? eg. `Arr[3] foo = Arr[3]()`?
 for every value V, there exists a type that contains exactly V
 inline assembly?
 ```
+class Nat : Semiring((+), (*)) {}
+```
+Should X be a class or a trait?
+  Does the concept of X have many mutually exclusive examples, (or just one)?
+  Yes, many examples: it should be a trait?
+  No, just a single one: it should be a class?
+```
 Grammar chalkGrammar =
   [ ChalkModule
   
@@ -2947,34 +3529,275 @@ Null foo() {
   gen.next(2) == 0;
 }
 ```
+ignore keyword that acts like `ignore(Object a) => a is Error ? null : a`, Error cannot be
+  a subtype of the type of a top-level expression
+Functions returning unit types need not have body only if they are pure, not in general.
+  And i'm not even sure I like this feature at all.
+  if a function return type is a unit type, and the function body is empty or the last
+  expression of the function body has type other than None, an implicit return statement
+  returning the type's unique value is appended at the end of the function body.
+Do all expressions after an expression of type `None` have the type `None`?
+IDE: order imports by folder structure, name,
+?order object params by declaration order in type / alphabetic order
+browser tabs: on mouse over tab strip, move child tabs under their parent tabs.
+  Tab A is a child tab of tab B if A was opened from B, closing A will move focus
+  on B, not on the next tab
+ide - highlight trailing space
+Disallow (or at least warn on) trait names starting with uppercase I or T and
+  another uppercase letter so that people cannot name their things IThisIsAnInterface,
+  IIAmRetarded, IFactoryFactoryTemplate etc.
+run meta-code (or meta prop-edits) that would change code, e. something that would rewrite
+  string literals based on their value and whether they are potentially assigned to function foo
+`Array.zipWith(Iterable<let A> a, Iterable<let B> b, (A, B) -> let C combinator = identity)`
+IDE: when searching in the whole project:
+  0. checkmark "paths" (tooltip "also search in file paths")
+  1. three modes: exact match, regex, text/keyword search (google-like "find the best result")
+  2. highlight files that contain matches in tree view
+Draftback-like time travel, maybe including commit history
+version Control + database, ?with options to only sync some tables
+IDE + cli: stats like number of lines, percentage of unused code, etc
+how toString should behave
+  ```
+  fn (Bool b) -> String trusted => A().toString(b);
+
+  // Or: fn trusted (Bool b) -> String => A().toString(b);
+
+  class A trusts trusted {
+    pub Int number = 42;
+    String name = "abc";
+  }
+
+  A().toString() == A().toString(ff) == "A ( 42, ... )"; // Should the presence of private fields be revealed this way? I guess not.
+
+  A().toString(tt) == "A { number: 42, ... }";
+
+  trusted(ff) == "A ( 42, "abc" )";
+
+  trusted(tt) == "A { number: 42, name: "abc" }";
+  ```
+as alternative to plain get, which doesn't insert the default
+  `map.getInsert(key, default); set.getInsert(e => false, default)`
+private generic params? `identity[private T](T t) => t`?
+package manager: package descriptions in pkg.json should contain an id so that
+  if someone decides to rename/delist/delete their package, it will be possible
+IDE debugger should show values of variables everywhere they are used, even after
+  the current position if it's computationally feasible
+Any site like GitHub must solve the problem of popular libraries abandoned by their creators.
+  There should be a transparent and working way of transfering ownership to other people if the
+  authors no longer care.
+?`"".split(whatever)` should equal `[]`, not `[ "" ]`?
+should all properties of anonymous object be nullable? no
+collection.reduce(accumulator, acc(acc, next))
+version control - local, uncommitted changes must be per-branch
+should it be possible for a trait to be implemented by a class multiple times
+  in multiple ways? eg. ++ could both add and multiply numbers
+  NO, this seems very wrong, but something similar must be
+  possible - it must be possible to state that integers both addition and multiplication
+  form a semigroup
+operators: ++ for monoid, ** for semigroup? or should ++ stand for semigroup?
+querying over code statically, eg. is there/can there be an instance `foo`
+  of this class such that `foo.bar()` is true?
+ChalkDoc - documentation popup in code in generated comments on variable mouseover,
+  clickable links to definition.
+A good compiler/debugger would be able to provide features that vuex provides - ie.
+  snapshots of memory at particular times, time travel, replay
+  also perhaps executing handwritten purecollection.indexOf(predicate)
+debugger should reserve some memory (settings for how much) for recording destructed
+    information and allow stepping BACK
+  Right: step forward
+  Left:  step backward
+  Down:  step over forward
+  Up:    step over backward
+  Ctrl + Down or End  or Page Down: step to function end
+  Ctrl + Up   or Home or Page Up: step to function start
+
+  Checkpoints:
+  options "Save every step"/"Only save on pause"/"Only save manually"
+ease refactoring - let compiler warn/error if it cannot prove that a change to code
+  doesn't change behavior from the last commit
+  more advanced - check that the changes in code only change what is specified to change
+version control: create new repo from git repo
+  what about pull changes from git?
+version control: maybe support forgetting information, but NEVER support rewriting
+  history
+version control should not only be able to detect when files are moved/copied
+  idstead of (deleted and) created, it should also detect larger copypastes if possible
+```
+///
+  A long comment
+///
+String str = @doc;
+
+// Or:
+
+String str =
+  ///
+    A long comment
+  ///
+```
+`/regex?p/`?
+Some language support for bit fields? Storing them as numbers is ugly and
+  ignores the type system.
+`&` and `|` operators for bit operations, set intersection/union, join and meet?, etc.
+  Also rename logical operators to conditional operators.
+If you'll allow bitwise operators, ?only define them for `Nat`, not for signed integers.
+`{ ...a }` should be a warning (?)
+it should be an error if a member variable is declared after other types of members
+`class { Int a }` type of all object that have property `a` (whether or not they have other props)
+anything is implicitly convertible to Null in a return expression of a function that explicitly
+  returns null
+make type errors in array literals as tight as possible:
+  ```
+  foo([]A) {}
+
+  foo([ A(), B(), A() ])
+      ^^^^^^^^^^^^^^^^^ Incorrect error location
+             ^^^ Correct error location
+  ```
+Somehow allow introducing false/unprovable propositions, but don't allow adding
+  new code that would break them - used to refactor code in multiple stages
+  ie. I have a buggy code, want to fix it by first defining the correct behavior.
+  Now thousands of errors show up.
+  If adding false props wasn't allowed, I'd have to delete the *correct* definitions
+  in order to be compile-error-free. But the bugs are still there. Except the compiler
+  now doesn't even tell me about them.
+  The purpose of the type system is to catch errors. Now it doesn't seem like it's
+  doing its job.
+  Solution: warn propositions: they produce a warning (instead of error) if code
+  doesn't satisfy them, but do not halt the compiler and automatic builds, and the
+  programmer can see what's in need of fixing.
+Chalk should provide something like vues reactivity / data flow architecture
+  cache invalidation is hard, and things not updating in different tabs/forms is annoying
+  Also, this seems to be like something that should "just work" and not require
+  programmer's special attention, just like CSS animations.
+method params with narrower public types than private types
+  pub keyword in front of function means that all params are implicitly public
+  methods without pub keyword can have pub params and still be public
+functions not in class are public by default, can be specified private, then have to have explicit
+  friends to be callable
+compiled program should be in `/local/out/`
+IDE: when pasting to a string literal, ask in a dialog whether to escape quotes if there are
+  any in the pasted text
+IDE: keyboard shortcut to go to definition - two versions, one in new tab, one in this tab
+disable assignment of bool expressions inside logical operators? or at least
+  require some special syntax
+warning - module imports itself, duplicate imports, imports out of order
+  imports from one file should be sorted alphabetically, import statements
+  should be sorted according to (resolved or typed?) path, libraries first
+cst for var declaration, const for casting
+  casting a variable to const is a special case of changing its type/adding
+  propositions that apply to the variable. I'd be careful before specifying what
+  exactly it does.
+import in comments for documentation?
+  ```
+  ///
+    {import { X } from "./x.ch";}
+
+    See `X` for more details. <-- will be clickable in documentation.
+  ///
+  ```
+comments: `code` for parsed, syntax highlighted code that can throw syntax errors,
+  ``code`` for unparsed code?
+undefined only as an argument to mean the default value?
+  also: `foo(Int i, Int j = i is Even ? 2 * i : undefined)`
+`import X from "../../../a.ch"` is wrong. It should be a warning if an
+  import goes more than one level up
+imports from files inside folders should not be allowed. the only way to export
+  out of folder `/a/b/c` should be to export from `/a/b/c/index.ch`, import and
+  reexport `/a/b/c` (with or without slash?) in `/a/b/index.ch`, the same in `/a/index.ch`
+  library exports must be in `/index.ch`. The entry point of application must
+  be in `/main.ch`
+there should be a way of enforcing directory and module structure
+issue tracker should not offer info like "fixed in version" or "status" for issues of type "duplicate"
+vue was right: events shouldn't bubble
+  and the default handler for click events should reemit the event to parent
+should control flow operators (&&/and/then, ||/or/?else) and their respective data
+  operators (`Bool and|or(Bool, Bool)`, Set and|or(Set, Set)) be separated?
+  this should probably be the case if they will be overloadable
+  Imagine `set0 && set1` - it feels wrong.
+  Also, `set0 && set1 == set2 && bar()` - those two && operators have a completely different
+  meaning. what about precedence?
+  Also, should `emptySet && foo()` not call foo?
+  Should `Flags.all || foo()` not call foo()?
+  I came to the conclusion that && and || should not be called logical and/or, and they should
+  return null when the first condition is false/true, respectively.
+  ```
+  Bool b = foo() & true; // OK
+  Bool b = foo() && true; // Error cannot initialize a `Bool` variable with expression of type `?Bool`
+  ?T t = foo() && T(); // OK
+  ```
+expressions containing an empty line should be an error
+IDE, when text editor is focused:
+  0. Pres and hold Ctrl.
+  1. Select text with mouse. Caret stays where it was.
+  2. Ctrl + V pastes selection to where caret is.
+version control - option to disable commits other than merge commits to some branches
+delegating constructor: https://stackoverflow.com/questions/11748682/telescoping-constructor
+method which returns This (must be This, not name of the class) returns this
+  implicitly by default?
+  ```
+  class Pizza {
+    Bool [ cheese, pepperoni, bacon ] = [ fls, fls, fls ];
+
+    This setCheese(Bool b) => cheese = b;
+    Self setPepperoni(Bool b) => pepperoni = b;
+    Pizza setBacon(Bool b) => bacon = b; // Error
+  }
+
+  Pizza().setCheese(tru).setBacon(tru);
+  ```
+anonymous classes:
+  `class {}` should be the type of `{}`
+  `class { Int a }` the type of `{ a: 5 }`
+  `class { Int i } foo = { i: 5 }`
+  can they be generic?
+pattern matching:
+  should `[ let a ] == [ 0, 1 ]` match? I don't think so.
+  should `[ let a ] <= [ 0, 1 ]` match? Yes.
+  `arr0 <= arr1` iff arr0 is a prefix of arr1
+  `arr0 < arr1` iff arr0 is a proper prefix of arr1
+  similarly:
+  `{ let a } == { a: 0, b: 0 }` should return false, `{ let a } <= { a: 0, b: 0 }`
+  should return true
+code when the execution of program is paused
 type of function with optional parameters?
 generator: the first yield must be called without an argument - it will only
   exist to receive the parameter of next
 should `yield` be a function / use function syntax? and other word keywords?
   ```
-  Stream<Int> fib(yield) {
+  None fib(?(Int, Int) yield(Int)) {
     ///
       Wait for `next()`. This is actually correct and solves JS's problem they
       awkwardly patched with function.sent.
       
       Also allows the function to run some computation as soon as generator is
       created.
-    ///
-    await yield();
-    
-    Int [ a, b ] = [ 0, 1 ];
-    
-    await yield(a);
-    
-    for {
-      await yield(b);
       
-      [ a, b ] = [ b, a + b ];
-    }
+      The type of params of first yield is always ().
+    ///
+    Int [ a, b ] = await yield() ?? [ 0, 1 ];
+    
+    for => [ a, b ] = await yield(a) ?? [ b, a + b ];
   }
   
-  // asdf
+  // Very experimental syntax, needs polishing and lots of syntax sugar:
+  fib.StackFrame is Stream<Int>; // ???
+  
+  Bool called = false;
+  
+  []type Params() => called ? [ Int ] : [];
+  
+  // Yay for dependent types in an imperative language!
+  (Int, Int) yield(...Params p) {
+    return called ? fib.frame.continue(p) : for {}; // Pure speculation.
+  }
+  
+  fib.StackFrame generator(yield);
+  
+  generator.next(2, 3); // Where and how should this function be defined
   ```
+  My head hurts
+type of function params that depends on program state
 `for await`, `for parallel` or `parallel for`?
 error: continue cannot take an argument
 array of number should be a number?
@@ -3137,6 +3960,107 @@ discard `unsafe` keyword, anything potentially unsafe must be provably safe
   - read if possibly still undefined
 a type can implement Nullable, save space if optional
 function binding operator?
+`|=` and `|-` operators for logicians?
+  unfortunately, one already exists, the other duplicates the grammar:
+  `a |= b` equals `a = a | b` and `a |- b` equals `a | (-b)`
+  what about `|==` and `|--`?
+should explicit proofs (ie. compiler doesn't infer any relations between
+  statements, the whole proof is provided by the programmer) look like this?
+  ```
+    class Nat : Add, Mul, Ord {
+      ?Nat p; // predecessor
+
+      new(_p) {}
+
+      axiom timesZeroIsZero = All Nat n: n * Nat() == Nat();
+      
+      axiom induction(
+        prop Prop,
+        Prop(0) baseProof, All Nat n { All Nat m < n: Prop(m) } -> Prop(n)
+      ) => All Nat n: Prop(n);
+    }
+
+    let zero = Nat()
+    let one = Nat(Nat())
+    let two = Nat(Nat(Nat()))
+
+    prop evenOrOdd(Nat n) => Exists Nat m: n == two * m | n == two * m + one;
+    
+    conjecture allNatEvenOrOdd = All Nat n: evenOrOdd(n);
+    
+    let base = evenOrOdd(zero) by zero == two * zero by timesZeroIsZero; // Proofs run backwards, this is ugly
+
+    let step = All Nat n {
+      All Nat m < n: evenOrOdd(m)
+    } ->
+      evenOrOdd(m) by TODO
+    
+    allNatEvenOrOdd by induction(evenOrOdd, base, step);
+  ```
+  ```
+  // Let's make the proofs run forwards
+  
+  from timesZeroIsZero: zero == two * zero; then: let base evenOrOdd(zero);
+  
+  from timesZeroIsZero: zero == two * zero; then:
+    let base evenOrOdd(zero);
+  
+  from timesZeroIsZero {
+    zero == two * zero;
+    
+    then {
+      let base evenOrOdd(zero)
+    }
+  }
+  ```
+compiler flags
+  there should be almost none. every setting that a program needs should be part
+  of that program - ie. specified in a file, not passed to the compiler
+  
+  program directives: --no-infinities, --no-excluded-middle, --axiom-of-choice
+type coertion operator (`!!!`?) should not need the target type, just the fact that
+  a conversion should happen, together with `T() => expr!!!`, does the trick
+`[i:j]T` type of array of T with at least i (inclusive) and at most j (exclusive) elements?
+website/embeddable IDE: support tabs
+  on the main page, have examples in tabs starting with hello-world.cks
+maybe `arr[0]` should not be valid syntax? `[]` only for generics?
+maybe `arr[0, 1, 2]` should be supported?
+maybe `arr[0..1]` should be supported? (slices vs views?)
+block strings?
+  """
+    This is a block string.
+    Should it end with a newline?
+    
+    Or should all newlines be ignored? (Preferred, I think.)
+  """
+`class Set[type X] { ... }`, `T[A, B, C]` generics syntax
+`pub class (T a, U, b)` syntax for classes that are also tuples?
+null and conditionals:
+  `a ?: b`   vs    `a ?? b`
+  `a &&? b`        `a &&: b`
+  `a ||? b`        `a ||: b`
+  `a ?? b : c`     `a ?: b : c`
+  I prefer the left version, it makes more sense, since null-proof member access
+  is `?.` and not `:.`.
+`[]Magma(T).leftJoin(?T t)`, `[]Semigroup(T).join(?T t) -> ?T`, `[]Monoid(T) -> T`
+should string literals be allowed to span multiple lines? The newline would be ignored.
+special types `I` and `B` that only exist in ChalkScript, value types of Int and Bool
+rename `assume` to `invariant`, `require`, `where` or `axiom`?
+`"String templates: $variableName, ${Math.tau}"`
+  must be pure
+  only avaiable in double quotes?
+`(A_0, ..., A_n)` equals `{ (a_0, ..., a_n), a_i of A_i }` iff every `A_i` is inhabited?
+`( Int, Int )` is a pair of types, `((Int, Int))` is the type of pairs of ints?
+  `{{ a: String }}` a type of objects with public String property `a`
+compiler should warn if a file is never imported
+multiline string:
+```
+  """
+    Abc // this is not a comment, it's part of the string (I guess?)
+    
+   asdf // compile time error, not indented enough
+  """
+```
 algebraic data types? (`data D = A Int | B Int Int`)
   should they be merged with enums?
   ```
@@ -3145,6 +4069,7 @@ algebraic data types? (`data D = A Int | B Int Int`)
     Leaf Tree Tree Int;
   }
   ```
+  they should be sugar for `final trait D {} class A : D {} class`
 debugger should be able to output stack trace with library methods hidden
 stack overflow should not happen unless there is no memory at all
 always infer generic params if possible
@@ -3237,6 +4162,20 @@ module-wide destructuring
   
   ( i, str ) = (3, "world");
   ```
+should this be valid chalk?
+  ```
+    static let AllowedArgType = () => {
+      mut foo = { Null, Bool, Nat, Int, String, Float, File, Folder };
+      
+      return let ret where ret in foo or finite ret and ret subset of some x in foo;
+      
+      return let ret where ret in foo | finite ret & ret subset of some x in foo;
+      
+      return let ret where ret in foo | finite ret & ret subset of ex x in foo;
+    }
+```
+what about type of object that doesn't have to have a property, but if it has
+  it, it is of certain type? `{{ Int a, Int|undefined b }}`
 documentation must handle the fact that documentation comments may be overriden
   by other documentation comments when variables are re-exported
   - maybe a message like "Declaration imported from [x](/link/to/source.chalk)"
@@ -3652,6 +4591,7 @@ warning: condition is always true/false
   comparing with null literal is one instance (maybe make it an error, even)
 something like markdown for comments
 warning: expression has no effect
+should it be possible to deallocate part of memory?
 ```
 class SmartPtrExample {
   dealloc() {
@@ -3703,6 +4643,20 @@ ideally formatter should tolerate multiple spaces eg. here:
   
   tru, fal
   ```
+`(folder|file).persistent is Bool`
+```
+  Folder(
+    [ ( 'a', [ ( 'b', [] ) ] ),
+      ( 'b.png', Buffer('b64', 'iVBORw0KGgoAAAANSUhEUgAAASoAAAFjCAYAA...') )
+    ]
+  )
+```
+`chalk pkg` - should version masks be used at all?
+replace `chalk install` and `chalk update` with `chalk pkg install` and `chalk pkg update`?
+it should be possible and easy to have multiple packages in the same repo (I think)
+  how should this work. (relevant to design of ?package.json?)
+  probably make a new name for that file to avoid conflict with npm
+`debug.log()` that magically works, `debug` doesn't need to be passed in parameters
 casting mut to immut valid if provably no code is gonna see a write to that reference
 if `try { x } catch E { y }` will ever be part of chalk, make scope of y subscope
   of scope of x? warn if an object that was manipulated in x, but not in y is used
@@ -3740,10 +4694,16 @@ automatically parallelize for loops with await if it doesn't depend on previous 
 Array.dimensionOf(nonArrayType) = 0
 Array.dimensionOf(ArrayType<ValueType>) = comptime 1 + Array.dimensionOf(ValueType);
 ```
-
+type is NOT a value, type is a property of a variable
 out formats - web, chalk (eg. c to chalk), (appimage?, exe?, elf?, own format?)
 something-like-markdown to html/json
+```
+mut a = (Int, Int, Int).arraySlice(0, 1).expand(2)
 
+a.expand(1); // error
+
+mut a = (Int, int, bool).arraySlice(0, 1).expand(2) // should this work?
+```
 ```
 chalk run main.cpp # runs interpreter
 chalk run .
