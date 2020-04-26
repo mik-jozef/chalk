@@ -134,18 +134,45 @@ Expr function
 TODO ChalkDoc
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
+  Module = ImportList ExprList
+  ImportList = _ | Import ImportList
+  Import = import Value from String ; | import String as Value ;
+  ExprList = _ | Expr | Expr ; ExprList
+  Expr = 
+  Value = Identifier | Array | Tuple | Object | Set
+  Array = [ ExprCommaList ]
+  Tuple = ( ExprCommaList )
+  Set = { ExprCommaList }
+  ExprCommaList = _ | Expr | Expr , ExprCommaList
+  Object = { ObjectPropList }
+  ObjectPropList = Identifier : Expr MComma | Identifier : Expr , ObjectPropList
+  MComma = _ | ,
+  Identifier = LIdentifier | UIdentifier
+  LIdentifier = [az][azAZ09]*
+  UIdentifier = [AZ][azAZ09]*
+  String = " StringT* ([^\\"$] | \" | \n)* " | ' ([^'\\] | \' | \n) '
+  StringT = [^"$]* ($ Identifier | $ { Expr })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+```

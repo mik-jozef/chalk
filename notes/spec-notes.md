@@ -984,6 +984,38 @@ class G<T> = A; // Warning: unused generic parameter T
 
 class H<T> {} // Warning: unused generic parameter T
 ```
+`Observable` trait?
+IDE: popups must appear synchronously
+version control - it should be possible to do things in paralell - creating, deleting and
+  editing branches
+version control - warning: branch name is not uniquely independent in time
+  option to require unique names? mandatorily prepend branch names with year/date of creation?
+version control: renaming a variable and deleting it should merge to deleting it?
+version control + IDE: do merges by visually dragging branches?
+class members can be private (by default), readable (rdl) or public (pub)?
+Console should be a trait, not a class
+final trait must specify all classes outside itself that implement it
+ui: checkboxes are too small
+Package manager - vulnerability tracking
+Version Control - comments that need to be resolved before merge can happen
+  "pull request view" (ie. comparison) between branches should be avaiable even
+  before anyone creates a PR
+Version Control should be able to detect when a piece of code was copied. That
+  includes copies of code that is being added (ie. when adding code that contains
+  some duplicate code)
+chalk typesystem should be able to handle vuex store definitions:
+  ```
+    Vuex.store({
+      state: {
+        asdf: 3;
+      },
+      mutations: {
+        inc(state) => state.asdf += 1; // should be well typed even though state is not explicitly typed
+      },
+    });
+  ```
+IDE: have type debugger that would do typechecking step by step
+all gui should be declarative and no app code should run on gui thread?
 named switch expression: `switch-a { default: return-a null };`
 should there be semicolons after switch and for? There have to be, because they
   return expressions
@@ -3542,17 +3574,107 @@ IDE: order imports by folder structure, name,
 browser tabs: on mouse over tab strip, move child tabs under their parent tabs.
   Tab A is a child tab of tab B if A was opened from B, closing A will move focus
   on B, not on the next tab
+how to best handle cyclic data dependencies (eg. `T a(b); T b(a)`)? pre-initialize
+  them to null, or ensure they are not read until initialized?
+  the zeroth seems like a lazy hack with potential for weird bugs, the first might
+  be a lot harder
+`{ a() { ... }, b, c => 0 }` must be a valid object
 ide - highlight trailing space
+call them end-of-line comment and block comment
+issue tracker: hierarchical issues, very good query support including custom 
+  queries, easy way to see (predefined queries?) eg. all your issues, your and
+  (new or open), all top-level issues, etc.
+show history of file - ie. only commits that affected it
+ChalkDoc: should # be used for headings? #notSure. One way to disambiguate hashtags
+  from headings is to require a space in headings. Or just use =?
 Disallow (or at least warn on) trait names starting with uppercase I or T and
   another uppercase letter so that people cannot name their things IThisIsAnInterface,
   IIAmRetarded, IFactoryFactoryTemplate etc.
 run meta-code (or meta prop-edits) that would change code, e. something that would rewrite
   string literals based on their value and whether they are potentially assigned to function foo
 `Array.zipWith(Iterable<let A> a, Iterable<let B> b, (A, B) -> let C combinator = identity)`
+`{ Int a, String b } & { None a }` should equal `None`
+  should `{ None a }` equal `None`?
+  should `{ Int ?a, String b } & { None a }` equal `{ String b }`?
+empty line counts as semicolon
 IDE: when searching in the whole project:
   0. checkmark "paths" (tooltip "also search in file paths")
   1. three modes: exact match, regex, text/keyword search (google-like "find the best result")
   2. highlight files that contain matches in tree view
+Rename Float to Real? Real64
+`pkg.cson` optional dependency blocks:
+  ```
+    { dependencies: {
+        { name: 'asdf',
+          version: "3.2.18",
+          mask: "3.>1.0",
+        },
+      }
+      settings: { // Custom flags one is allowed to use during compilation.
+        primaryServers: String, // Hardcode primary servers trusted by the app. Can be overriden by a configuration file.
+      },
+      optionalSchema: { // Is this a good idea?
+        allowHttp: Bool,
+      },
+      optional: {
+        colors: {
+          dependencies: {
+            { name: 'colored-output',
+              version: '0.2.5',
+              mask: '0.2.5',
+            },
+          },
+        },
+        packageManagerServer: {
+          dependencies: {
+            { name: 'sql-driver',
+              version: "1.5.3",
+              mask: "1.5.3",
+            },
+            { ... },
+          },
+          settings: {
+            allowHttp: Bool, // Allow the compiled application to use the insecure protocol.
+          },
+        }
+        website: { "colors", { name: 'http-server', ... } }
+        server: { "packageManagerServer", "website" }
+      }
+      targets: {
+        llvm: {
+          outFile: 'out/llvm.ll',
+        },
+        myJavascriptPreset: {
+          outDir: 'out/js/',
+          preset: 'ES7',
+          whitespace: 'strip',
+        },
+      },
+      defaultTarge: 'javascript',
+    }
+  ```
+  `chalk translate . --optionalAll`
+  `chalk translate . --optional="packageManagerServer colors"`
+  imports (libraries) that could exist, but don't should be imported as null
+  ```
+    import Library from sql-driver; // Ok.
+    import { connect } from sql-driver; // Error: cannot destructure an optional dependency. It is potentially null.
+  ```
+`Program( ... ).generateTranslationHints(Hints hints) -> Hints` or similar function
+  that generates something that lets the compiler recompile the program faster,
+  eg. contains solutions to the np complete subproblems of translation
+`A|B var = A(); a := B()` should be valid, call destructor of A, and construct a new B
+  should the default assignment operator destruct the old variable before assigning the new one?
+one of the goals of Chalk is to have a language such that if a program has
+  well-defined runtime behavior, then it must be typable
+  and if a piece of text could intuitively be assigned meaning as a program (by
+  an informed programmer), then that string should be a valid program.
+`foo[(T t where t ++ String s is t) : type X : String](X a) -> X => a`
+enable exporting from deep paths (import X from ./foo/bar) using special
+  keyword, something at the start of file, or extension?
+there should be a distinction between type annotations and "type loosening?"
+  one should help the compiler with typing, the other should erase information
+`console.format({ padding: 2 }, str)` - insert two spaces after each newline
 Draftback-like time travel, maybe including commit history
 version Control + database, ?with options to only sync some tables
 IDE + cli: stats like number of lines, percentage of unused code, etc
@@ -3932,6 +4054,201 @@ compiler should be able to generate and visualize call graphs
 haskell-like function declarations?
   mut fact(0) => 1;
   mut fact(n) => n * fact(n - 1);
+chalk should mandate little endian, and `<< 1` (or `<<< 1`, to make it different?)
+  should be the same as `/ 2` (that is `<<` and `>>` should be reversed as opposed
+  to other languages)
+`Int64` mutable, `I64` immutable - avoids memory allocation
+stlib function `nextGteMultiple(number n, number multipleOf)`
+there should be two newlines between imports and code. Thats because there
+  can be one newline between imports that makes it harder to see where they end.
+`'` for simple strings, `"` for strings with formatting, eg. "Tau is ${Math.tau}"
+some (all upstream?) branches should be readonly with the exception of pull requests
+`import "path" as ModuleName`, `import "path" as { foo, bar }`
+IDE: display errors in scrollbars too, in editor and tree view and all other error-containing windows
+IDE: different shortcutws for open definition in this tab and open definition in new tab
+prove that: for each program (as defined abstractly by the spec, ie. eg.
+  a set of modules) there is a string that represents that program, and each string
+  that conforms to chalk grammar represents a valid program
+version control: as many commits should be reversible as possible
+version control:
+  correct:
+  ```
+  - import { PageModeUtils } from '#services/pageMode';
+  + import { *PageMode, *PageModeUtils } from '#services/pageMode';
+  ```
+
+  wrong:
+  ```
+  - import { PageModeUtils } from '#services/pageMode';
+  + import { PageMode*, PageMode*Utils } from '#services/pageMode';
+  ```
+
+  even better (if text formatting is avaiable, use at least one of green/red,
+  bold/strikethrough for insertions/deletions):
+  ```
+  import { +PageMode, +PageModeUtils } from '#services/pageMode';
+  ```
+  
+  3 display options:
+
+  0. just a single file with insertions and deletions
+  1. two files, right is the new file with additions, left is old file with deletions
+  2. two files, right is the new file with additions, left is file with both
+```
+import { Var, PlusNode } from 'spec';
+import { Program } from 'compiler';
+
+Promise foo(Folder f) {
+  Program p(path => f.readFile(Path(path))); // Or just Program(f) in this specific case.
+  
+  await p.load('./main.chalk');
+  
+  Var var = p['main'].getVariable('o').rename('a'); // Or `p['main']['o']`.
+  
+  for let occurence of var.occurences() {
+    occurence.replaceBy(PlusNode(a, a));
+  }
+  
+  p.run();
+  
+  // Only saves files that changed.
+  ignore p.save(); // OK
+  
+  p.save(); // Comptime error: p.save can erturn 'Error: write function not provided.'
+  
+  assertOK ignore p.save(); // Comptime error: p.save can throw at runtime
+}
+```
+support fixpoints of arbitrary functions, not just types, if well-defined?
+  ```
+  foo() relation {
+    bar(Int x) => x * x;
+
+    return bar(Self); // Same as `bar(bar(bar(bar(...))))`
+  }
+
+  0 in foo; // True.
+  1 in foo; // True.
+  2 in foo; // False.
+
+  // Or:
+  foo() relation {
+    bar(Int x) => -x;
+
+    return bar(Self);
+  }
+
+  0 in foo; // True.
+  Int == foo; // ???.
+  ```
+I need a syntax for side effect types.
+  should all functions be pure by default?
+  `fn Int -> Int` / `let Int -> Int` - pure function (?)
+  `fn {infer} Int -> Int` - infer all side effect types
+  `fn Int -> Int {infer}` - alternative
+  `{ _: (Main a, Args b) -> Return, a: Even x -> Odd y where y > x }` (`Even x -> Odd y > x`?)
+  `{ _: (Main a, Args b) -> Return, a: Even x -> Odd y, else: infer }`
+  ` { a: Even x -> Odd y, else: infer } (Main a, Args b) -> Return`
+  
+  (possible) examples:
+  `let Int -> Int = a => a` // yes?
+  `let Int a -> Int => a` // no?
+  `fn Int -> Int = a => a` // no?
+  `fn Int a -> Int => a` // yes?
+`import folder.File` imports folder/file.chalk? Problems: extensions
+  `import { folder: File }`
+  `import folder.{ foo, bar }` name of file missing
+  `import folder.File{ foo, bar }` ugly, no longer a proper destructuring
+  `import Foo from folder.file`
+  all of this is ugly
+there should be two classes of type errors:
+  "Cannot verify type correctness of expression", when a compiler cannot infer
+  a valid type, but cannot prove the code is invalid
+  "Cannot use expression of type X where Y is required", when a compiler can
+  prove there is an error (and maybe even produce an example)
+underscore `_` can appear anywhere in the source code with no meaning
+  to enable indentation without compiler complaining about whitespace?
+  ```
+    case _5: blah();
+    case 10: bloh();
+  ```
+language variant to consider:
+  A fragment of type system where each type can only be bounded by other types
+  (from either direction.)
+  I have a hunch that would greatly simplify the typing system, but at the
+  cost of losing the ability to eg. say
+  `Let T be such that for all x of T, x ++ 'a' is T`.
+Gradual typing that allows no types at all.
+Two modes for the type system:
+  strict - errors unless programs is provenly well-typed
+  lenient
+what should `{ Never a }` be?
+  0. `Never`? That is the zeroth intuitive thing that comes to mind.
+  1. Type of objects that do not have the property `a`?
+  2. A type such that `{ a: string, b: string } & { b: Never }` equals `{ String a }`
+what about real time / asymptotic guarantees?
+  some constructs that error if a certain algorithm is not provenly within certain
+  bounds (before/after optimization)
+binary, maybe also hexadecimal and octal numbers should be little endian? `Int8Max = 0b000000001 - 1`
+should the compiler warn if branching condition can be resolved at comptime
+  because of local value whose type allows values that could change the condition?
+compiler: mark parts of code as used, warn if such marks are in code for too long?
+  ```
+  //@ used by 17. 4. 2019
+  const x; // Error: const x is not used and it's past 17. 4. 2019
+  ```
+  Date in little endian must be hardcoded into the grammar, mixed-endian will not be supported.
+duplicate code warning
+suppress duplicate code warning in duplicated and deprecated code?
+`deprecated` function keyword? `Null foo() deprecated {}`
+```
+  find<type T>([]T arr, (T) -> Bool predicate) =>
+    for let t : arr { predicate(t) && break t }; // If not found, returns null.
+```
+version control - let people request privileges, to eg. create branches, create
+  a specific branch, view private repos/branches etc
+types of repos:
+  public repo
+  private repo - its name is visible, but its contents aren't
+  hidden repo - completely hidden
+console in debugger must be able to inspect all, including private, variables?
+import sort order:
+  0. libraries
+  1. absolute paths
+  2. relative paths
+  
+  each group should be ordered alphabetically by path, and names in object
+  destructuring should too
+both `Folder.unlink(path)` and `Folder.delete(path)` (or `Folder.unlink(path)` and `FsItem.delete()`)
+pub restrictions:
+  ```
+  // Function that can only be called with even numbers unless the caller is foo itself or bar
+  foo(Int pub Even x) trusts bar {}
+  ```
+  a function must be public to have pub-restricted arguments functions not in class
+  scope are always public. Parameters that do not have a public restriction
+  have the same public and private type.
+  Public restriction must be a subtype of the private type.
+IDE: temporary tab: double click or something to turn it into a permanent tab
+IDE: list of named scopes (ie. classes, functions, etc) the caret is in at the bottom
+  of the window (or somewhere else) (`Main > main > Vue.extend > methods`)
+debugger: select target - Chalk Abstract Machine / a target architecture
+  so that programs can be stepped per CPU instruction / other unit of code in target architecture
+IDE: search should have different background color when match count is to more
+  than one, one, zero
+IDE: optional sounds?
+IDE: suggestions tooltip should contain grayed out text with `Ctrl + ↑ ↓`
+traits can contain field, but implementing classes must redeclare them
+Version control: should branch names be unique per project or per project * point in time?
+should enum.values an array, a tuple or a set?
+should?
+  ```
+    class Tuple(type ...Args) = Array[Object] arr where {
+      arr.length == Args.length;
+      All Nat n < arr.length: arr.get(i) is Args.get(i);
+    }
+  ```
+terminology: if A is B, A() is direct instance of A and instance of B?
 should code block be followed by a semicolon anywhere? I thought '}' is never
   followed by one, but my current grammar says otherwise
 `class A<T a, b> {}` - one type, multiple params
@@ -4018,6 +4335,13 @@ compiler flags
   of that program - ie. specified in a file, not passed to the compiler
   
   program directives: --no-infinities, --no-excluded-middle, --axiom-of-choice
+generic values
+destructor should be called `destroy`, and in ChalkScript, it should the the
+  user's responsibility to call it if it is not a noop. When the last ref to
+  a variable is overwritten, `destroy` should also be called by the language,
+  so it must be idempotent
+`final trait T trusts This {}` - trusts the entire module?
+`foo{ A : type optionalGenericParams : B }[ C : type MandatoryGenericParams : D](RuntimeParams params)`?
 type coertion operator (`!!!`?) should not need the target type, just the fact that
   a conversion should happen, together with `T() => expr!!!`, does the trick
 `[i:j]T` type of array of T with at least i (inclusive) and at most j (exclusive) elements?
@@ -4026,6 +4350,14 @@ website/embeddable IDE: support tabs
 maybe `arr[0]` should not be valid syntax? `[]` only for generics?
 maybe `arr[0, 1, 2]` should be supported?
 maybe `arr[0..1]` should be supported? (slices vs views?)
+since for every type variable, there is a lowercased variable that is a set,
+  and vice versa, it should be required that letter cases are consistent
+  ```
+    let t = int; // Ok
+    let t = Int; // Error
+    let T = int; // Error
+    let T = Int; // Ok
+  ```
 block strings?
   """
     This is a block string.
