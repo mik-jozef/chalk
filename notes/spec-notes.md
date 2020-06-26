@@ -793,7 +793,9 @@ partial type specification? `Map<auto...> m`
   for some there might be better ways to indicate end of stream (some default value)
 should generators return `Stream`, or `Stream.next`?
 stack thraces must be correct even across things like `await`, `setTimeout`, etc.
-cancellable promises?
+cancellable promises
+standard library should contain `format(String formatString, ...args)`
+  that uses the same formatting options as \`\` string literals
 existential types? eg. `Set<?>`
 instead of `Self`, which is ambiguous
   (what is `Set<?Self>`? `Set<?Set<?Set<?...>>>` or `Set<?????...>`),
@@ -809,6 +811,19 @@ runtime vs comptime import, of code, and of files - import() vs load()? or what
   * `import pic from "./path.jpg" using PngOpener`
   * `Png pic = import("./path.jpg", PngOpener)`
   * `Png pic = load("./path.jpg", PngOpener)`
+IDE: pane that only contains clickable declarations of currently open module
+`class C[type T] -> HigherOrderT[C] & Simple[C[...]] {}`
+  `T[...]` is a shortcut for the parameters of the class
+  compiler should warn that in `class C[type T, type U] -> A[C, U] {}`, `A[C, U]`
+  can be shortened to `A[...]` (or `A[.]`? why those extra keystrokes?)
+  `trait HigherOrder[type T[type]]` (or `[type]T`?)
+`Array(size, initialize(<<Int i))`
+think about this when designing errors - the message should be a static function,
+  not a member string
+  https://softwareengineering.stackexchange.com/questions/278949/why-do-many-exception-messages-not-contain-useful-details/278958#278958
+forbid `{}` and only enable `{:}` for empty object and `{,}` for empty set?
+  or just get used to that the empty set is useful, and empty object is not
+regerex vs regex vs pattern vs sattern? (StringPattern too long)
 optimizations - merge not only identical string, but identical objects of other
   types as well, eg. this:
   ```
@@ -3561,6 +3576,16 @@ Null foo() {
   gen.next(2) == 0;
 }
 ```
+chalk should have a setting to be maximally error friendly - it should compile
+  programs even if there are syntactic errors - problematic parts should be skipped.
+  (unless a separate setting is present, such a program should console.log that it
+  was compiled with errors)
+  no type error should possibly halt the compilation. If choosing the right function
+  overload is not possible, choosing any or none should be all correct and the
+  semantics of improperly typed programs should respect that. The choice should
+  be deterministic, and any time a corrupted code is executed, it should be logged
+  (unless the setting mentioned above is present)
+subarray == contiguous subsequence?
 ignore keyword that acts like `ignore(Object a) => a is Error ? null : a`, Error cannot be
   a subtype of the type of a top-level expression
 Functions returning unit types need not have body only if they are pure, not in general.
@@ -3665,6 +3690,91 @@ Rename Float to Real? Real64
   eg. contains solutions to the np complete subproblems of translation
 `A|B var = A(); a := B()` should be valid, call destructor of A, and construct a new B
   should the default assignment operator destruct the old variable before assigning the new one?
+`string.toInt` returns binary copy of string as number
+list of goals:
+  practical for real world programming
+  familiar syntax and semantics (except type system, that will have to be new)
+  expressively complete, sound, and decidable (therefore not inference-complete) typesystem
+  orthogonal: if a combination of features fit together and make sense to human
+    programmers, it should work
+    - this means things like nested functions, closures, multi-scope function/class overloading
+  ```
+        foo(Int a) => a
+        
+        bar() {
+          foo(String a) => a;
+          
+          foo(3); // valid, even tho foo defined in this scope too.
+        }
+  ```
+  . - this should work:
+  ```
+    let a = { b: b }; // No error `b` is not declared
+    let b = { a: a };
+  ```
+semantics problem:
+  ```
+  fn libFunc({ Int | Null optionA = null, String | Null optionB = null }) {
+    ...
+  }
+  
+  fn foo({ Int | Null optionA } options) {
+    libFunc(options);
+  }
+  
+  class C {
+    pub Int | Null optionA = 42;
+    pub String | Null optionB = 'bar';
+  }
+  
+  main() {
+    foo(C());
+  }
+  ```
+  should the following code pass `null` or `'bar'` to libFunc?
+  This seems like a huge security issue
+  
+  I favored object types to be the types with at least some members,
+  but this shows it would probably/perhaps be better if they were
+  the types of those values that have exactly those members.
+  
+  There could be a syntax like `{ A a, ... }` for objects with at least
+  the member `a` of type `A`.
+  
+  `{ A a, ...None rest }`
+  
+  Or perhaps it should just be forbidden to use those extra members? I don't
+  like that solution at all - if a value has a certain type, it should be
+  typable with that type, and then all members should be usable.
+  
+  Or the best solution I have thought about so far: a value with potentially
+  more members than declared in the type of its variable cannot be assigned
+  to a variable whose type has extra members.
+  
+debug.log function that prints its arguments when debugging a function marked
+  as verbose, debug keyword that makes functions called in its expressions
+  verbose if it exists in a verbose function, IDE can toggle which functions
+  are verbose
+should traits be able to specify friendship (or "trust")?
+should there be per-member "trust"? trust with a subset of a functions domain?
+should members be publicly read-only by default?
+should liskov substitution principle be enforced by the type system?
+all operators should support trailing operator syntax (or maybe leading?), not just comma?
+  ```
+    type X = (
+      A |
+      B |
+      C |
+    );
+  ```
+  or
+  ```
+    type X = (
+      | A
+      | B
+      | C
+    );
+  ```
 one of the goals of Chalk is to have a language such that if a program has
   well-defined runtime behavior, then it must be typable
   and if a piece of text could intuitively be assigned meaning as a program (by
@@ -4041,6 +4151,52 @@ should duplicate variables be a warning? eg.
   mut Int a;
   let *Int p = a; // Will always point to a.
   ```
+`fsEntry.trash()` - move to trash `Fentry.delete()`
+be sure to correctly handle this: `foo[type T extends Bar<T>]`
+it should be possible for a trait to mandate existence of a member
+  without mandating its type (or parts of that type, eg. some params)
+  ```
+    trait Collection {
+      static const type Args; // ??? This is ugly. can it be done better?
+      
+      forEach(...Args args) -> {}
+    }
+  ```
+in traits, it must be possible to delegate everything to classes, even
+  initialization of variables (ie. no 'uninitialized member' error)
+`try { ... } catch ?IOError e;` does not have a block that is executed only if error,
+a way to assume something about this, eg. in methods, that subclasses must provide
+observable - optionally batch changes
+  ```
+    class C {
+      observable pub Int a; // Most conservative aproach,
+      pub Int b; // `b` cannot e be observed.
+    }
+    
+    class C -> Observable { // Little less conservative aproach.
+      pub Int a;
+      pub Int b;
+    }
+    
+    class C { // Liberal aproach, convinient, but will it be slow?
+      pub Int a;
+      pub Int b;
+    }
+    
+    mut C c(), d();
+    
+    Observable o(false); // Signature: `Observable(bool batchEventsDefault)`.
+    
+    o.observe(true, c, d); // `observe(bool batchEvents = batchEventsDefault, ...T observed)`.
+    
+    [ c.a, c.b, d.a, d.b ] = 4.map(_ => 1);
+    
+    // o.on((e, Reflect.Field(C) field) {})
+    
+    o.on(([](e, Reflect.Field(?)) changes) {
+      // ...
+    });
+  ```
 should every value have an address and every variable a value, or should every
   variable have an address and a value, and value not have an address?
 should taking a pointer to a temporary object produce a warning, an error or nothing?
@@ -4051,12 +4207,20 @@ variable declaration: `?(mut|let|const|immut||default=let)?( Type||defaut=auto) 
   * immut - transitive immutable
 TODO tuple destructuring in lambdas
 compiler should be able to generate and visualize call graphs
+`class Car -> Vehicle {}`
+  `let i : Int where i : Prime and i : Even`? visually, this looks confusing,
+  mistyped conditional operator.
+`get` and `ret` vs `get` and `inget`? or just `get(Key key, ?Value default = null, bool insert = false)`
+`Set(Int)` - set of all integers?
 haskell-like function declarations?
   mut fact(0) => 1;
   mut fact(n) => n * fact(n - 1);
 chalk should mandate little endian, and `<< 1` (or `<<< 1`, to make it different?)
   should be the same as `/ 2` (that is `<<` and `>>` should be reversed as opposed
   to other languages)
+chalk's logic / typesystem as I imagine it now seems not to support talking about
+  or proving things about how variables change. For example, that a variable
+  always increases. inadequate
 `Int64` mutable, `I64` immutable - avoids memory allocation
 stlib function `nextGteMultiple(number n, number multipleOf)`
 there should be two newlines between imports and code. Thats because there
@@ -5795,6 +5959,13 @@ Null foo(A a, B b) {
   }
 }
 ```
+periodic threads
+!! >> structured concurrency << !! or, as the author here calls them, nurseries:
+  https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+  or should just every promise be guaranteed to be awaited? (like the "tame goto")?
+  I prefer the latter.
+`foo(<|Int i) -> <|Int => i * 2` shorthand for `foo[All type A <| Int, Ex type B <| Int](A i) -> B => i * 2`?
+breakable named if? every block should be nameable
 problem: T.equals must be computable, and thats bad for classes like Nat and ZFCSet.
   maybe they shouldn't be classes, byt pure types?
   a solution for these particular types might be:
