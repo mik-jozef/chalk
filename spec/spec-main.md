@@ -20,6 +20,7 @@ This is the specification of the [[[Chalk]]] programming language.
 > * [Go](https://golang.org/)
 > * [Ada](http://www.adaic.org/)
 > * [Haskell](https://www.haskell.org/)
+> * [Vale](https://vale.dev/)
 
 > TODO This spec is a work in progress.
 > 
