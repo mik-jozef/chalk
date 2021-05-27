@@ -1,3 +1,4 @@
+https://koka-lang.github.io/koka/doc/index.html
 Possible additions:
 ```
 class A<type T, Bool b> {}
@@ -107,6 +108,11 @@ a variant of the langue with restricted getters and setters
 should classes returned from a function that have access to a variable
   of that function's body compare equal if their respective closures
   differ?
+peano numerals?
+  ```
+    prd dec(0) => 0;
+    prd dec({ prev: Nat }: Nat) => prev;
+  ```
 Think hard about doing away with pointers. First, in most cases, the performance
   gain from tight control over what is where in memory is probably not worth it
   (performance usually depends on a small parf of code). Second, when such control
@@ -303,6 +309,16 @@ copying streams?
   ```
   auto a = [ 1, 2, 3].stream();
   auto b = a; // ?
+  ```
+instead of closures, have sth like:
+  ```
+    class X() {
+      let x = 0; // Local variable of the constructor.
+      private i = 24; // Private variable
+      pub p = 'asdf'; // Public variable
+      
+      pub
+    }
   ```
 include in the spec in a note about operator precedence:
   How to mentally parse a Chalk expression:
@@ -723,8 +739,84 @@ make it harder to use json than a subset of chalk with no to little
     // If there was something like xml schemas for json that could be directly
     // in `a.json`, I would not be so strict.
   ```
+there should be an easy notation for both all subtypes of a class and
+  all sybclasses of a class.
+  In case I want a variable containing a class that is a subclass of C,
+  i want the latter.
+A trait that implements a trait should be able to define its `own` properties
+  that the base trait defines as static.
+A trait mustn't be able to define abstract members if they are nonabstract
+  in the base trait.
 it should be provable that any type `A & B` can be replaced with `B & A`
   not true with eg. typescript
+computing with first-class propositions?
+  ```
+    let asdf: prop = All x in arr => x is Even;
+    
+    return asdf;
+  ```
+  ```
+    fn EvenAt[All arr: Array, All x in arr] >> prop => x is Even;
+    
+    let a = [ 42, 43, 44 ];
+    
+    holds: EvenAt[a, { 0, 2 }];
+  ```
+note: the compiler may offer additional help (ideally, clearly distinct from
+  errors prescribed here), but it MUST NOT accept input the specification
+  doesn't prescribe as correct.
+  In particular, the compiler may use better type inference to suggest
+  a fix of a type error, but it may not accept code even if that better
+  type inference guarantees the program is correct.
+`import file as { patterns as *, _rest as * }` - imports all exported symbols,
+  and all contents of the interface of patterns, into this module's scope
+`implies` - a control flow analogue of `->`?
+  or just give every operator a short-circuiting semantics if applicable?
+do not support octal number notation - 0. it is never used, and 1. o looks too much like 0.
+maybe object literals are unnecessary.
+  this thought is weird, because I'm used to them, but now when I think about it,
+  it seems like they are just a remnant of a class-less javascript where people
+  thought that prototypes are a good idea (spoiler: they are terribly stupid)
+  I'd still need syntax for importing specific exports, and curly braces may be
+  part of that syntax, and I may support object destructuring and named parameters,
+  because those are useful, but not objects that are not instances of a class.
+  
+  If I decide to keep object literals (even if just as immediate arguments to
+  function calls), I'll need syntax that does not conflict with type annotations.
+  I don't like TypeScripts solution, because it does not allow annotating properties
+  individually.
+  
+  `{ .a: T = foo() }`, or `{| a: T = foo() |}`
+  
+  `{ a -> let a, b -> asn c, c -> { asn d } } = foo()`?
+  
+`class X < FromTextLiteral { This(text: Text) { ... } } let x: X = 'asdf'`
+default arguments in abstract functions: typescript does not allow them
+  that means typescript does not allow one to declare a parameter as optional
+  without adding undefined to its type. Be better than typescript.
+to be able to enforce all invariants about all variables pointing to a value,
+  it will probably be necessary to have types of function contexts
+  For example, `All a: Object, b: Object => a pointsTo v & b pointsTo v -> a = b`
+  might want to specify that there is only one reference to `v`. But if function
+  context is not an object, then this property will not cover local variables.
+in documentation of `caten` (te `++` operator), explain the difference between concatenation and catenation
+  or perhaps it should be named `op`, the monoid/magma operator?
+types vs type functions and side effects
+  ```
+    mut arr = Array(42, 44);
+    
+    type KeysStatic = arr.Keys;
+    type KeysDynamic[] = arr.Keys;
+    
+    arr.push(55);
+    
+    // KeysStatic == { 0, 1 }, KeysDynamic === { 0, 1, 2 }
+  ```
+  syntax is questionable, but both should be doable
+str methods
+  `str.substringAt(a)`
+  `str.substringIn(s, a, b: ThisIndex)`
+  or let people use `str.substring(a,b) == s` and let the compiler do the job?
 grammar: be careful when using negation - you don't want to allow weird nonprintable
   characters in source code.
 documentation generator: from the generated docs, it should be easy to open a console
@@ -1871,12 +1963,40 @@ Null bar() {
 
 bar().type == Null()&Null(Int);
 ```
+implicit closures should be immutable after function terminates
+allow keywords as class member names? `class C { \prd = 42 }`
+should it be a warning, an error, or neither if a trait
+  has both a static and own property, and the type of the own
+  property is not a subtype of the type of the static property?
 ChalkDoc lists:
   `-` unordered list
   `*` ordered list starting with 0, or unordered list?
   `#.` ordered list starting with 0?
   `2.` ordered list starting with 2, can be combined with `*`
   `**` ordered list, continues numbering from previous list?
+```
+  class C {} // In a library somewhere
+  trait T extended by C {} // If you own a trait, but not the class,
+    // you should probably still be able to form a subtype relationship.
+```
+perhaps a constructor should be able to return an instance of a different class?
+  an example: `RuleAt` with invalid constraints
+  alternatively, a private constructor and a public factory method.
+  a compromise: final traits should be able to have constructors that return
+    an instance of a class that implements the trait
+a type is an approximation of a value
+stlib - buffer should implicitly use little endian, with extra methods with longer
+  names for big endian bit manipulations
+  ```
+    let buffer = Buffer(1);
+    
+    buffer.setU8(0, 3);
+    buffer.getBigEndianU8(0); // Returns 192.
+    
+    // Perhaps:
+    buffer.getU4(0, 0); // Returns 3.
+    buffer.getU4(0, 1); // Returns 1.
+  ```
 higher order types?
   ```
   class C<class X<type T>> {
@@ -4409,8 +4529,94 @@ time operator `>>`
   ```
     type Inc = Int where Inc a >> b <-> a >= b;
   ```
+in type context, there is a conflict between the interpretation of `|` and `&`
+  operands. Either
+    0. all operands on values will be unusable on types, so `let i: Letter ++ '@' ++ Domain = 'a@c.com'`
+       will be invalid.
+    1. `|` and `&` will only be defined on types, not on values. This will require `||` and `&&`
+       operators for booleans
+    2. `|` and `&` will only be defined on both types and values, but in type contexts, they
+       will mean type or/and, not value or/and.
+  
+  or maybe I am just imagining problems and there's no conflict - seems that way to me now,
+  I just had a brainfart. I don't want to delete the note though.
+should a function that is defined over `X` automatically be defined over `Set[X]` (recursively) as well?
+  should a function that is defined over `X` be allowed to have an incompatible definition over
+  `Set[X]`?
+where syntax:
+  `Int i where i.prev is Even`
+  `Int i { where i.prev is Even }`
+  `Int i { prev: Even, where i.prev is Even }`
+  `Int | Text { prev?: Even }`
+  `Int | Text v { prev?: Even }`
+should types be understood as sets, or as "vague values"?
+  should operators for values be usable on types? (`{ 'a', 'b' } ++ 'c'`)
+  should it be possible to have a function from a type to the type's cardinality?
+  should it be possible to have a type of types?
+    and can i really prevent people from creating a types of types, even if I wanted to?
+    eg. finite set of types: `TypeSet[ { 0 }, TypeSet[ { 0, 1 } ] ]`
+should a class defined in a function be returnable?
+  if so, should that create a closure?
+  if so, should the static members of that class be allowed to be different for different closures, or even mutable?
+  if so, what should the comparison operator return when the class is compared to itself, with a different closure?
+  if true, that could break `All f => a = b -> f(a) = f(b)`
+  if false, should `is` return false if closure doesn't match?
+both should work: `foo(n: Nat { prev: Nat })` and `foo(n: Nat + 1)`
+`let i: T { foo as bar }` should rename foo as bar in i. `T { foo let bar }` should destructure?
+this should be illegal:
+  ```
+    class C {
+      let b;
+      let a = (this.b = 3); // Error: side effects not allowed in member initialization expressions.
+    }
+  ```
+  this is because such side effects would happen in non-deterministic order
+the type system (probably) must be able to talk about side effects of values that
+  cannot directly be referred to, because they are not in scope
+  if mutable closures are allowed, definitely. Else, probably not.
+static variables in functions
+```
+  class A {
+    class B {
+      This(i: Int) {}
+    }
+  }
+  
+  let a = A();
+  
+  a.B(3).that == a;
+  
+  A.B(a, 3);
+```
+closures:
+  syntax sugar for `class FunctionName extends Function { call(...) => ...; ... }`
+  variables that are members of the class have to be exported
+    ```
+      prd foo() {
+        export mut a = 4;
+        mut b = 4;
+        pub c = 4;
+        
+        return prd f() => a += 1; // Ok;
+        return prd f() => b += 1; // Error: cannot refer to variable that is not exported;
+        return prd f() => c += 1; // Ok;
+      }
+      
+      let f = foo();
+      
+      f.a // Error: a is private.
+      f.b // Error: b does not exist.
+      f.c // Ok.
+    ```
+should functions that produce a closure have a separate keyword?
+  their semantics differ a lot if RAII becomes a part of the language
+I've already made up my mind on that `All a, b, f => a = b -> f(a) = f(b)` should hold.
+  however, should the "reverse" hold as well?
+  should it be `All a, b => a = b <-> All f => f(a) = f(b)`?
+  maybe the stronger axiom should hold for `=`, and the weaker one should hold for `==`.
+should function declaration be an expression?
 list of goals:
-  practical for real world programming
+  practical, general-purpose language for real world programming
   familiar syntax and semantics (except type system, that will have to be new)
   expressively complete, sound, and decidable (therefore not inference-complete) typesystem
   if something is intuitively comprehensible, it should work, see next point (note
@@ -4437,6 +4643,215 @@ list of goals:
   module system, including full support of cyclic dependencies
   as full support of cyclic definitions as possible ("use before declare" error
     is not a program error, it's a sign of a bad language)
+in case a function's return type is a promise (not promise or ...), automatically
+  convert returned non-promise values to a promise?
+mind the distinction between a module and a module literal
+  module is a class that extends the `Module` trait
+  module literal is text conforming to a certain grammar
+a variable definition that is a proper subexpresison should create its own scope
+  ```
+  // Syntax sugar for a class with that public members and that public constructor.
+  class Node[T] (data: T, parent, left, right: Node[T] | null);
+  
+  let node := Node(
+    3,
+    null,
+    let left := Node(
+      1,
+      node,
+      let leftLeft := Node(
+        0,
+        left,
+        null,
+        null,
+      ),
+      let leftRight := Node(
+        2,
+        left,
+        null,
+        null,
+      ),
+    ),
+    let right := Node(
+      4,
+      node,
+      null,
+      null
+    ),
+  );
+  
+  let node =: Node(
+    3,
+    null,
+    let left =: Node(
+      1,
+      node,
+      let leftLeft =: Node(
+        0,
+        left,
+        null,
+        null,
+      ),
+      let leftRight =: Node(
+        2,
+        left,
+        null,
+        null,
+      ),
+    ),
+    let right =: Node(
+      4,
+      node,
+      null,
+      null
+    ),
+  );
+  ```
+```
+  let x: Int | Text =< 3;
+```
+don't do `?T` as `T | null`. Many times `Opt[T]` is preferrable.
+whitespace:
+  ```
+    cond then {
+      ...;
+    }
+    else singleLineExpr;
+  ```
+```
+  // Lit syntax that combines type annotations and destructuring.
+  
+  prd foo( options: Options { encoding as encd: 'utf8' | 'ascii' } ) => encd;
+  
+  prd bar() {
+    // Destructuring as an expresison:
+    baz() as {
+      a: Int { // Does not create a variable nor assigns
+        let pred as aPred: Int, // Or perhaps `pred as let aPred`.
+      },
+      asn b as c: Even, // Or perhaps `b as asn c`.
+    }
+    
+    // Destructuring with restrictions:
+    switch a {
+      { b: 0 } => 0;
+      { b: Nat | None { pred: Even } => 2 * pred;
+      { b: Nat { pred: Odd } => -pred;
+    }
+  }
+  
+  // Anonymous object literals require a dot in front of name
+  foo({ .encoding: 'utf8' = 'utf8' });
+```
+```
+  class C { let i: Int; }
+  
+  type A = KeyOf[ C ]; // `{ C.i }`? or `type A[C] = [key A of C]`
+  type A = KeyOf[ C, Int ]; // `{ C.i }`?
+  type A = KeyOf[ C, Text ]; // `{}`
+  
+  type B = PropOf[ C, 'i' ]; // = Int
+  
+  let i: A[C] = 5;
+  
+  // Perhaps even:
+  let i: C.Keys = 5;
+```
+perhaps the name of a class should not refer to the type of all its instances?
+  ```
+    // It causes problems in type context:
+    // class C { static s: Static = Static(); }
+    // let s: C.s = ...; // Error: C does not have a member `s`
+    
+    // Solution: have one for the class and one for the type.
+    
+    
+    class cars type Car {
+      static s: Static = statics();
+      
+      This(
+        pub i: Int,
+      ) {}
+    }
+    
+    let c: Car = cars(0); // Ok.
+    let c: cars = cars(0); // Error: cars(0) is not of type cars. Did you mean to type `c` Car?
+    
+    let i: Car.i = 4; // Ok.
+    let i: cars.i = 4; // Error: 4 is not assignable to `(Car => Int) & ((Car, Int) => ...)`.
+    
+    let s: Car.s = statics(); // Error: Car does not have a member `s`. Did you mean `cars.s`?
+    let s: cars.s = statics();
+    
+    // Also, perhaps use `statics.new()`?
+    
+    class cars instanceType Car {}
+    
+    class cars-Car {}
+    
+    class of cars - Car {}
+    
+    class cars Car {}
+    
+    // It has the same meaning as:
+    type Car = Object { class: cars };
+    class cars {}
+    
+    let c: Class = cars;
+    
+    // Should cars and Car have the same generic arguments?
+    
+    // class class-name all-params instance-type-name non-static-param-names?
+    class cs[All A, All B] C[A] {
+      
+    }
+  ```
+`new` is constructor, how should destructor be named? I want 3 letters. `die`?
+  random ideas: `ruk`?
+should `Object { a: undefined }` mean a type of objects without a member `a`?
+ so `Object { a: Object | undefined }` would equal `Object`
+ and `Object { a: Int | undefined }` would be like TypeScript's `{ a?: Int }`
+if there is to be a switch operator, it should be syntax sugar for iife,
+  with destructuring support
+automatic conversion of string literals to enums?
+replace `a and b` with `a then b`, `a or b` with `a else b`
+  forbid the conditional operator in propositions
+`false and [...]` should return null, `a and b and c` should be well formed,
+  `null and [...]` must be an error, therefore `a and b and c` must mean `a and (b and c)`.
+  also, perhaps `and` and `or` should have equal precedence
+`this.longMemberName.asdf.!has(b)`? The negation is too hidden IMHO, hard to see, bad
+```
+  prd foo(
+    // a long argument list.
+    // a long argument list.
+    // a long argument list.
+  ):
+    Return type on its own line, to visually separate it from the arguments.
+  : {
+    // function body.
+    // function body.
+    // function body.
+  }
+```
+perhaps shadow variables from parent scopes entirely
+  ```
+  prd foo(Int);
+  
+  prd bar() {
+    prd foo(String);
+    
+    foo(3); // Error: Function `foo(Int)` is shadowed by local redefinition as `foo(String)`.
+  }
+  ```
+member renaming:
+  `class C = B with { a as b }`
+  `class C extends G with { ... } {}`
+should type quantification range over private types in contexts
+  where those types are inaccessible?
+abstract methods should be able to have default arguments using `paramName: T = ?`
+should type argumentss (including phantom types) be a part of a value?
+  `class C[All T: type] {}` - should `C[Int]` and `C[Text]` have no common
+  instances, or should all instances of one also be an instance of the other?
 semantics problem:
   ```
   fn libFunc({ Int | Null optionA = null, String | Null optionB = null }) {
@@ -4480,6 +4895,12 @@ debug.log function that prints its arguments when debugging a function marked
   as verbose, debug keyword that makes functions called in its expressions
   verbose if it exists in a verbose function, IDE can toggle which functions
   are verbose
+IDE refactoring options:
+  merge traits (should automatically be offered if extends cycle is detected)
+  split trait
+  move
+  reorder (or keep this a part of move)
+  add/remove param
 should traits be able to specify friendship (or "trust")?
 should there be per-member "trust"? trust with a subset of a functions domain?
 should members be publicly read-only by default?
