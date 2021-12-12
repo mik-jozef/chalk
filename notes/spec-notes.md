@@ -43,6 +43,15 @@ declarations that apply to multiple definitions, (and ensure that all overloads 
     
     foo(a: B) => ...;
   ```
+  also, a function should be allowed to have multiple declarations:
+  ```
+    foo(foo: true): A;
+    foo(foo: false): B;
+    foo(foo: Boolean) => ...
+  ```
+  so, definitions and declarations are n to m. So I guess they should be allowed to appear
+  anywhere in scope, or perhaps only before the declarations?
+  an implementation should probably be allowed to have a broader type than the declaration.
 reflection - in a trusted context, it should be possible to get private members.
 ``foo(A a) => ...; foo(B b) => typeerror { return "First call `toA()` on `b`."; }``
   ``foo(b) // Custom library error: First call `toA()` on `b`.``
@@ -556,6 +565,8 @@ nullable types to give meaning to `null += 2`? what would the consequences of
   type conversions between these nulls?
 json support, import json as object
 maybe pointers should have a private assign method a friend function assign?
+if a trait has a generic parameter called Self, then it must be the zeroth parameter,
+  and it must equal the class that implements it?
 should traits be able to have friends (passable to classes), and specify private
   methods?
 `Reflect(var).set("x", 5)` reflect constructor creates object bound to certain instance
@@ -565,16 +576,19 @@ std/test.chalk
 `Map<Int, class> = Map([ Map.Entry(0, String), Map.Entry(1, Bool) ]);`
 `[]trait a = [ Object, ToString ]`
 ```
-// Can have any arguments
-Null varargFn([]class Args, ...Args args) {
-  for i : range(Args.length) {
-    println(Args[i] is ToString ? args[i].toString() : "(not printable)");
+  // Can have any arguments
+  Null varargFn([]class Args, ...Args args) {
+    for i : range(Args.length) {
+      println(Args[i] is ToString ? args[i].toString() : "(not printable)");
+    }
   }
-}
-
-// Can have any number of String arguments
-Null varargFn(String... args) {
+  
+  // Can have any number of String arguments
+  Null varargFn(String... args) {
 ```
+all overloads of a variable should be next to each other, with the possible
+  exception of function declarations - if someone wants to have them at
+  the beginning of the file, who am I to judge?
 inside functions, types are hoisted, but nested functions cannot be called before
   referenced variables are defined (JS has a cool name - temporary death zone?)
 enable function declarations for the same purpose as in TS?
@@ -2626,7 +2640,9 @@ Int(Int _)(Int b) {
 // This should produce warning - parameter names don't match (?)
 Int(Int c)(Int b) {
   return a => a + b;
-} 
+}
+
+// Note this is why the syntax is wrong - it reverses the parameter order.
 ```
 reconsider closures - are they really needed? shouldn't classes suffice?
   my problem with them is that they'll allocate on the heap on their own, giving
@@ -4219,8 +4235,15 @@ chalk should have a setting to be maximally error friendly - it should compile
   be deterministic, and any time a corrupted code is executed, it should be logged
   (unless the setting mentioned above is present)
 subarray == contiguous subsequence?
-ignore keyword that acts like `ignore(Object a) => a is Error ? null : a`, Error cannot be
-  a subtype of the type of a top-level expression
+ignore keyword that acts like `ignore(Object a) => a is Error ? null : a`,
+  Error cannot be a subtype of the type of a top-level expression
+  ```
+    fn foo() {
+      open("a path to file"); // Error: a potential returned error ignored.
+      
+      ignore open("a path to file"); // OK.
+    }
+  ```
 Functions returning unit types need not have body only if they are pure, not in general.
   And i'm not even sure I like this feature at all.
   if a function return type is a unit type, and the function body is empty or the last
@@ -4257,11 +4280,18 @@ run meta-code (or meta prop-edits) that would change code, e. something that wou
   should `{ None a }` equal `None`?
   should `{ Int ?a, String b } & { None a }` equal `{ String b }`?
 empty line counts as semicolon
+colon as "knowledge union"?
+  `A | B` is the type of elements of A or B,
+  `A : B` is either the type A, or the type B
+  
+  this distinction could be useful when there are mutable values
 assertions that certain parts of code is unused under certain settings
 IDE: when searching in the whole project:
   0. checkmark "paths" (tooltip "also search in file paths")
   1. three modes: exact match, regex, text/keyword search (google-like "find the best result")
   2. highlight files that contain matches in tree view
+not everything should be a type error.
+  Prefer "wrong number of arguments" to "type (int, int) is not applicable to (int) & (string, string, string)"
 Rename Float to Real? Real64
 `pkg.cson` optional dependency blocks:
   ```
@@ -4711,6 +4741,56 @@ a variable definition that is a proper subexpresison should create its own scope
   let x: Int | Text =< 3;
 ```
 don't do `?T` as `T | null`. Many times `Opt[T]` is preferrable.
+`===` (identity) implies `==` (semi-equality) implies `=` equality.
+  Semi-equality is a computable equivalence class.
+  For types, `A === B` if they are the same (or syntactically the same?),
+  `A == B` if the compiler can prove them equal, and `A = B` if they have
+  the same values.
+prohibit side effects in expressions contained in the conjunction or disjunction
+  operators
+`a.p` should be of type undefined if a might not have that property, `a!.p` should
+  only be undefined if `a` may be undefined
+imperative programming presents two problems:
+  time
+  0. certain facts about a value that need to be a part of its type should be local
+     to a certain piece of code. If a library returns a value it does not hold any
+     reference to, the type of that returned value should not contain invariants
+     that were necessary to construct the value. In other words, time forgetting.
+     Just as conventional types in an immutable languages provide spatial forgetting
+     (if I have a value of type Int, then through the type system I forget I have
+     a particular value and pretend there can be any integer whatsoever, in the space
+     of all integers, I have forgotten the actual value).
+     Time forgetting means forgetting certain parts of the type as program execution
+     moves on. A library zeroth constructs a value in a type safe way by having
+     references to it whose type includes invariants internal to the library and
+     irrelevant to the user of the library. Then it should be able to safely return
+     a reference to it that no longer contains those invariants. This is notable
+     because in an imperative programming language, having references with distinct
+     types that refer to the same value is problematic.
+     Time forgetting is likely to be very closely tied to lifetimes.
+  1. A way to ignore types/invariants temporarily when their variables are provably
+     not read by the code that relies on those invariants, so that invariants may be
+     temporarily broken by other parts of code if "no one's looking".
+Basic questions:
+  should there be value types?      i tend towards yes, but only if refs cannot refer to them (\_varName contains a value, varName is a reference?)
+    if so, should refs be able to point at them? (this basically means pointers) no, see below
+  should there be pointers?         not in the basic version of the language -- a programmer should have the option to ignore such low-level detail completely if she wishes
+  should there be primitive types?  i dunno. Probably necessary for performance, but they are a special case of value types
+    should they be mutable?         sure, just like in JS
+both sync and async should be keywords; generics should be able to talk about both
+  types of functions, don't be a C++ with code duplication because of constness
+  (or scary templating shit with const forwarding, but that's irrelevant to the warning)
+if find it likely that renaming of members should be supported, because I suppose
+  otherwise there could be conflicts in ghost values in types of imperative programs
+  
+  also: the definition of a field should be able to express that it is a group
+  wrt two separate methods.
+  
+  Those methods should possibly be implementable outside the class definition,
+  sth like Haskell's type classes? In that case, a class should be allowed
+  to implement a trait twice, see the note about field above.
+  
+  `C { a as c }` - renaming syntax?
 whitespace:
   ```
     cond then {
@@ -4805,6 +4885,107 @@ perhaps the name of a class should not refer to the type of all its instances?
     class cs[All A, All B] C[A] {
       
     }
+  ```
+```
+  type EvenNat = 0 | EvenNat + 2;
+  type OddNat = EvenNat + 1;
+```
+should type functions accept as arguments types that are not valid arguments
+  to any single overload of such function, but which are a subtype of the
+  union of the types of arguments of all the overloads? (Writing that sentence
+  gave me a headache, skip to example if unclear.)
+  ```
+    type A[ All T: Type where T extends Int ] = 'a';
+    type A[ All T: extends Text ] = 'b';
+    
+    type R = A[ Int | Text ]; // `'a' | 'b'`, or an Error?
+  ```
+  perhaps this should only be allowed if the overloads share a declaration:
+  ```
+    type A[ All T: extends Int | Text ];
+    
+    type A[ All T: extends Int ] = 'a';
+    type A[ All T: extends Text ] = 'b';
+    
+    type R = A[ Int | Text ]; // Surely fine.
+  ```
+do use `|` for both types and sets, and do allow `'a' | 'b'` in type contexts,
+  but only for
+warn of all unused files in the root directory
+there should only be one class, even if it has generic params. Therefore:
+  0. `A[Int]` should equal `A[Text]`
+  1. static properties should not have access to type parameters.
+`0` should be a nat, `+0` should be an int. Same with other numbers
+Carsticley - immutable version of the language `st` from conSTant.
+types as sets or types as approximations / nondeterministic values?
+  is `let a: 2: 2 | 4: Even = 2` valid? (not as syntax, but isTypeOf-wise)
+  the differences:
+  types as sets
+   - no (or at most a minimum) of values is a type of itself; a type is always a set
+   - seems to have no address problems, but requires infinite sets, or
+     weird tricks with equality so that { 2 } represents all twos regardless of its address
+   - possible to operate with types as collections, not just as with its instances, eg. find
+     their cardinality, their greates element, etc.
+  types as nondeterministic values:
+   - every value is a type of itself
+   - without a strict distinction between types and non-types, has problems
+     with addresses - if every type has its address, typing becomes effectively impossible
+   - the only operations allowed on a type are those that are alowed on its instances
+`a | b`, `a & b` and `x where P` could perhaps have executable semantics?
+  `a | b` - nondeterministically choose either `a` or `b`
+  `a & b` - if `a` and `b` are identical, return `a`, else terminate computation
+  `x where P` - if `x` satisfies `P`, return `x`, else terminate computation
+  one problem is that the "therminate computation" should have the type `Undefined`
+every class should be a function - a constructor that does not require `this` argument
+  ```
+    class C cs {
+      new(i: Int) {}
+    }
+    
+    let a: C = cs(42);
+    
+    let b: C | undefined = undefined;
+    cs.new(b, 42);
+  ```
+types should be (practically) addressless, but should be able to refer to addresses
+  using the identity operator. `Int i where i === aVariable`
+integer division should truncate towards negative infinity, not zero
+  https://stackoverflow.com/questions/19517868/integer-division-by-negative-number
+it might be a bad idea to let traits create an extends relation with a class
+  imagine `foo :: Text => Null & T => Null`, where `T` is a trait Text does
+  not extend on its own. If someone creates a trait `S` extending `T` that
+  they'll make a supertrait of `Text`, without owning either Text or T.
+  So `foo` is actually not well-defined, because it has 2 distinct implementations
+  for instances of `Text`.
+with my new paradigm "types are approximations of objects, and computing with
+  types is like computing with any concrete object that satisfies that approximation"
+  (eg. `Int + 1 === Int`, `Nat + 1 === Nat \ 0`)
+  I have to make some changes to other assumptions I already made.
+  
+  questions: how should one work with types themselves (should it be possible at all?)
+  eg.
+  
+  0. there is a conflict of operators: while `'a' | 'b'` is unambiguous, `true | false` is not
+  1. `<` operator, which I thought could be used as "is a subtype of". But `Even < Int` could
+     also be interpreted as `All e: Even, i: Int => e < i`, or even `Bool` (because some evens
+     are less than some ints and some are not)
+  2. What about `T (= Int) extends Even then ...`, or:
+  2. What about `T (= Int) is evens then A[ T ] else B[ T ]`? Previously I disliked TypeScript's
+     way of handling this (`A[ Even ] | B [ Odd ]`), but it seems consistent with my new paradigm
+  
+  also:
+  ```
+    type X[ All T < Text ] = Array[ T ];
+    type X[ All T < Int ] = Array[ T ];
+    
+    X[ Text | Int ] ==  Array[ Text ] | Array[ Int ]; // ...? Or should this be an error?
+  ```
+  
+  Perhaps TypeScript's distributivity of conditional types should actually work like this:
+  ```
+    type A[T] = T extends any ? T[] : never;
+    
+    type NatArr = A[Nat]; // never[] | 0[] | 1[] | (0 | 1)[] | 2[] | (2 | 0)[] | ...
   ```
 `new` is constructor, how should destructor be named? I want 3 letters. `die`?
   random ideas: `ruk`?
