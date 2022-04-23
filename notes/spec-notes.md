@@ -565,6 +565,10 @@ nullable types to give meaning to `null += 2`? what would the consequences of
   type conversions between these nulls?
 json support, import json as object
 maybe pointers should have a private assign method a friend function assign?
+both then-else/thand/thelse and &&/||; the latter always returns a boolean
+  perhaps the right hand side of && and || should be forbidden from having
+  side effects?
+well-orders can be captured by types of pairs
 if a trait has a generic parameter called Self, then it must be the zeroth parameter,
   and it must equal the class that implements it?
 should traits be able to have friends (passable to classes), and specify private
@@ -1002,6 +1006,20 @@ html could be part of chalk, a different syntax for sth like object literals (bu
 libexports must be explicitly mut/const?, maybe that would be a good idea for trait methods, too
 warning: potentially nonterminating loop/function?
 ```
+  import /lib/librario
+  import /absolute-path
+  import ./relativePath
+  
+  import Math as * // Math must be an already defined identifier,
+    // works like using namespace Math, also usable in functions
+  
+  log(5); // No need to type `Math.log`;
+  
+  fn foo() {
+    import MySpecialSth as *;
+  }
+```
+```
 Proof distinct(Object... rest) { // Or `*Object...` ??
   assume rest.length > 1;
   
@@ -1023,12 +1041,35 @@ Nat a, b {
 }
 ```
 `value.getName(command) |a> return a;`
+it should be possible to overload overloadables by importing them
+  ```
+    import asdf as { max };
+    
+    function max() => 0;
+  ```
+if `(x)` is just `x`, but `(x,)` is a tuple, should there be a distinction
+  between these functions? It would probably suck practically, but would be consistent
+  `fn foo(n) => n` vs `fn foo(n,) => n`
+ordinary `{ ... }` blocks would probably overload the syntax too much, but do blocks
+  `do { ... }` seem fine to me.
+if `[x]` is function syntax, then `let foo = [x]` must be valid
+  (with the possible exception of an added semicolon at the end)
+there should be positive infinity, negative infinity, and signless infinity
+think about handling installation, for example so that OpenGl can be compiled
+  once on one machine.
 some proposition will probably work like types in that they will be guaranteed
   to hold for the variable during its entire life, in the same way mutability
   qualifiers work. Should there be a way to circumvent the usual rules for
   manipulating these (eg. only assign immutable data to immutable variables)
   if it provably satisfies the propositions?
+=== -> == -> =, identity implies computable equality implies equality
+  a = b <-> a and b are the same up to pointers and private information?
 `ignore x` returns `null` if `x is Error`, else returns `x` 
+  ignore should be a function and not a keyword, since it requires no special treatment
+in the presence of async/await/promises, effect types must not only store informaiton
+  about variables' possible future values, but also pending mutations
+  possible syntax: `Int >>> Even awaits { 2, 4 }` the type of ints that are about
+  to become evens with two promises that assign 2, resp. 4 to it.
 default destructuring parameters
 `export X from "x";`
 `a == b == c` should be true if `a == b` and `b == c`? how many operators should
@@ -2802,6 +2843,11 @@ TODO what about type modyfiers for function variables? (are they necessary?)
 
   Null const shared foo() = baz;
   ```
+classes should be functions that return their instances
+keyphrase (like `using namespace` in c++): `trust me that "assertion"`
+  this would generate an error message, but it's better to have 1 error
+  saying "Code contains an unproven assertion" than 50 errors saying
+  "Even might not be TwoPrimeDecomposable" at random places
 vocab like "member", "static member", etc must be defined
   ? member - anything declared in a class
     field - member variable
@@ -2883,6 +2929,23 @@ rules for unused X (type, variable, function, ...):
      function, it is used.
   4. TODO (the point is, if two objects use each other but are not used from
      `main` or a libexport, they aren't used)
+reserved words:
+  implements, and, or, not, Un, In, And, Or, Not
+```
+  // Right indentation:
+  type T = asdf
+    | record {
+        asdf: Nat;
+      };
+  
+  type T =
+    asdf | record {
+      asdf: Nat;
+    };
+  
+  // Wrong indentation:
+  
+```
 keywords:
   `continue;` sugar for `return true;`
   `break;` sugar for `return false;`
@@ -5126,6 +5189,14 @@ one of the goals of Chalk is to have a language such that if a program has
 `foo[(T t where t ++ String s is t) : type X : String](X a) -> X => a`
 enable exporting from deep paths (import X from ./foo/bar) using special
   keyword, something at the start of file, or extension?
+perhaps whitespace should matter after all. take
+  ```
+    type List[T: type, length: Nat] =
+      | Ex _: length & 0 => record { empty: record {} }
+      | Ex _: length & Nat + 1 => record { value: T; next: List[
+      T, length.pred ] };
+  ```
+  the arrow `=>` should perhaps stop at the end of the line? that would make the def correct.
 extending higher order types?
   `class C<T> : ToString, C<...> : Monad { ... }`
   is it useful? or is `X : Y` always the same as `X<T> : Y<T>`?
@@ -5931,10 +6002,19 @@ rename `assume` to `invariant`, `require`, `where` or `axiom`?
 `"String templates: $variableName, ${Math.tau}"`
   must be pure
   only avaiable in double quotes?
+Types must start with uppercase and non-type variables with lowercase letter
 `(A_0, ..., A_n)` equals `{ (a_0, ..., a_n), a_i of A_i }` iff every `A_i` is inhabited?
 `( Int, Int )` is a pair of types, `((Int, Int))` is the type of pairs of ints?
   `{{ a: String }}` a type of objects with public String property `a`
+`Object.fields` / `Object.members`
+Block returns last statement, function must return explicitly
+Behavior of a program that compiles must be completely specified by source code.
+  What are compiler options like ffastmath in gcc must be part of source code.
+  Compiler options can only mess with levels of optimization, perhaps also with
+  what is a valid program and what not (eg. enabling new, experimental syntax),
+  never with semantics.
 compiler should warn if a file is never imported
+  if too many files, just write "foo, bar, baz and 216 other files not imported"
 multiline string:
 ```
   """
@@ -7872,6 +7952,8 @@ periodic threads
   I prefer the latter.
 `foo(<|Int i) -> <|Int => i * 2` shorthand for `foo[All type A <| Int, Ex type B <| Int](A i) -> B => i * 2`?
 breakable named if? every block should be nameable
+stlib should have a function that iterates all boolean n-tuples in the order that corresponds
+  to natural number increments (little endina: 000, 100, 010, 110, 001, ...)
 problem: T.equals must be computable, and thats bad for classes like Nat and ZFCSet.
   maybe they shouldn't be classes, byt pure types?
   a solution for these particular types might be:
@@ -7896,3 +7978,4 @@ problem: T.equals must be computable, and thats bad for classes like Nat and ZFC
   ```
   However, I'm unsure if there is always a workaround.
 `move(dest, source)` - moves source to dest (and assigns null to source?)
+reserve the keyword `UNSAFE_TYPE_CAST`
