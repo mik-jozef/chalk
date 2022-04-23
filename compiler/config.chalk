@@ -1,7 +1,0 @@
-///
-  Represents a configuration of a Chalk project.
-///
-
-export pub class Config {
-  String mainPath = "./main.chalk";
-}

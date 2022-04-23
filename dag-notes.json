@@ -1,0 +1,327 @@
+{
+  "labels": [
+    {
+      "name": "Syntax",
+      "color": [
+        48,
+        154,
+        233
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Stlib",
+      "color": [
+        198,
+        4,
+        210
+      ],
+      "description": "Standard library",
+      "ancestors": []
+    },
+    {
+      "name": "Documentation",
+      "color": [
+        9,
+        204,
+        175
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Tooling",
+      "color": [
+        88,
+        160,
+        50
+      ],
+      "description": "Compiler, Package manager, etc",
+      "ancestors": []
+    },
+    {
+      "name": "Compiler",
+      "color": [
+        69,
+        126,
+        140
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Package manager",
+      "color": [
+        145,
+        93,
+        4
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Version control",
+      "color": [
+        75,
+        82,
+        16
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Modules",
+      "color": [
+        209,
+        94,
+        153
+      ],
+      "description": "Module system of the programming language",
+      "ancestors": []
+    },
+    {
+      "name": "Config",
+      "color": [
+        230,
+        78,
+        198
+      ],
+      "description": "config file, like package.json, but for this programming language and its tooling",
+      "ancestors": []
+    },
+    {
+      "name": "Errors",
+      "color": [
+        163,
+        141,
+        3
+      ],
+      "description": "",
+      "ancestors": [
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "name": "Website",
+      "color": [
+        171,
+        208,
+        34
+      ],
+      "description": "",
+      "ancestors": []
+    },
+    {
+      "name": "Warnings",
+      "color": [
+        92,
+        174,
+        127
+      ],
+      "description": "",
+      "ancestors": [
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "name": "Debugger",
+      "color": [
+        143,
+        48,
+        22
+      ],
+      "description": "",
+      "ancestors": [
+        "Tooling"
+      ]
+    }
+  ],
+  "texts": [
+    {
+      "id": 0,
+      "text": "Look into the /stlib directory of the chalk repo and extract everything useful",
+      "date": "2021-12-12T21:48:12.217Z",
+      "labels": [
+        "Stlib"
+      ]
+    },
+    {
+      "id": 1,
+      "text": "There should be a reference of all terms from the spec\n\nEvery term should include:\n\n - a definition\n - a link to the spec where it is defined\n - perhaps: a list of places where mentioned (this feels like an overkill, people can use search)",
+      "date": "2021-12-12T21:51:10.152Z",
+      "labels": [
+        "Documentation"
+      ]
+    },
+    {
+      "id": 2,
+      "text": "Look into /spec/spec-main.md and extract all useful things (if any lol)",
+      "date": "2021-12-12T22:04:43.350Z",
+      "labels": []
+    },
+    {
+      "id": 3,
+      "text": "The compiler should support a node-like REPL.\n\nAlso, everything doable through a CLI should be just\na syntax sugar for an in-REPL call followed by exit.\n\nAll cli commands should be specified declaratively.\n\nEg.:\n\n```\n  cpy version\n```\n\ncould equal\n\n```\n  cpy < \"import \"stlib\" as { Compiler: { version } }; print(version); exit();\"\n```\n\nwhere `print` is a special function only available in the REPL.\n\nPerhaps some basic things could be already imported, like the Compiler class.",
+      "date": "2021-12-12T22:16:58.670Z",
+      "labels": [
+        "Compiler"
+      ]
+    },
+    {
+      "id": 4,
+      "text": "Every tool command should be documented. All documentation should be\navailable online and generated from source code.\n\nIt should not even be possible to have an undocumented cli commands\nbecause of the way documentation is generated.",
+      "date": "2021-12-12T22:18:49.830Z",
+      "labels": [
+        "Documentation"
+      ]
+    },
+    {
+      "id": 5,
+      "text": "The compiler should respond to the following commands:\n\ncpy -h\ncpy --help\ncpy -v\ncpy --version\n\nIt can respond with \"Did you mean `cpy help`/`cpy version`?\"",
+      "date": "2021-12-12T22:21:38.618Z",
+      "labels": [
+        "Compiler"
+      ]
+    },
+    {
+      "id": 6,
+      "text": "These compiler commands should be supported\n\ncompile\n  --target=web|elf|exe|uefi|amd\n  --out=\"path/to/file.js\"|\"path/to/out/folder/\"\n\ncompiles, by default the current directory\n\n\ncheck\nchecks program for errors\n\n\nrun\nruns a program, given a path to source code\n\n\nload\nloads a program, and enters REPL",
+      "date": "2021-12-12T22:32:33.788Z",
+      "labels": [
+        "Compiler"
+      ]
+    },
+    {
+      "id": 7,
+      "text": "Perhaps it should not be possible to import from inside a folder,\nunless the export is from `-.cply` (like index.js) file.",
+      "date": "2021-12-12T22:35:20.269Z",
+      "labels": [
+        "Modules"
+      ]
+    },
+    {
+      "id": 8,
+      "text": "The import syntax should be:\n\n// creates an identifier Library\nimport \"library\";\n\n// creates an identifier AnotherLibrary\nimport \"library2\" as AnotherLibrary;\n\n// destructuring is supported, but its syntax here is not binding\nimport \"library\" as { destructuring as renamedVar, b as let c: { nestedDest as ssss } };\n\nimport \"./relative-path.cply\"; // creates the identifier RelativePath\n\nimport \"../relative-path.cply\"; // error: RelativePath already declared at [...], choose a name\n\nimport \"/absolute/path\" // creates the identifier Path importing from `/absolute/path/-.cply`\n\n\nPath conventions:\n\na valid path matches this:\n\nPath = Prefix *(FsFolder \"/\") (FsFile | FsFolder)\nPrefix = (+(../)|./|/|)\nFsFile = (\"-\" | (a-z|A-Z) *(a-z|A-Z|0-9|\"-\"[|~$]) ) . *(a-z|A-Z|0-9)\nFsFolder = (a-z|A-Z) *(a-z|A-Z|0-9|\"-\"[|~$])\n\n\n",
+      "date": "2021-12-12T22:56:48.431Z",
+      "labels": [
+        "Modules",
+        "Syntax"
+      ]
+    },
+    {
+      "id": 9,
+      "text": "All compiler errors should have their own class, and all error\nmessages should be searchable online, with examples codes\ncausing them.",
+      "date": "2021-12-13T09:05:37.303Z",
+      "labels": [
+        "Errors",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 10,
+      "text": "There should be an online IDE, and it should offer an iframe\nfor any other website that renders code and lets people edit\nand run it.",
+      "date": "2021-12-13T09:06:41.921Z",
+      "labels": [
+        "Website"
+      ]
+    },
+    {
+      "id": 11,
+      "text": "Warning class: expression has no effect.\n\nExamples:\n\n - `cond then true else false` -> `cond`\n - `A | B` if `A < B`\n - `class A extends B, B {}`",
+      "date": "2021-12-13T10:08:33.797Z",
+      "labels": [
+        "Warnings",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 12,
+      "text": "Warning: unused code/variable/function",
+      "date": "2021-12-13T10:08:59.248Z",
+      "labels": [
+        "Warnings",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 13,
+      "text": "Warning: compile time known condition",
+      "date": "2021-12-13T10:09:11.893Z",
+      "labels": [
+        "Warnings",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 14,
+      "text": "Warning: duplicate imports, path imported twice/multiple times\n\n```\n  import asdf as { a };\n  import asdf as { b }; // Warning: asdf is already imported at line 0.\n```",
+      "date": "2021-12-13T10:12:31.322Z",
+      "labels": [
+        "Warnings",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 15,
+      "text": "Warning: TODO found in comments",
+      "date": "2021-12-13T10:12:49.134Z",
+      "labels": [
+        "Warnings",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 16,
+      "text": "The compiler should be able to publish stats like compilation time\n(broken down into parsing, type checking, running comptime code, etc,\neven perhaps per file?)",
+      "date": "2021-12-13T10:15:52.355Z",
+      "labels": [
+        "Compiler"
+      ]
+    },
+    {
+      "id": 17,
+      "text": "There should be an option to automatically fix code formatting (by the compiler, or sth)",
+      "date": "2021-12-13T10:16:48.562Z",
+      "labels": [
+        "Tooling"
+      ]
+    },
+    {
+      "id": 18,
+      "text": "Debugger should allow:\n\n// Very granular, can do several steps per expression.\nstep forward\nstep backward\n\n// Steps out of a function\nstep out forward\nstep out backward\n\n// moves to the next top-level (block-wise) expression\nstep down\nstep up\n\n\nYes, this includes time travel. There should be a buffer\nfor destroyed data so that going backwards in time is possible.",
+      "date": "2021-12-13T10:20:29.637Z",
+      "labels": [
+        "Debugger",
+        "Tooling"
+      ]
+    },
+    {
+      "id": 19,
+      "text": "Warnings and errors from `/compiler/ast/errors/errors.chalk`:\n\n```\n  ///\n    Defines descriptions of all warnings and errors that can happen during compilation\n    of Chalk.\n\n    All errors should contain an example of correct code, or code that causes the\n    error, preferrably both, and an explanation of why it happens and what it means.\n\n    TODO: autofixes? they can be autogenerated for spaces, but for other code,\n    that could have bad consequences - autoremoval of TODO from comments, \"fixes\"\n    of code that change the code as little as possible to be error-free, but not\n    logical-error-free, etc.\n  ///\n\n  import { Error } from \"sdl/regex.chalk\";\n\n  export enum ErrType {\n    // Relating to documentation.\n    documentation,\n    // Valid code that may indicate error in code.\n    suspicious,\n    // Erroneous code.\n    error,\n    // Style.\n    style,\n  }\n\n  export pub class Errors : Enum {\n    MEMD(\n      ErrType.documentation,\n      \"missing or empty module documentation\",\n      \"\"\"\n      Module documentation is missing or empty. Please add a description\n      of the module.\n\n      Example of a documented module:\n\n      ```\n      ///\n        This is module documentation. MEMD means this comment is missing.\n        This module exports a function that returns \"Hello, world!\".\n      ///\n\n      // Returns \"Hello, world!\"\n      export String hello() => \"Hello, world!\";\n      ```\n      \"\"\",\n    ),\n    EC(\n      ErrType.suspicious,\n      \"empty class\",\n      \"\"\"\n      Empty class cannot do anything, it is probably unfinished or redundant.\n\n      Example of an empty class:\n\n      ```\n      class X {}\n      ```\n\n      Try adding some members to the class:\n\n      ```\n      class X {\n        Int i;\n\n        new(Int _i) {}\n\n        pub getI() { return i }\n      }\n      ```\n      \"\"\"\n    ),\n    TODO(\n      ErrType.suspicious,\n      \"TODO found in a comment\",\n      \"\"\"\n      \"TODO\" is often found in code to signal that the code is unfinished.\n\n      Example:\n\n      ```\n      Null foo() {\n        // TODO empty\n      }\n      ```\n      \"\"\"\n    ),\n    FATD(\n      ErrType.style,\n      \"field after type declaration\",\n      \"\"\"\n      In a class, fields (member variables) should be defined before member types\n      (classes, traits and functions).\n\n      Example (wrong):\n\n      ```\n      class A {\n        class B {\n          Null foo();\n        }\n\n        // This variable should be defined before declaration of the class B\n        Int i;\n      }\n      ```\n\n      Example (correct):\n\n      ```\n      class A {\n        // This is also a field (of type *class*).\n        class C;\n\n        Int i;\n\n        class B {\n          Null foo();\n        }\n      }\n      ```\n      \"\"\"\n    ),\n    UM(\n      ErrType.error,\n      \"unsupported magic\",\n      \"\"\"\n      The `[[magic]]` literal can only be used in a few parts of the standard\n      library, and cannot be used in most code.\n      \"\"\"\n    ),\n    ;\n\n    pub ErrType type;\n    pub String short;\n    pub String long;\n\n    new({ ErrType _type, String _short, String _long }) {}\n  };\n```",
+      "date": "2021-12-13T10:29:59.291Z",
+      "labels": [
+        "Warnings",
+        "Errors",
+        "Documentation",
+        "Compiler"
+      ]
+    },
+    {
+      "id": 20,
+      "text": "Keywords from somewhere:\n\n\"All\", \"any\", \"auto\", \"assume\", \"await\", \"break\", \"case\", \"catch\", \"class\",\n\"comptime\", \"const\", \"continue\", \"cst\", \"default\", \"enum\", \"Ex\", \"Exists\",\n\"export\", \"final\", \"for\", \"friend\", \"fn\", \"let\", \"libexport\", \"ignore\", \"immut\",\n\"import\", \"is\", \"mut\", \"nowait\", \"own\", \"pub\", \"return\", \"Self\", \"shared\",\n\"static\", \"switch\", \"throw\", \"trait\" , \"try\", \"type\", \"yield\".",
+      "date": "2021-12-13T10:37:24.933Z",
+      "labels": [
+        "Syntax"
+      ]
+    }
+  ]
+}
