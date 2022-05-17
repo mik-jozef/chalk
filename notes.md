@@ -7979,3 +7979,4 @@ problem: T.equals must be computable, and thats bad for classes like Nat and ZFC
   However, I'm unsure if there is always a workaround.
 `move(dest, source)` - moves source to dest (and assigns null to source?)
 reserve the keyword `UNSAFE_TYPE_CAST`
+`fn foo(a, b) ...` should be a syntax sugar for `fn foo((a, b)) ...`
