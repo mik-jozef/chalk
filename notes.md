@@ -7980,3 +7980,13 @@ problem: T.equals must be computable, and thats bad for classes like Nat and ZFC
 `move(dest, source)` - moves source to dest (and assigns null to source?)
 reserve the keyword `UNSAFE_TYPE_CAST`
 `fn foo(a, b) ...` should be a syntax sugar for `fn foo((a, b)) ...`
+allow library-wide configuration in project.json?
+  ```
+    libraries: {
+      typescript: [
+        "4.0.3": {
+          compilerOptions: { ... },
+        },
+      ],
+    },
+  ```
