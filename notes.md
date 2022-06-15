@@ -7990,3 +7990,5 @@ allow library-wide configuration in project.json?
       ],
     },
   ```
+create an easy syntax for switching between mutating an object
+  and making a copy. Eg `a.increment()` vs `a...increment()`?
