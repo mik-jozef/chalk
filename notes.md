@@ -7996,7 +7996,10 @@ type classes, let a class implement a trait in multiple ways,
   including with renamed members
   eg. a trait Field should be able to implement the trait Group
   twice (however, zero is not a part of the multiplicative group,
-  should excluding certain instances be allowed?)
+  should excluding certain instances be allowed? (restricting the
+  type of `this` should be allowed in methods.))
   a better example: class Nat should be able to implement
   PartialOrder in the standard way, and also by divisibility.
   Anyone should be able to define their custom orders on things
+it should be possible to restrict the type of `this` in methods
+  `div(this: ~0, divisor: This) => ...`
