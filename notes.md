@@ -8003,3 +8003,18 @@ type classes, let a class implement a trait in multiple ways,
   Anyone should be able to define their custom orders on things
 it should be possible to restrict the type of `this` in methods
   `div(this: ~0, divisor: This) => ...`
+perhaps use `>>` for lambda expressions, so that you can use
+  `=>` for implication and `->` for functions (or vice versa)
+  ```
+    Int => Int
+    Int -> Int  // ✓
+    
+    i > 3 -> i > 2
+    i > 3 => i > 2  // ✓
+    
+    x >> x * 2  // ✓
+    x .. x * 2
+    
+    All n: Nat >> n in Even | n in Odd;
+    All n: Nat .. n in Even | n in Odd;  // ✓
+  ```
