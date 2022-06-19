@@ -8018,3 +8018,12 @@ perhaps use `>>` for lambda expressions, so that you can use
     All n: Nat >> n in Even | n in Odd;
     All n: Nat .. n in Even | n in Odd;  // ✓
   ```
+```
+  enum RangeType { open, closed, closedOpen, openClosed }
+  
+  class ranges Range<All T<: Order> {
+    this(min, max, type = RangeType.closedOpen) >> ...;
+    
+    Range<int> implements Iterable<int>;
+  }
+```
