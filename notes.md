@@ -8027,8 +8027,9 @@ perhaps use `>>` for lambda expressions, so that you can use
     Range<int> implements Iterable<int>;
   }
 ```
-function call-else for defining a value if a function does not terminate?
-  similar to the limit state of ITTMs
+similar to the limit state of ITTMs
+  function call-else for defining a value if a function does not terminate?
+    this is too general - it would solve its own halting problem
   ```
     prd foo() >> foo()
     
