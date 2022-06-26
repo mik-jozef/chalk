@@ -8027,3 +8027,10 @@ perhaps use `>>` for lambda expressions, so that you can use
     Range<int> implements Iterable<int>;
   }
 ```
+function call-else for defining a value if a function does not terminate?
+  similar to the limit state of ITTMs
+  ```
+    prd foo() >> foo()
+    
+    foo() undef null == null;
+  ```
