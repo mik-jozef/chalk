@@ -8035,3 +8035,16 @@ similar to the limit state of ITTMs
     
     foo() undef null == null;
   ```
+```
+  trait Vehicle { move(); }
+  trait Named { name: Text; }
+  
+  class Car {
+    implements Vehicle; // Specifies interface of objects
+    static implements Named; // Specifies interface of class
+    
+    static name = "Clarntswough";
+    
+    move() {}
+  }
+```
