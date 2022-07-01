@@ -8047,4 +8047,13 @@ similar to the limit state of ITTMs
     
     move() {}
   }
+  
+  trait Field {
+    trait FieldElement
+      implements CommutativeGroup as { op: add },
+      FieldElement - zero implements CommutativeGroup as { op: mul };
+    
+    zero: FieldElement;
+    one: FieldElement;
+  }
 ```
