@@ -8058,3 +8058,13 @@ similar to the limit state of ITTMs
   }
 ```
 instead of "asdf ${val}", use "asdf \(val)"?
+it is natural that some projects would want some configuration
+  to be passable to the compiler as arguments when compiling.
+  However, the domain (ie. the type) of the configuration object
+  should be known to the compiler, so that it can. eg. throw
+  warning like "this variable is unused" if its unused under
+  all possible configs, and not throw it if it is sued under
+  some other config.
+  Perhaps an explicit option called config that accepts a (json)
+  object, which would be validated agains /config.chalk?
+  `chalk build --config=/configs/minimal.json`
